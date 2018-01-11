@@ -1,0 +1,55 @@
+motion_light:
+  module: hass_apps
+  class: MotionLightApp
+
+  # Turn on debug logging.
+  # (default: false)
+  #debug: false
+
+  # Optionally, define constraints that must be fulfilled in order
+  # for motion detection to be considered.
+  # However, the constraints are only applied to the motion start event,
+  # so you can be sure that devices that have been turned on due to
+  # motion will be turned off when the motion ends again.
+  # These constraints count for all sensors in the configuration.
+  # See the AppDaemon docs for possible constraints.
+  # (default: {})
+  constraints:
+    # Only consider motion from 45 minutes before sunset to 45 minutes
+    # after sunrise.
+    constrain_start_time: sunset - 00:45:00
+    constrain_end_time: sunrise + 00:45:00
+
+  # All motion sensors go into this config section.
+  # (default: {})
+  sensors:
+
+    binary_sensor.hall_motion:
+      # Whether to apply all constraints defined globally.
+      # (default: true)
+      #global_constraints: true
+      # Optionally, add constraints that count only for this particular
+      # sensor. If a constraint is defined both globally and here,
+      # the one defined here takes precedence.
+      # (default: {})
+      #constraints:
+      #  constrain_time: ...
+
+      # The sensor state that should be considered as on.
+      # (default: "on")
+      #on_state: "on"
+
+      # Optionally, define delays (in seconds) for motion start/end.
+      # (default: 0)
+      #on_delay: 0
+      #off_delay: 0
+
+      # All entities that should be controlled by this motion sensor
+      # go here.
+      # (default: {})
+      controls:
+        group.all_lights:
+          # whether motion should turn the device off instead of on
+          # and vice-versa
+          # (default: false)
+          #invert: false
