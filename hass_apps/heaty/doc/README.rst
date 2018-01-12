@@ -1,5 +1,5 @@
-hass-heaty
-==========
+Heaty
+=====
 
 A highly-configurable, comfortable to use Home Assistant / appdaemon app
 that controls thermostats based on a schedule while still facilitating

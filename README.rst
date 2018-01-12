@@ -14,7 +14,7 @@ of this repository. Each includes a sample configuration in the file
 
 Currently, the following apps are included:
 
-* **heaty**:  A highly-configurable, comfortable to use Home Assistant /
+* `heaty`_:  A highly-configurable, comfortable to use Home Assistant /
   appdaemon app that controls thermostats based on a schedule while still
   facilitating manual intervention at any time.
 * **motion_light**:  This app can turn devices on/off according to the
@@ -22,6 +22,8 @@ Currently, the following apps are included:
   The most obvious use case is controlling lights when motion sensors
   report motion, but other scenarios are imaginable as well. Delays and
   constraints can be configured freely for each individual sensor.
+
+.. _heaty: hass_apps/heaty/doc/README.rst
 
 
 Installation
