@@ -1,4 +1,4 @@
-hass-apps
+hass_apps
 =========
 
 Some useful apps and snippets to empower Home Assistant and AppDaemon
@@ -37,14 +37,14 @@ Install from PyPi:
 
 ::
 
-    pip3 install hass-apps
+    pip3 install hass_apps
 
 Or clone the GitHub repository to get even the latest changes:
 
 ::
 
-    git clone https://github.com/efficiosoft/hass-apps
-    cd hass-apps
+    git clone https://github.com/efficiosoft/hass_apps
+    cd hass_apps
     pip3 install . --upgrade
 
 
@@ -89,7 +89,7 @@ Simply pull upgrades from PyPi:
 
 ::
 
-    pip3 install --upgrade hass-apps
+    pip3 install --upgrade hass_apps
 
 Or, if you installed from the git repository:
 
