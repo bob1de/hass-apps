@@ -20,17 +20,15 @@ def modifies_state(func):
     methods of the Heaty class, because it fetches the Heaty object
     from the method's arguments."""
 
-    def new_func(self, *args, **kwargs):
-        # pylint: disable=missing-docstring
+    def _new_func(self, *args, **kwargs):
         result = func(self, *args, **kwargs)
         self.update_publish_state_timer()
-        self.log("--- Called update_publish_state_timer.", level="DEBUG")
         return result
 
-    new_func.__name__ = func.__name__
-    new_func.__doc__ = func.__doc__
-    new_func.__dict__.update(func.__dict__)
-    return new_func
+    _new_func.__name__ = func.__name__
+    _new_func.__doc__ = func.__doc__
+    _new_func.__dict__.update(func.__dict__)
+    return _new_func
 
 
 class HeatyApp(common.App):
@@ -145,20 +143,20 @@ class HeatyApp(common.App):
                                   duration=sensor["delay"],
                                   room_name=room_name)
 
-        if self.master_switch_enabled():
-            self.log("--- Setting initial temperatures where needed.")
-            for room_name in self.cfg["rooms"]:
-                if not self.check_for_open_window(room_name):
-                    self.set_scheduled_temp(room_name)
-        else:
-            self.log("--- Master switch is off, setting no initial values.")
-
         master_switch = self.cfg["master_switch"]
         if master_switch:
             self.log("--- Registering state listener for {}."
                      .format(master_switch),
                      level="DEBUG")
             self.listen_state(self.master_switch_cb, master_switch)
+
+        if self.master_switch_enabled():
+            for room_name in self.cfg["rooms"]:
+                if not self.check_for_open_window(room_name):
+                    self.set_scheduled_temp(room_name)
+        else:
+            self.log("--- Master switch is off, not setting temperatures "
+                     "initially.")
 
     @modifies_state
     def master_switch_cb(self, entity, attr, old, new, kwargs):
@@ -799,6 +797,8 @@ class HeatyApp(common.App):
     def update_publish_state_timer(self):
         """Sets the publish_state timer to fire in 1 second, if not
         running already."""
+
+        self.log("--- Called update_publish_state_timer.", level="DEBUG")
 
         if not self.publish_state_timer:
             timer = self.run_in(self.publish_state_timer_cb, 1)
