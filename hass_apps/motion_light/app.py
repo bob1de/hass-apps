@@ -97,8 +97,9 @@ class MotionLightApp(common.App):
 
         for entity, entity_data in sensor_data["controls"].items():
             turn_on = is_on ^ entity_data["invert"]
-            turn_func = self.turn_on if turn_on else self.turn_off
             self.log("<-- Turning {} {}"
                      .format(entity, "on" if turn_on else "off"),
                      level="DEBUG")
-            turn_func(entity)
+            domain = self.split_entity(entity)[0]
+            service = "{}/turn_{}".format(domain, "on" if turn_on else "off")
+            self.call_service(service, entity_id=entity)
