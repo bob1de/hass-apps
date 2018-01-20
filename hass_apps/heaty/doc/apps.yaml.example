@@ -160,10 +160,13 @@ heaty_full:
     # (optional, default: 10)
     #delay: 10
 
-    # By default, a state of "on" means open and "off" means closed.
-    # When this is set to True, "on" means closed and "off" means open.
-    # (optional, default: false)
-    #inverted: false
+    # By default, a state of "on" means open.
+    # If your sensor reports differently, you need to adjust this setting.
+    # If multiple states should be considered as open, specify a list
+    # of states instead.
+    # (optional, default: "on")
+    #open_state: "on"
+    #open_state: [1, "on"]
 
   # Add schedule rules you want to have prepended to each room's schedule
   # automatically here.
@@ -211,10 +214,10 @@ heaty_full:
 
         # Create a sensor item for each window sensor you want to consider
         # and overwrite default parameters if needed.
-        # A window sensor may be any binary_sensor that changes states
-        # between "on" and "off".
+        # A window sensor may be any sensor that changes states when
+        # window is opened/closed..
         binary_sensor.window_living:
-          inverted: true
+          open_state: open
 
       # Schedule for this room.
       # The explanation of schedules has been removed from this file,

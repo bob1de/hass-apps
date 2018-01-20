@@ -103,9 +103,11 @@ THERMOSTATS_SCHEMA = vol.Schema({
     vol.Extra: lambda v: THERMOSTAT_SCHEMA(v or {}),
 })
 
+STATE_SCHEMA = vol.Schema(vol.Any(float, int, str))
 WINDOW_SENSOR_SCHEMA = vol.Schema({
     vol.Optional("delay", default=10): vol.All(int, vol.Range(min=0)),
-    vol.Optional("inverted", default=False): bool,
+    vol.Optional("open_state", default="on"):
+        vol.Any(STATE_SCHEMA, [STATE_SCHEMA]),
 })
 WINDOW_SENSORS_SCHEMA = vol.Schema({
     vol.Extra: lambda v: WINDOW_SENSOR_SCHEMA(v or {}),

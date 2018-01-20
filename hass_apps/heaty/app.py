@@ -380,8 +380,7 @@ class HeatyApp(common.App):
 
         room_name = kwargs["room_name"]
         room = self.cfg["rooms"][room_name]
-        sensor = room["window_sensors"][entity]
-        action = "opened" if new == "on" or sensor["inverted"] else "closed"
+        action = "opened" if self.window_open(room_name, entity) else "closed"
         self.log("--> [{}] {}: state is now {}"
                  .format(room["friendly_name"], entity, new),
                  level="DEBUG")
@@ -719,16 +718,26 @@ class HeatyApp(common.App):
             return True
         return False
 
+    def window_open(self, room_name, sensor_name):
+        """Returns True if the given sensor in the given room reports open,
+        False otherwise."""
+
+        sensor = self.cfg["rooms"][room_name]["window_sensors"][sensor_name]
+        open_state = sensor["open_state"]
+        states = []
+        if isinstance(open_state, list):
+            states.extend(open_state)
+        else:
+            states.append(open_state)
+        return self.get_state(sensor_name) in states
+
     def get_open_windows(self, room_name):
         """Returns a list of windo sensors in the given room which
         currently report to be open,"""
 
-        open_sensors = []
-        sensors = self.cfg["rooms"][room_name]["window_sensors"]
-        for sensor_name, sensor in sensors.items():
-            if self.get_state(sensor_name) == "on" or sensor["inverted"]:
-                open_sensors.append(sensor_name)
-        return open_sensors
+        _open = filter(lambda sensor: self.window_open(room_name, sensor),
+                       self.cfg["rooms"][room_name]["window_sensors"])
+        return list(_open)
 
     def master_switch_enabled(self):
         """Returns the state of the master switch or True if no master
