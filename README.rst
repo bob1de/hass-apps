@@ -121,4 +121,5 @@ it's entirely your choice.
 .. |paypal| image:: https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif
    :target: https://www.paypal.me/RSchindler
 
-ETH: 0xa424975a19903F7A6253bA00D5C3F28fACff3C6B
+| ETH: 0xa424975a19903F7A6253bA00D5C3F28fACff3C6B
+| ZEC: t1RKFyt4qqtqdYfprf8HZoDHRNLNzhe35ED
