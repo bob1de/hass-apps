@@ -327,7 +327,7 @@ off again. In order for Heaty to notice the toggling, I added an
 automation to Home Assistant which fires a ``heaty_reschedule`` event.
 How that can be done has already been shown above.
 
-Now let's get back to the schedule rule. If it evaluates, it checks the
+Now let's get back to the schedule rule. When it evaluates, it checks the
 state of ``input_boolean.absent``. If the switch is turned on, it
 evaluates to ``Add(-3)``, otherwise to ``Ignore()``.
 
