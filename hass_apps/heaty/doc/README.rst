@@ -224,7 +224,7 @@ prevent the variable ``time``, which is included by Heaty anyway, from
 being overwritten.
 
 Example: Use of an external module
-~~~~~~~===========================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Imagine you have a module which makes some more complex decisions
 based on the current state. We call it ``my_mod``. This could look
