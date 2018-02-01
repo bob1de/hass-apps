@@ -22,7 +22,7 @@ setup(
     license = "Apache 2.0",
     packages = find_packages("."),
     package_data = {
-        "hass_apps": ["*/data/*"],
+        "hass_apps": ["data/*", "*/data/*"],
     },
     install_requires = [
         "appdaemon >= 2.1.12, < 3.0",

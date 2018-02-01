@@ -59,9 +59,10 @@ Even though it's untested, the only actions needed in order to install
 under hass.io should be:
 
 1. Install the appdaemon add-on.
-2. Copy the ``hass_apps`` folder and the file ``hass_apps_loader.py`` into
-   the ``apps`` directory of your AppDaemon container. This is also the
-   only thing you need to do when upgrading to a newer version of hass-apps.
+2. Copy the ``hass_apps`` folder and the file
+   ``hass_apps/data/hass_apps_loader.py`` into the ``apps`` directory of
+   your AppDaemon container. This is also the only thing you need to do
+   when upgrading to a newer version of hass-apps.
 3. Continue with the configuration as normal.
 
 
@@ -69,8 +70,9 @@ Configuration
 -------------
 
 1. Get yourself a nice cup of coffee or tea. You'll surely need it.
-2. Copy the file ``hass_apps_loader.py`` to your AppDaemon's ``apps``
-   directory. This is just a stub that imports the real app's code.
+2. Copy the file ``hass_apps/data/hass_apps_loader.py`` into your
+   AppDaemon's ``apps`` directory. This is just a stub which imports
+   the real app's code.
 3. Pick one or more apps you want to use.
 4. Copy the contents of ``hass_apps/some_app/doc/apps.yaml.example``
    to your ``apps.yaml`` file and adapt it as necessary. The example
