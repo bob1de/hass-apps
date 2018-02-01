@@ -551,8 +551,8 @@ class HeatyApp(common.App):
                 self.log("--- [{}] Inserting sub-schedule."
                          .format(room["friendly_name"]),
                          level="DEBUG")
-                sched = result.schedule
-                for _idx, _rule in sched.matching_rules(self.datetime()):
+                _rules = result.schedule.matching_rules(self.datetime())
+                for _idx, _rule in enumerate(_rules):
                     rules.insert(idx + _idx, _rule)
                 continue
 
