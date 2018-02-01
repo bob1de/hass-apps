@@ -1,2 +1,1 @@
 include README.rst
-include hass_apps_loader.py
