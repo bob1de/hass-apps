@@ -126,6 +126,10 @@ SCHEDULE_RULE_SCHEMA = vol.Schema(vol.All({
 }, build_schedule_rule))
 SCHEDULE_SCHEMA = vol.Schema(vol.All([SCHEDULE_RULE_SCHEMA], build_schedule))
 
+SCHEDULE_SNIPPETS_SCHEMA = vol.Schema({
+    vol.Extra: lambda v: SCHEDULE_SCHEMA(v or []),
+})
+
 ROOM_SCHEMA = vol.Schema({
     "friendly_name": str,
     vol.Optional("replicate_changes", default=True): bool,
@@ -135,7 +139,8 @@ ROOM_SCHEMA = vol.Schema({
         lambda v: THERMOSTATS_SCHEMA(v or {}),
     vol.Optional("window_sensors", default=dict):
         lambda v: WINDOW_SENSORS_SCHEMA(v or {}),
-    vol.Optional("schedule", default=list): SCHEDULE_SCHEMA,
+    vol.Optional("schedule", default=list):
+        lambda v: SCHEDULE_SCHEMA(v or []),
 })
 ROOMS_SCHEMA = vol.Schema({
     vol.Extra: lambda v: ROOM_SCHEMA(v or {}),
@@ -149,12 +154,16 @@ CONFIG_SCHEMA = vol.Schema(vol.All(vol.Schema({
     vol.Optional("off_temp", default="off"): TEMP_SCHEMA,
     vol.Optional("temp_expression_modules", default=dict):
         lambda v: TEMP_EXPRESSION_MODULES_SCHEMA(v or {}),
-    vol.Optional("thermostat_defaults", default=dict): THERMOSTAT_SCHEMA,
+    vol.Optional("thermostat_defaults", default=dict):
+        lambda v: THERMOSTAT_SCHEMA(v or {}),
     vol.Optional("window_sensor_defaults", default=dict):
-        WINDOW_SENSOR_SCHEMA,
+        lambda v: WINDOW_SENSOR_SCHEMA(v or {}),
     vol.Optional("schedule_prepend", default=list):
         lambda v: SCHEDULE_SCHEMA(v or []),
     vol.Optional("schedule_append", default=list):
         lambda v: SCHEDULE_SCHEMA(v or []),
-    vol.Optional("rooms", default=dict): lambda v: ROOMS_SCHEMA(v or {}),
+    vol.Optional("schedule_snippets", default=dict):
+        lambda v: SCHEDULE_SNIPPETS_SCHEMA(v or {}),
+    vol.Optional("rooms", default=dict):
+        lambda v: ROOMS_SCHEMA(v or {}),
 }, extra=True), config_post_hook))

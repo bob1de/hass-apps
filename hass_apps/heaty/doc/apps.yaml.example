@@ -176,6 +176,13 @@ heaty_full:
   # automatically here.
   schedule_append:
 
+  # Optionally, configure schedules that can be included by temperature
+  # expressions dynamically. See the README.rst for an example on how
+  # to use them.
+  schedule_snippets:
+    summer:
+    # ...
+
   rooms:
 
     # Create such a block for every room you want to control.

@@ -6,7 +6,8 @@ import datetime
 import functools
 
 
-__all__ = ["Add", "Break", "Ignore", "OFF", "Result", "Temp"]
+__all__ = ["Add", "Break", "Ignore", "IncludeSchedule", "OFF", "Result",
+           "Temp"]
 
 
 # special value Temp can be initialized with
@@ -67,6 +68,17 @@ class Ignore(ResultBase):
 
     def __repr__(self):
         return "Ignore()"
+
+class IncludeSchedule(ResultBase):
+    """Result that includes a schedule for processing."""
+
+    def __init__(self, schedule):
+        # pylint: disable=super-init-not-called
+
+        self.schedule = schedule
+
+    def __repr__(self):
+        return "IncludeSchedule({})".format(self.schedule)
 
 
 @functools.total_ordering
@@ -165,7 +177,7 @@ def eval_temp_expr(temp_expr, extra_env=None):
     """This method evaluates the given temperature expression.
     The evaluation result is returned. The items of the extra_env
     dict are added to the globals available during evaluation.
-    The result is an instance of Result."""
+    The result is a ResultBase (or sub-type) object."""
 
     # pylint: disable=eval-used
 

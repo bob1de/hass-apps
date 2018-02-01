@@ -177,6 +177,8 @@ returned to influence the way your result is treated.
   The temperature will not be changed in this case.
 * ``Ignore()``, which causes the rule to be treated as if it doesn't
   exist at all. If one exists, the next rule is evaluated in this case.
+* ``IncludeSchedule(schedule)``, which evaluates the given schedule
+  object. See below for an example on how to use this.
 * ``Result(value)``: just the final result which will be used as the
   temperature. Schedule lookup is aborted at this point.
 
@@ -188,13 +190,15 @@ the ``appdaemon.appapi.AppDaemon`` object of Heaty. You could,
 for instance, retrieve values of input sliders via the normal
 AppDaemon API.
 
-Beside the return types like ``Add``, ``Break``, ``Ignore`` and
-``Result``, the following global variables are available inside
-time expressions:
+Beside the return types like ``Add``, ``Break``, ``Ignore`` etc.
+the following global variables are available inside temperature
+expressions:
 
 * ``app``: the appdaemon.appapi.AppDaemon object
 * ``room_name``: the name of the room the expression is evaluated for
   as configured in Heaty's configuration (not the friendly name)
+* ``schedule_snippets``: a dictionary containing all configured schedule
+  snippets, indexed by their name
 * ``now``: a ``datetime.datetime`` object containing the current date
   and time
 * ``date``: a shortcut for ``now.date()``
@@ -347,6 +351,51 @@ Think of a device tracker that is able to report the distance between
 you and your home. Having such one set up, you could even implement
 dynamic throttling that slowly decreases as you near with almost zero
 configuration.
+
+Example: Including schedules dynamically with ``IncludeSchedule()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``IncludeSchedule()`` return type for temperature expressions can
+be used to insert a set of schedule rules right at the position of the
+current rule. This comes handy when a set of rules should be chosen
+based on some constraints you don't want to include in each rule
+redundantly.
+
+You can reference any schedule defined under ``schedule_snippets`` in
+the configuration, hence we create one to play with:
+
+::
+
+    schedule_snippets:
+      summer:
+      - { temp: 20, start: "07:00", end: "22:00", weekdays: 1-5 }
+      - { temp: 20, start: "08:00", weekdays: 6-7 }
+      - { temp: 16 }
+
+Now, we include the snippet into a room's schedule:
+
+::
+
+    schedule:
+    - temp: IncludeSchedule(schedule_snippets["summer"])
+      months: 6-9
+    - { temp: 21, start: "07:00", end: "21:30", weekdays: 1-5 }
+    - { temp: 21, start: "08:00", end: "23:00", weekdays: 6-7 }
+    - { temp: 17 }
+
+It turns out that you could have done the exact same without including
+schedules by adding the ``months: 6-9`` constraint to all rules of the
+summer snippet. But doing it this way makes the configuration a little
+more readable.
+
+However, you can also utilize the include functionality from inside
+custom code as shown in one of the previous examples. Just think of
+a function that selects different schedules based on external criteria,
+such as weather sensors or presence detection.
+
+It has to be noted that splitting up schedules doesn't bring any extra
+power to Heaty's scheduling capabilities, but it can make configurations
+much more readable as they grow.
 
 Example: What to use ``Break()`` for
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

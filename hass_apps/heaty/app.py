@@ -505,17 +505,22 @@ class HeatyApp(common.App):
                             opmode=opmode, temp=temp)
         therm["resend_timer"] = timer
 
-    def get_scheduled_temp(self, room_name):  # pylint: disable=inconsistent-return-statements
-        """Computes and returns the temperature that is configured for
-        the current date and time in the given room. The second return
-        value is the rule which generated the result.
+    def eval_schedule(self, room_name, sched, when):  # pylint: disable=inconsistent-return-statements
+        """Evaluates a schedule, computing the temperature for the time
+        the given datetime object represents. The temperature and the
+        matching rule are returned. The room name is only used for logging.
         If no temperature could be found in the schedule (e.g. all
         rules evaluate to Ignore()), None is returned."""
 
         room = self.cfg["rooms"][room_name]
 
         result_sum = expr.Add(0)
-        for rule in room["schedule"].matching_rules(self.datetime()):
+        rules = list(sched.matching_rules(when))
+        idx = 0
+        while idx < len(rules):
+            rule = rules[idx]
+            idx += 1
+
             result = self.eval_temp_expr(rule.temp_expr, room_name)
             self.log("--- [{}] Evaluated temperature expression {} "
                      "to {}."
@@ -542,10 +547,30 @@ class HeatyApp(common.App):
                          level="DEBUG")
                 continue
 
+            if isinstance(result, expr.IncludeSchedule):
+                self.log("--- [{}] Inserting sub-schedule."
+                         .format(room["friendly_name"]),
+                         level="DEBUG")
+                sched = result.schedule
+                for _idx, _rule in sched.matching_rules(self.datetime()):
+                    rules.insert(idx + _idx, _rule)
+                continue
+
             result_sum += result
 
             if isinstance(result_sum, expr.Result):
                 return result_sum.temp, rule
+
+    def get_scheduled_temp(self, room_name):
+        """Computes and returns the temperature that is configured for
+        the current date and time in the given room. The second return
+        value is the rule which generated the result.
+        If no temperature could be found in the schedule (e.g. all
+        rules evaluate to Ignore()), None is returned."""
+
+        room = self.cfg["rooms"][room_name]
+        return self.eval_schedule(room_name, room["schedule"],
+                                  self.datetime())
 
     def set_scheduled_temp(self, room_name, force_resend=False):
         """Sets the temperature that is configured for the current
@@ -621,6 +646,12 @@ class HeatyApp(common.App):
                          repr(result)),
                  level="DEBUG")
 
+        if isinstance(result, expr.IncludeSchedule):
+            result = self.eval_schedule(room_name, result.schedule,
+                                        self.datetime())
+            if result is not None:
+                result = result[0]
+
         if not isinstance(result, expr.Result):
             self.log("--- [{}] Ignoring temperature expression."
                      .format(room["friendly_name"]))
@@ -651,6 +682,7 @@ class HeatyApp(common.App):
         now = self.datetime()
         extra_env = {
             "app": self,
+            "schedule_snippets": self.cfg["schedule_snippets"],
             "room_name": room_name,
             "now": now,
             "date": now.date(),
