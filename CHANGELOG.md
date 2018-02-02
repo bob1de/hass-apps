@@ -21,6 +21,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Removed
 
 
+## [0.20180202.1]
+[0.20180202.1]: https://github.com/efficiosoft/hass_apps/compare/v0.20180202.0...v0.20180202.1
+
+### Changed
+* heaty v0.9.3
+
+
 ## [0.20180202.0]
 [0.20180202.0]: https://github.com/efficiosoft/hass_apps/compare/v0.20180201.0...v0.20180202.0
 
