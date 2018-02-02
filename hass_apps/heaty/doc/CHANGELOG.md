@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
+* Fixed error when not setting ``schedule:``, ``schedule_prepend:`` and
+  ``schedule_append:`` due to voluptuous not validating default values.
 
 ### Security
 

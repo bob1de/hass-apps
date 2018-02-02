@@ -139,7 +139,7 @@ ROOM_SCHEMA = vol.Schema({
         lambda v: THERMOSTATS_SCHEMA(v or {}),
     vol.Optional("window_sensors", default=dict):
         lambda v: WINDOW_SENSORS_SCHEMA(v or {}),
-    vol.Optional("schedule", default=list):
+    vol.Optional("schedule", default=lambda: build_schedule([])):
         lambda v: SCHEDULE_SCHEMA(v or []),
 })
 ROOMS_SCHEMA = vol.Schema({
@@ -158,9 +158,9 @@ CONFIG_SCHEMA = vol.Schema(vol.All(vol.Schema({
         lambda v: THERMOSTAT_SCHEMA(v or {}),
     vol.Optional("window_sensor_defaults", default=dict):
         lambda v: WINDOW_SENSOR_SCHEMA(v or {}),
-    vol.Optional("schedule_prepend", default=list):
+    vol.Optional("schedule_prepend", default=lambda: build_schedule([])):
         lambda v: SCHEDULE_SCHEMA(v or []),
-    vol.Optional("schedule_append", default=list):
+    vol.Optional("schedule_append", default=lambda: build_schedule([])):
         lambda v: SCHEDULE_SCHEMA(v or []),
     vol.Optional("schedule_snippets", default=dict):
         lambda v: SCHEDULE_SNIPPETS_SCHEMA(v or {}),
