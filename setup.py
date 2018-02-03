@@ -27,7 +27,6 @@ setup(
     install_requires = [
         "appdaemon >= 2.1.12, < 3.0",
         "voluptuous >= 0.10.5",
-        "yarl >= 0.17.0, < 1.0.0",
     ],
     zip_safe = False,
 )
