@@ -4,7 +4,7 @@ This module implements the Schedule and Rule classes.
 
 import datetime
 
-from . import expr
+from . import expr, util
 
 
 class Rule:
@@ -40,20 +40,25 @@ class Rule:
     def check_constraints(self, date):
         """Checks all constraints of this rule against the given date."""
 
+        # pylint: disable=too-many-return-statements
+
         year, week, weekday = date.isocalendar()
-        for constraint, allowed_values in self.constraints.items():
-            if allowed_values is None:
-                # ignore this one, since None is not iterable
-                continue
-            if constraint == "years" and year not in allowed_values:
+        for constraint, allowed in self.constraints.items():
+            if constraint == "years" and year not in allowed:
                 return False
-            if constraint == "months" and date.month not in allowed_values:
+            if constraint == "months" and date.month not in allowed:
                 return False
-            if constraint == "days" and date.day not in allowed_values:
+            if constraint == "days" and date.day not in allowed:
                 return False
-            if constraint == "weeks" and week not in allowed_values:
+            if constraint == "weeks" and week not in allowed:
                 return False
-            if constraint == "weekdays" and weekday not in allowed_values:
+            if constraint == "weekdays" and weekday not in allowed:
+                return False
+            if constraint == "start_date" and \
+               date < util.build_date_from_constraint(allowed, date, 1):
+                return False
+            if constraint == "end_date" and \
+               date > util.build_date_from_constraint(allowed, date, -1):
                 return False
         return True
 

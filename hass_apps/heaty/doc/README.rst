@@ -125,10 +125,23 @@ considered. There are a number of these constraints, namely:
 * ``weeks``: limit based on the weeks of the year
 * ``weekdays``: limit based on the days of the week, from 1 (Monday)
   to 7 (Sunday)
+* ``start_date``: A date of the form ``{ year: 2018, month: 2, day: 3 }``
+  before which the rule should not be considered. Any of the three fields
+  may be omitted, in which case the particular date component isn't
+  considered for validation.
+  If an invalid date such as ``{ year: 2018, month: 2, day: 29 }`` is
+  provided, the next valid date (namely 2018-03-01 in this case) is
+  assumed.
+* ``end_date``: A date of the form ``{ year: 2018, month: 2, day: 3 }``
+  after which the rule should not be considered anymore. As with
+  ``start_date``, any of the three fields may be omitted.
+  If an invalid date such as ``{ year: 2018, month: 2, day: 29 }`` is
+  provided, the nearest prior valid date (namely 2018-02-28 in this
+  case) is assumed.
 
-The format used to specify values for constraints is as follows.
-We call it range strings, and only integers are supported, no
-decimal values.
+The format used to specify values for the first five types of constraints
+is as follows. We call it range strings, and only integers are supported,
+no decimal values.
 
 * ``x-y``: range of numbers from ``x`` to ``y``, including ``x``
   and ``y``

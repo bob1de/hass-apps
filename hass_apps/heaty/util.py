@@ -44,6 +44,43 @@ def expand_range_string(range_string):
             numbers.add(int(part))
     return numbers
 
+def build_date_from_constraint(constraint, default_date, direction=0):
+    """Builds and returns a datetime.date object from the given constraint,
+    taking missing values from the given default_date.
+    In case the date is not valid (e.g. 2017-02-29), a ValueError is
+    raised, unless a number has been given for direction, in which case
+    the next/previous valid date will be chosen, depending on the sign
+    of direction."""
+
+    fields = {}
+    for field in ("year", "month", "day"):
+        fields[field] = constraint.get(field, getattr(default_date, field))
+
+    while True:
+        try:
+            return datetime.date(**fields)
+        except ValueError:
+            if direction > 0:
+                fields["day"] += 1
+            elif direction < 0:
+                fields["day"] -= 1
+            else:
+                raise
+
+            # handle month/year transitions correctly
+            if fields["day"] < 1:
+                fields["day"] = 31
+                fields["month"] -= 1
+            elif fields["day"] > 31:
+                fields["day"] = 1
+                fields["month"] += 1
+            if fields["month"] < 1:
+                fields["month"] = 12
+                fields["year"] -= 1
+            elif fields["month"] > 12:
+                fields["month"] = 1
+                fields["year"] += 1
+
 def format_time(when, format_str=TIME_FORMAT):
     """Returns a string representing the given datetime.time object.
     If no strftime-compatible format is provided, the default is used."""

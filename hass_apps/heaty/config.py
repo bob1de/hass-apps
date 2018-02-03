@@ -8,7 +8,8 @@ from . import schedule, util
 
 
 # names of schedule rule constraints to be fetched from the rule definition
-CONSTRAINTS = ("years", "months", "days", "weeks", "weekdays")
+CONSTRAINTS = ("years", "months", "days", "weeks", "weekdays",
+               "start_date", "end_date")
 
 
 def build_schedule_rule(rule):
@@ -76,6 +77,11 @@ RANGE_STRING_SCHEMA = vol.Schema(vol.All(
     ),
     util.expand_range_string,
 ))
+PARTIAL_DATE_SCHEMA = vol.Schema({
+    vol.Optional("year"): vol.All(int, vol.Range(min=1970, max=9999)),
+    vol.Optional("month"): vol.All(int, vol.Range(min=1, max=12)),
+    vol.Optional("day"): vol.All(int, vol.Range(min=1, max=31)),
+})
 TIME_SCHEMA = vol.Schema(vol.Match(r"^ *([01]\d|2[0123]) *\: *([012345]\d) *$"))
 
 TEMP_SCHEMA = vol.Schema(vol.Any(float, int, "off"))
@@ -128,6 +134,8 @@ SCHEDULE_RULE_SCHEMA = vol.Schema(vol.All({
     vol.Optional("days"): RANGE_STRING_SCHEMA,
     vol.Optional("weeks"): RANGE_STRING_SCHEMA,
     vol.Optional("weekdays"): RANGE_STRING_SCHEMA,
+    vol.Optional("start_date"): PARTIAL_DATE_SCHEMA,
+    vol.Optional("end_date"): PARTIAL_DATE_SCHEMA,
 }, build_schedule_rule))
 SCHEDULE_SCHEMA = vol.Schema(vol.All([SCHEDULE_RULE_SCHEMA], build_schedule))
 
