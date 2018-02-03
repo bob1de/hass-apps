@@ -13,13 +13,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
-* Added ``start_date`` and ``end_date`` constraints for schedule rules.
 
 ### Changed
 
 ### Deprecated
 
 ### Removed
+
+
+## 0.9.4 - 2018-02-03
+
+### Added
+* Added ``start_date`` and ``end_date`` constraints for schedule rules.
 
 
 ## 0.9.3 - 2018-02-02
