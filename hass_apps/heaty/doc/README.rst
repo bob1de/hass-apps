@@ -143,8 +143,8 @@ The format used to specify values for the first five types of constraints
 is as follows. We call it range strings, and only integers are supported,
 no decimal values.
 
-* ``x-y``: range of numbers from ``x`` to ``y``, including ``x``
-  and ``y``
+* ``x-y`` where ``x < y``: range of numbers from ``x`` to ``y``,
+  including ``x`` and ``y``
 * ``a,b``: numbers ``a`` and ``b``
 * ``a,b,x-y``: the previous two together
 * ... and so on
