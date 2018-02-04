@@ -74,7 +74,7 @@ class HeatyApp(common.App):
             except Exception as err:  # pylint: disable=broad-except
                 self.error("!!! Error while importing module {}: {}"
                            .format(repr(mod_name), repr(err)))
-                self.log("!!! Module won't be available.")
+                self.error("!!! Module won't be available.")
             else:
                 self.temp_expression_modules[as_name] = mod
 
