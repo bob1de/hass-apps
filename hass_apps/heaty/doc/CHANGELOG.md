@@ -13,13 +13,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
-* Added appdaemon 3 support alongside the old appdaemon 2
 
 ### Changed
 
 ### Deprecated
 
 ### Removed
+
+
+## 0.10.0 - 2018-03-05
+
+### Added
+* Added appdaemon 3 support alongside the old appdaemon 2
 
 
 ## 0.9.4 - 2018-02-03
