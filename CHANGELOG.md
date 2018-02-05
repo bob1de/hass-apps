@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Added
 * Added CHANGELOG.md and LICENSE to Python source package.
+* Added appdaemon 3 support alongside the old appdaemon 2
 
 ### Changed
 

@@ -304,7 +304,12 @@ class HeatyApp(common.App):
         room = self.cfg["rooms"][room_name]
         therm = room["thermostats"][entity]
 
-        opmode = new.get("attributes", {}).get(therm["opmode_state_attr"])
+        # Provide compatibility with appdaemon < 3.0.0
+        if not self._is_ad3:
+            old = old.get("attributes", {})
+            new = new.get("attributes", {})
+
+        opmode = new.get(therm["opmode_state_attr"])
         self.log("--> [{}] {}: attribute {} is {}"
                  .format(room["friendly_name"], entity,
                          therm["opmode_state_attr"], opmode),
@@ -316,7 +321,7 @@ class HeatyApp(common.App):
         elif opmode == therm["opmode_off"]:
             temp = expr.Temp("off")
         else:
-            temp = new.get("attributes", {}).get(therm["temp_state_attr"])
+            temp = new.get(therm["temp_state_attr"])
             self.log("--> [{}] {}: attribute {} is {}"
                      .format(room["friendly_name"], entity,
                              therm["temp_state_attr"], temp),

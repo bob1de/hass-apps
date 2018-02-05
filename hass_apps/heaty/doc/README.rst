@@ -199,7 +199,7 @@ If you want to turn the thermostats in a room off, there is a special
 value available under the name ``OFF``. Just return that.
 
 There is an object available under the name ``app`` which represents
-the ``appdaemon.appapi.AppDaemon`` object of Heaty. You could,
+the ``appdaemon.plugins.hass.hassapi.Hass`` object of Heaty. You could,
 for instance, retrieve values of input sliders via the normal
 AppDaemon API.
 
@@ -207,7 +207,7 @@ Beside the return types like ``Add``, ``Break``, ``Ignore`` etc.
 the following global variables are available inside temperature
 expressions:
 
-* ``app``: the appdaemon.appapi.AppDaemon object
+* ``app``: the ``appdaemon.plugins.hass.hassapi.Hass`` object
 * ``room_name``: the name of the room the expression is evaluated for
   as configured in Heaty's configuration (not the friendly name)
 * ``schedule_snippets``: a dictionary containing all configured schedule
@@ -291,10 +291,10 @@ re-schedule event whenever the state of ``switch.take_a_bath`` changes.
 We're done! Now, whenever we toggle the ``take_a_bath`` switch, the
 schedules are re-evaluated and our first schedule rule executes.
 The rule invokes our custom function, passing to it the room's name
-and the ``appdaemon.appapi.AppDaemon`` object. Our custom function
-checks the state of the ``take_a_bath`` switch and, if it's enabled,
-causes the temperature to be set to 22 degrees. However, if the switch
-is off or we called it for a room it actually has no clue about,
+and the ``appdaemon.plugins.hass.hassapi.Hass`` object. Our custom
+function checks the state of the ``take_a_bath`` switch and, if it's
+enabled, causes the temperature to be set to 22 degrees. However, if the
+switch is off or we called it for a room it actually has no clue about,
 the rule is ignored completely.
 
 If that happens, the second rule is processed, which always evaluates

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
+* Added appdaemon 3 support alongside the old appdaemon 2
 
 ### Changed
 

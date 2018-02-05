@@ -2,14 +2,26 @@
 Common helpers and functionality used by all apps.
 """
 
-from appdaemon import appapi
+try:
+    from appdaemon.plugins.hass import hassapi
+except ImportError:
+    from appdaemon import appapi
+    AppBase = appapi.AppDaemon
+    _IS_AD3 = False
+else:
+    AppBase = hassapi.Hass
+    _IS_AD3 = True
 
 
-class App(appapi.AppDaemon):
+class App(AppBase):
     """
-    This is an extension of appdaemon.appapi.AppDaemon which adds some
-    common functionality. It's used by all apps included in hass_apps.
+    This is a sub-class of hassapi.Hass (for appdaemon >= 3.0.0) or
+    appapi.AppDaemon (for appdaemon < 3.0.0) which adds some common
+    functionality. It's used by all apps included in hass_apps.
     """
+
+    # will be True for appdaemon >= 3, False otherwise
+    _is_ad3 = _IS_AD3
 
     class Meta:
         """
@@ -52,3 +64,11 @@ class App(appapi.AppDaemon):
         particular app."""
 
         pass
+
+    def set_app_state(self, entity_id, state):
+        """A wrapper to make the new appdaemon.AppDaemon.set_app_state
+        available under the appdaemon 2 interface."""
+
+        if self._is_ad3:
+            return self.AD.set_app_state(entity_id, state)
+        return super(App, self).set_app_state(entity_id, state)  # pylint: disable=no-member
