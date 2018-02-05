@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
+* Fixed issue that lead to endless re-sending with AppDaemon 3.
+* thermostat_defaults and window_sensor_defaults are now handled correctly.
 
 ### Security
 

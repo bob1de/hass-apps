@@ -89,10 +89,12 @@ class Temp:
         if isinstance(value, Temp):
             # just copy the value over
             value = value.value
+
         parsed = self.parse_temp(value)
         if parsed is None:
             raise ValueError("{} is no valid temperature"
                              .format(repr(value)))
+
         self.value = parsed
 
     def __add__(self, other):

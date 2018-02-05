@@ -83,11 +83,14 @@ class HeatyApp(common.App):
             for therm_name in room["thermostats"]:
                 # fetch initial state from thermostats
                 state = self.get_state(therm_name, attribute="all")
-                if not state:
+                if state is None:
                     # unknown entity
                     self.log("!!! State for thermostat {} is None, "
                              "ignoring it.".format(therm_name))
                     continue
+                # provide compatibility with appdaemon 3
+                if self._is_ad3:
+                    state = {"attributes": state}
                 # populate therm["current_temp"] by simulating a state change
                 self.thermostat_state_cb(therm_name, "all", state, state,
                                          {"room_name": room_name,
@@ -304,10 +307,9 @@ class HeatyApp(common.App):
         room = self.cfg["rooms"][room_name]
         therm = room["thermostats"][entity]
 
-        # Provide compatibility with appdaemon < 3.0.0
-        if not self._is_ad3:
-            old = old.get("attributes", {})
-            new = new.get("attributes", {})
+        # make attribute access more robust
+        old = (old or {}).get("attributes", {})
+        new = (new or {}).get("attributes", {})
 
         opmode = new.get(therm["opmode_state_attr"])
         self.log("--> [{}] {}: attribute {} is {}"
