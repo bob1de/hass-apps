@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
-* Fixed issue that lead to endless re-sending with AppDaemon 3.
-* thermostat_defaults and window_sensor_defaults are now handled correctly.
 
 ### Security
 
@@ -21,6 +19,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Deprecated
 
 ### Removed
+
+
+## 0.10.1 - 2018-03-05
+
+### Fixed
+* Fixed issue that lead to endless re-sending with AppDaemon 3.
+* thermostat_defaults and window_sensor_defaults are now handled correctly.
 
 
 ## 0.10.0 - 2018-03-05
