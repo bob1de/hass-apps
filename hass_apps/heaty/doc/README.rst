@@ -127,8 +127,8 @@ considered. There are a number of these constraints, namely:
   to 7 (Sunday)
 * ``start_date``: A date of the form ``{ year: 2018, month: 2, day: 3 }``
   before which the rule should not be considered. Any of the three fields
-  may be omitted, in which case the particular date component isn't
-  considered for validation.
+  may be omitted, in which case the particular field is populated with
+  the current date at validation time.
   If an invalid date such as ``{ year: 2018, month: 2, day: 29 }`` is
   provided, the next valid date (namely 2018-03-01 in this case) is
   assumed.
