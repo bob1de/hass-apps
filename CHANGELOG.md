@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/efficiosoft/hass_apps/compare/v0.20180205.1...HEAD
+[Unreleased]: https://github.com/efficiosoft/hass_apps/compare/v0.20180205.2...HEAD
 
 ### Fixed
 
@@ -21,8 +21,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Removed
 
 
+## [0.20180205.2] - 2018-02-05
+[0.20180205.2]: https://github.com/efficiosoft/hass_apps/compare/v0.20180205.1...v0.20180205.2
+
+### Fixed
+* Fixed wrong AppDaemon version in requirements.
+
+
 ## [0.20180205.1] - 2018-02-05
-[0.20180205.0]: https://github.com/efficiosoft/hass_apps/compare/v0.20180205.0...v0.20180205.1
+[0.20180205.1]: https://github.com/efficiosoft/hass_apps/compare/v0.20180205.0...v0.20180205.1
 
 ### Changed
 * heaty v0.10.1
