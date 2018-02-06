@@ -202,7 +202,7 @@ CONFIG_SCHEMA = vol.Schema(vol.All(vol.Schema({
     vol.Optional("untrusted_temp_expressions", default=False): bool,
     vol.Optional("master_switch", default=None):
         vol.Any(ENTITY_ID_SCHEMA, None),
-    vol.Optional("off_temp", default="off"): TEMP_SCHEMA,
+    vol.Optional("off_temp", default=expr.OFF): TEMP_SCHEMA,
     vol.Optional("temp_expression_modules", default=dict):
         TEMP_EXPRESSION_MODULES_SCHEMA,
     # defaults sections are not parsed

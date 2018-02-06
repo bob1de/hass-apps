@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
+* Fixed error when turning master switch off due to a wrong default
+  value for off_temp.
 
 ### Security
 
