@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 * Fixed error when turning master switch off due to a wrong default
   value for off_temp.
+* Fixed race condition when switching back to previous temperature before
+  the thermostat reported the last change back.
 
 ### Security
 

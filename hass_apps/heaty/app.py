@@ -177,8 +177,8 @@ class HeatyApp(common.App):
                 self.set_temp(room_name, self.cfg["off_temp"],
                               scheduled=False)
                 # invalidate cached temp/rule
-                room["current_schedule_temp"] = None
-                room["current_schedule_rule"] = None
+                room.pop("current_schedule_temp", None)
+                room.pop("current_schedule_rule", None)
 
     def publish_state_timer_cb(self, kwargs):
         """Runs when a publish_state timer fires."""
@@ -215,8 +215,8 @@ class HeatyApp(common.App):
             pass
 
         # invalidate cached temp/rule
-        room["current_schedule_temp"] = None
-        room["current_schedule_rule"] = None
+        room.pop("current_schedule_temp", None)
+        room.pop("current_schedule_rule", None)
 
         self.set_scheduled_temp(room_name)
 
@@ -345,7 +345,7 @@ class HeatyApp(common.App):
         if temp == room["wanted_temp"]:
             # thermostat adapted to the temperature we set,
             # cancel any re-send timer
-            self.cancel_set_temp_timer(room_name, entity)
+            self.cancel_resend_timer(room_name, entity)
 
         if temp.is_off() and \
            isinstance(room["wanted_temp"], expr.Temp) and \
@@ -438,7 +438,8 @@ class HeatyApp(common.App):
         room["wanted_temp"] = target_temp
 
         for therm_name, therm in room["thermostats"].items():
-            if target_temp == therm["current_temp"] and not force_resend:
+            if target_temp == therm["current_temp"] and not force_resend and \
+               "resend_timer" not in therm:
                 self.log("--- [{}] Not sending temperature to {} "
                          "redundantly."
                          .format(room["friendly_name"], therm_name),
@@ -458,7 +459,7 @@ class HeatyApp(common.App):
                     opmode = therm["opmode_heat"]
 
             left_retries = therm["set_temp_retries"]
-            self.cancel_set_temp_timer(room_name, therm_name)
+            self.cancel_resend_timer(room_name, therm_name)
             timer = self.run_in(self.set_temp_resend_cb, 1,
                                 room_name=room_name, therm_name=therm_name,
                                 left_retries=left_retries,
@@ -480,7 +481,7 @@ class HeatyApp(common.App):
         room = self.cfg["rooms"][room_name]
         therm = room["thermostats"][therm_name]
 
-        self.cancel_set_temp_timer(room_name, therm_name)
+        self.cancel_resend_timer(room_name, therm_name)
 
         self.log("<-- [{}] Setting {}: {}={}, {}={}, left retries={}"
                  .format(room["friendly_name"], therm_name,
@@ -722,9 +723,10 @@ class HeatyApp(common.App):
         self.cancel_timer(timer)
         return True
 
-    def cancel_set_temp_timer(self, room_name, therm_name):
-        """Cancel the set temp timer for given room and thermostat name,
+    def cancel_resend_timer(self, room_name, therm_name):
+        """Cancel the resend timer for given room and thermostat name,
         if one exists."""
+
         room = self.cfg["rooms"][room_name]
         therm = room["thermostats"][therm_name]
         try:
@@ -732,10 +734,10 @@ class HeatyApp(common.App):
         except KeyError:
             pass
         else:
-            self.log("--- [{}] Cancelling retry timer for {}."
+            self.cancel_timer(timer)
+            self.log("--- [{}] Cancelled resend timer for {}."
                      .format(room["friendly_name"], therm_name),
                      level="DEBUG")
-            self.cancel_timer(timer)
 
     def check_for_open_window(self, room_name):
         """Checks whether a window is open in the given room and,
