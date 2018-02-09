@@ -9,22 +9,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
-* Fixed error when turning master switch off due to a wrong default
-  value for off_temp.
-* Fixed race condition when switching back to previous temperature before
-  the thermostat reported the last change back.
 
 ### Security
 
 ### Added
 
 ### Changed
-* Default value for ``off_temp`` (``"OFF"``) is now upper-case for
-  consistency reasons, lower-case ``"off"`` will still work.
 
 ### Deprecated
 
 ### Removed
+
+
+## 0.10.2 - 2018-03-09
+
+### Fixed
+* Fixed error when turning master switch off due to a wrong default
+  value for off_temp.
+* Fixed race condition when switching back to previous temperature before
+  the thermostat reported the last change back.
+
+### Changed
+* Default value for ``off_temp`` (``"OFF"``) is now upper-case for
+  consistency reasons, lower-case ``"off"`` will still work.
 
 
 ## 0.10.1 - 2018-03-05
