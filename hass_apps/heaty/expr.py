@@ -11,7 +11,7 @@ __all__ = ["Add", "Break", "Ignore", "IncludeSchedule", "OFF", "Result",
 
 
 # special value Temp can be initialized with
-OFF = "off"
+OFF = "OFF"
 
 
 class AddibleMixin:
@@ -156,7 +156,7 @@ class Temp:
 
         if isinstance(value, str):
             value = "".join(value.split())
-            if value.lower() == OFF:
+            if value.upper() == OFF.upper():
                 return OFF
 
         try:

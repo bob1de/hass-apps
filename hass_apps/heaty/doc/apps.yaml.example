@@ -68,10 +68,10 @@ heaty_full:
 
   # Temperature that should be set when heatings are turned off.
   # 4 °C is recommended to protect against frost-induced damage.
-  # A value of "off" will set the thermostat's operation mode
+  # A value of "OFF" will set the thermostat's operation mode
   # to off explicitly.
-  # (optional, default: "off")
-  #off_temp: "off"
+  # (optional, default: "OFF")
+  #off_temp: "OFF"
 
   # Here you can define Python modules that should be available from
   # inside your temperature expressions. These modules are imported

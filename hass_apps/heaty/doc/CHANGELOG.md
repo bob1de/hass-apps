@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 ### Changed
+* Default value for ``off_temp`` (``"OFF"``) is now upper-case for
+  consistency reasons, lower-case ``"off"`` will still work.
 
 ### Deprecated
 
