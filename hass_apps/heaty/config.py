@@ -62,6 +62,8 @@ def config_post_hook(cfg):
                 therm.setdefault(key, val)
             therm = THERMOSTAT_SCHEMA(therm)
             therm["current_temp"] = None
+            therm["wanted_temp"] = None
+            therm["wanted_room_temp"] = None
             room["thermostats"][therm_name] = therm
         for sensor_name, sensor in room["window_sensors"].items():
             for key, val in cfg["window_sensor_defaults"].items():
@@ -116,11 +118,15 @@ THERMOSTAT_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
     {
         vol.Optional("delta", default=0): vol.Any(float, int),
-        vol.Optional("min_temp", default=None): vol.Any(TEMP_SCHEMA, None),
+        vol.Optional("min_temp", default=None): vol.Any(
+            vol.All(TEMP_SCHEMA, vol.NotIn([expr.Temp(expr.OFF)])),
+            None,
+        ),
         vol.Optional("set_temp_retries", default=10):
             vol.All(int, vol.Range(min=-1)),
         vol.Optional("set_temp_retry_interval", default=30):
             vol.All(int, vol.Range(min=1)),
+        vol.Optional("supports_opmodes", default=True): bool,
         vol.Optional("opmode_heat", default="Heat"): str,
         vol.Optional("opmode_off", default="Off"): str,
         vol.Optional("opmode_service", default="climate/set_operation_mode"):

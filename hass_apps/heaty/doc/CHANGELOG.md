@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 * Added plausibility checks pointing the user to possible mistakes in
   the configuration by warning messages during initialization of Heaty.
+* Added support for thermostats that don't support operation modes via
+  the new per-thermostat ``supports_opmodes`` config flag.
 
 ### Changed
 

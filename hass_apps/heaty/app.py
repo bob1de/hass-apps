@@ -68,8 +68,10 @@ class HeatyApp(common.App):
                 if not self._is_ad3:
                     state = state.get("attributes", {})
 
-                for attr in (therm["opmode_state_attr"],
-                             therm["temp_state_attr"]):
+                required_attrs = [therm["temp_state_attr"]]
+                if therm["supports_opmodes"]:
+                    required_attrs.append(therm["opmode_state_attr"])
+                for attr in required_attrs:
                     if attr not in state:
                         self.log("!!! [{}] Thermostat {} has no attribute "
                                  "named '{}'. Available attributes are {}. "
@@ -79,6 +81,16 @@ class HeatyApp(common.App):
                                  level="WARNING")
 
                 allowed_opmodes = state.get("operation_list")
+                if not therm["supports_opmodes"]:
+                    if allowed_opmodes:
+                        self.log("!!! [{}] Operation mode support has been "
+                                 "disabled for {}, but it seems to support "
+                                 "the following modes: {}. Maybe disabling "
+                                 "it was a mistake?"
+                                 .format(room["friendly_name"], therm_name,
+                                         allowed_opmodes),
+                                 level="WARNING")
+                    continue
                 if not allowed_opmodes:
                     self.log("--- [{}] Attributes for thermostat {} contain "
                              "no operation_list, skipping plausibility check."
@@ -355,7 +367,7 @@ class HeatyApp(common.App):
         room = self.cfg["rooms"][room_name]
         therm = room["thermostats"][entity]
 
-        # make attribute access more robust
+        # make attribute access more fault-tolerant
         old = (old or {}).get("attributes", {})
         new = (new or {}).get("attributes", {})
 
@@ -365,47 +377,42 @@ class HeatyApp(common.App):
                          therm["opmode_state_attr"], opmode),
                  level="DEBUG")
 
-        if opmode is None:
-            # don't consider this thermostat
-            return
-        elif opmode == therm["opmode_off"]:
-            temp = expr.Temp("off")
-        else:
+        temp = None
+        if therm["supports_opmodes"]:
+            if opmode is None:
+                # don't consider this thermostat
+                return
+            elif opmode == therm["opmode_off"]:
+                temp = expr.Temp(expr.OFF)
+
+        if temp is None:
             temp = new.get(therm["temp_state_attr"])
             self.log("--> [{}] {}: attribute {} is {}"
                      .format(room["friendly_name"], entity,
                              therm["temp_state_attr"], temp),
                      level="DEBUG")
             try:
-                temp = expr.Temp(temp) - therm["delta"]
+                temp = expr.Temp(temp)
             except ValueError:
                 # not a valid temperature, don't consider this thermostat
                 return
+
+        if temp == therm["wanted_temp"]:
+            # thermostat adapted to the temperature we set,
+            # cancel any re-send timer
+            self.cancel_resend_timer(room_name, entity)
 
         if temp == therm["current_temp"]:
             # nothing changed, hence no further actions needed
             return
 
-        self.log("--> [{}] Received target temperature {} from thermostat."
-                 .format(room["friendly_name"], repr(temp)))
         therm["current_temp"] = temp
 
-        if temp == room["wanted_temp"]:
-            # thermostat adapted to the temperature we set,
-            # cancel any re-send timer
-            self.cancel_resend_timer(room_name, entity)
+        self.log("--> [{}] Received target temperature {} from thermostat."
+                 .format(room["friendly_name"], repr(temp)))
 
-        if temp.is_off() and \
-           isinstance(room["wanted_temp"], expr.Temp) and \
-           isinstance(therm["min_temp"], expr.Temp) and \
-           not room["wanted_temp"].is_off() and \
-           room["wanted_temp"] + therm["delta"] < \
-           therm["min_temp"]:
-            # The thermostat reported itself to be off, but the
-            # expected temperature is outside the thermostat's
-            # supported temperature range anyway. Hence the report
-            # means no change and can safely be ignored.
-            return
+        temp -= therm["delta"]
+
         if self.get_open_windows(room_name):
             # After window has been opened and heating turned off,
             # thermostats usually report to be off, but we don't
@@ -475,7 +482,9 @@ class HeatyApp(common.App):
            not self.master_switch_enabled():
             return
 
-        synced = all(map(lambda therm: target_temp == therm["current_temp"],
+        synced = all(map(lambda therm:
+                         target_temp == therm["wanted_room_temp"] and \
+                         therm["current_temp"] == therm["wanted_temp"],
                          room["thermostats"].values()))
         if synced and not force_resend:
             return
@@ -486,14 +495,6 @@ class HeatyApp(common.App):
         room["wanted_temp"] = target_temp
 
         for therm_name, therm in room["thermostats"].items():
-            if target_temp == therm["current_temp"] and not force_resend and \
-               "resend_timer" not in therm:
-                self.log("--- [{}] Not sending temperature to {} "
-                         "redundantly."
-                         .format(room["friendly_name"], therm_name),
-                         level="DEBUG")
-                continue
-
             if target_temp.is_off():
                 temp = None
                 opmode = therm["opmode_off"]
@@ -505,6 +506,37 @@ class HeatyApp(common.App):
                     opmode = therm["opmode_off"]
                 else:
                     opmode = therm["opmode_heat"]
+
+            if not therm["supports_opmodes"]:
+                if opmode == therm["opmode_off"]:
+                    self.log("--- [{}] Not turning {} off because it doesn't "
+                             "support operation modes."
+                             .format(room["friendly_name"], therm_name),
+                             level="DEBUG")
+                    if therm["min_temp"] is not None:
+                        self.log("--- [{}] Setting to minimum supported "
+                                 "temperature instead."
+                                 .format(room["friendly_name"]),
+                                 level="DEBUG")
+                        temp = therm["min_temp"]
+
+                    opmode = None
+
+            if opmode is None and temp is None:
+                self.log("--- [{}] Nothing to send to {}."
+                         .format(room["friendly_name"], therm_name),
+                         level="DEBUG")
+                continue
+
+            therm["wanted_room_temp"] = target_temp
+            therm["wanted_temp"] = temp or expr.Temp(expr.OFF)
+            if therm["wanted_temp"] == therm["current_temp"] and \
+               not force_resend and "resend_timer" not in therm:
+                self.log("--- [{}] Not sending temperature to {} "
+                         "redundantly."
+                         .format(room["friendly_name"], therm_name),
+                         level="DEBUG")
+                continue
 
             left_retries = therm["set_temp_retries"]
             self.cancel_resend_timer(room_name, therm_name)
@@ -536,13 +568,14 @@ class HeatyApp(common.App):
                          therm["temp_service_attr"],
                          temp if temp is not None else "<unset>",
                          therm["opmode_service_attr"],
-                         opmode,
+                         opmode if opmode is not None else "<unset>",
                          left_retries),
                  level="DEBUG")
 
-        attrs = {"entity_id": therm_name,
-                 therm["opmode_service_attr"]: opmode}
-        self.call_service(therm["opmode_service"], **attrs)
+        if opmode is not None:
+            attrs = {"entity_id": therm_name,
+                     therm["opmode_service_attr"]: opmode}
+            self.call_service(therm["opmode_service"], **attrs)
         if temp is not None:
             attrs = {"entity_id": therm_name,
                      therm["temp_service_attr"]: temp.value}

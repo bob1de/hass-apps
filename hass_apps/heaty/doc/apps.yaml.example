@@ -117,6 +117,12 @@ heaty_full:
     # (optional, default: 30)
     #set_temp_retry_interval: 30
 
+    # Set this to false if your thermostat doesn't support operation modes.
+    # Please note that you won't be able to turn it off completely without
+    # operation mode support.
+    # (optional, default: true)
+    #supports_opmodes: true
+
     # These two settings can be used to tweak the names of the
     # operation modes.
     # (optional, default: Heat)
