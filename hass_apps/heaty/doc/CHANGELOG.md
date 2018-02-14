@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
+* Added plausibility checks pointing the user to possible mistakes in
+  the configuration by warning messages during initialization of Heaty.
 
 ### Changed
 

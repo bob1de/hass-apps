@@ -48,6 +48,52 @@ class HeatyApp(common.App):
         self.temp_expression_modules = {}
         super(HeatyApp, self).__init__(*args, **kwargs)
 
+    def check_config_plausibility(self):
+        """Does some consistency checks to point the user on possible
+        configuration mistakes. Warnings are logged in case there seems
+        to be something wrong."""
+
+        self.log("--- Running plausibility checks on the configuration.",
+                 level="DEBUG")
+
+        for room in self.cfg["rooms"].values():
+            for therm_name, therm in room["thermostats"].items():
+                state = self.get_state(therm_name, attribute="all")
+                if not state:
+                    self.log("!!! [{}] Thermostat {} couldn't be found."
+                             .format(room["friendly_name"], therm_name),
+                             level="WARNING")
+                    continue
+
+                if not self._is_ad3:
+                    state = state.get("attributes", {})
+
+                for attr in (therm["opmode_state_attr"],
+                             therm["temp_state_attr"]):
+                    if attr not in state:
+                        self.log("!!! [{}] Thermostat {} has no attribute "
+                                 "named '{}'. Available attributes are {}. "
+                                 "Please check your config!"
+                                 .format(room["friendly_name"], therm_name,
+                                         attr, list(state.keys())),
+                                 level="WARNING")
+
+                allowed_opmodes = state.get("operation_list")
+                if not allowed_opmodes:
+                    self.log("--- [{}] Attributes for thermostat {} contain "
+                             "no operation_list, skipping plausibility check."
+                             .format(room["friendly_name"], therm_name),
+                             level="DEBUG")
+                    continue
+                for opmode in (therm["opmode_heat"], therm["opmode_off"]):
+                    if opmode not in allowed_opmodes:
+                        self.log("!!! [{}] Thermostat {} doesn't seem to "
+                                 "support the operation mode '{}', supported "
+                                 "modes are {}. Please check your config!"
+                                 .format(room["friendly_name"], therm_name,
+                                         opmode, allowed_opmodes),
+                                 level="WARNING")
+
     @modifies_state
     def initialize_inner(self):
         """Parses the configuration, initializes all timers, state and
@@ -61,6 +107,8 @@ class HeatyApp(common.App):
         heaty_id_kwargs = {}
         if heaty_id != "default":
             heaty_id_kwargs["heaty_id"] = heaty_id
+
+        self.check_config_plausibility()
 
         self.log("--- Importing modules for temperature expressions.",
                  level="DEBUG")
