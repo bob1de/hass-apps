@@ -92,10 +92,11 @@ class HeatyApp(common.App):
                                  level="WARNING")
                     continue
                 if not allowed_opmodes:
-                    self.log("--- [{}] Attributes for thermostat {} contain "
-                             "no operation_list, skipping plausibility check."
+                    self.log("!!! [{}] Attributes for thermostat {} contain "
+                             "no operation_list, Consider disabling "
+                             "operation mode support."
                              .format(room["friendly_name"], therm_name),
-                             level="DEBUG")
+                             level="WARNING")
                     continue
                 for opmode in (therm["opmode_heat"], therm["opmode_off"]):
                     if opmode not in allowed_opmodes:
