@@ -521,7 +521,7 @@ class HeatyApp(common.App):
                                  level="DEBUG")
                         temp = therm["min_temp"]
 
-                    opmode = None
+                opmode = None
 
             if opmode is None and temp is None:
                 self.log("--- [{}] Nothing to send to {}."
