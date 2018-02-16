@@ -16,12 +16,17 @@ class Rule:
             # make it midnight
             start_time = datetime.time(0, 0)
         self.start_time = start_time
+
         if end_time is None:
             # make it midnight (00:00 of the next day)
             end_time = datetime.time(0, 0)
             end_plus_days += 1
         self.end_time = end_time
+
+        if end_time < start_time and end_plus_days == 0:
+            end_plus_days = 1
         self.end_plus_days = end_plus_days
+
         if constraints is None:
             constraints = {}
         self.constraints = constraints

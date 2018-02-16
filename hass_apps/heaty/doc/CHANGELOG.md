@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   the new per-thermostat ``supports_opmodes`` config flag.
 
 ### Changed
+* If the ``end`` time of a schedule rule is before its ``start`` time
+  and ``end_plus_days`` hasn't been set, ``end_plus_days: 1`` is now
+  assumed automatically.
 
 ### Deprecated
 
