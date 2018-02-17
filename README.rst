@@ -105,6 +105,15 @@ Note that AppDaemon doesn't detect changes in the imported modules
 automatically and needs to be restarted manually after an upgrade.
 
 
+Roadmap
+-------
+
+Currently, the following enhancements are planned.
+
+* [General] Restructure docs and move them to readthedocs.org.
+* [Heaty] Restructure core parts to make maintaining easier.
+
+
 Donations
 ---------
 
