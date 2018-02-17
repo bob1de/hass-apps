@@ -306,10 +306,10 @@ functionality for other rooms now as well.
 Example: Inlining temperature expressions into schedules
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This example demonstrated how custom modules can be used in schedules.
-However, for such a simple use case, there is a much shorter way of
-achieving the same goal. The following schedule will have the same
-effect, but without the use of any external Python module:
+The previous example demonstrated how custom modules can be used in
+schedules. However, for such a simple use case, there is a much shorter
+way of achieving the same goal. The following schedule will have the
+same effect, but without the use of any external Python module:
 
 ::
 
@@ -323,6 +323,10 @@ just an ordinary expression and not a series of statements. If you know
 a little Python, you'll probably be familiar with this way of writing
 expressions. Often, it is easier and also more readable to include such
 short ones directly into the rule instead of calling external code.
+
+However, don't forget to add an automation to Home Assistant which
+emits a ``heaty_reschedule`` event whenever ``switch.take_a_bath``
+changes its state, just as shown in the previous example.
 
 Example: Use of ``Add()`` and ``Ignore()``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
