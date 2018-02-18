@@ -13,6 +13,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+
+## 0.11.0 - 2018-03-18
+
+### Added
 * Added plausibility checks pointing the user to possible mistakes in
   the configuration by warning messages during initialization of Heaty.
 * Added support for thermostats that don't support operation modes via
@@ -24,10 +35,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   assumed automatically.
 * Added compatibility with appdaemon 3.0.0b3 and removed compatibility
   with 3.0.0b2.
-
-### Deprecated
-
-### Removed
 
 
 ## 0.10.2 - 2018-03-09
