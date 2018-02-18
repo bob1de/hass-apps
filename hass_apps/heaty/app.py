@@ -65,8 +65,7 @@ class HeatyApp(common.App):
                              level="WARNING")
                     continue
 
-                if not self._is_ad3:
-                    state = state.get("attributes", {})
+                state = (state or {}).get("attributes", {})
 
                 required_attrs = [therm["temp_state_attr"]]
                 if therm["supports_opmodes"]:
@@ -149,9 +148,6 @@ class HeatyApp(common.App):
                     self.log("!!! State for thermostat {} is None, "
                              "ignoring it.".format(therm_name))
                     continue
-                # provide compatibility with appdaemon 3
-                if self._is_ad3:
-                    state = {"attributes": state}
                 # populate therm["current_temp"] by simulating a state change
                 self.thermostat_state_cb(therm_name, "all", state, state,
                                          {"room_name": room_name,

@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * If the ``end`` time of a schedule rule is before its ``start`` time
   and ``end_plus_days`` hasn't been set, ``end_plus_days: 1`` is now
   assumed automatically.
+* Added compatibility with appdaemon 3.0.0b3 and removed compatibility
+  with 3.0.0b2.
 
 ### Deprecated
 
