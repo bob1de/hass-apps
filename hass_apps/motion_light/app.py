@@ -79,16 +79,15 @@ class MotionLightApp(common.App):
         sensor_data = self.cfg["sensors"][sensor]
         is_on = new == sensor_data["on_state"]
 
-        self.log("--> [{}] Motion {}ed"
+        self.log("[{}] Motion {}ed"
                  .format(sensor, "start" if is_on else "end"),
-                 level="DEBUG")
+                 level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
 
         if not is_on and not sensor_data["turned_on"]:
             # motion ended, but nothing has been turned on before
             # (e.g. due to constraints), hence nothing should be
             # turned off either
-            self.log("--- [{}] Ignoring motion end because not turned "
-                     "on before."
+            self.log("[{}] Ignoring motion end because not turned on before."
                      .format(sensor),
                      level="DEBUG")
             return
@@ -97,9 +96,9 @@ class MotionLightApp(common.App):
 
         for entity, entity_data in sensor_data["controls"].items():
             turn_on = is_on ^ entity_data["invert"]
-            self.log("<-- Turning {} {}"
+            self.log("Turning {} {}"
                      .format(entity, "on" if turn_on else "off"),
-                     level="DEBUG")
+                     level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
             domain = self.split_entity(entity)[0]
             service = "{}/turn_{}".format(domain, "on" if turn_on else "off")
             self.call_service(service, entity_id=entity)
