@@ -12,6 +12,7 @@ import importlib
 
 from .. import common
 from . import __version__, config, expr, util
+from . import room as _room
 
 
 __all__ = ["HeatyApp"]
@@ -29,6 +30,7 @@ class HeatyApp(common.App):
     def __init__(self, *args, **kwargs) -> None:
         self.app = self
         self.cfg = None
+        self.rooms = []  # type: T.List[_room.Room]
         self.publish_state_timer = None
         self.temp_expression_modules = {}  # type: T.Dict[str, types.ModuleType]
         super().__init__(*args, **kwargs)
@@ -62,7 +64,7 @@ class HeatyApp(common.App):
             else:
                 self.temp_expression_modules[as_name] = mod
 
-        for room in self.cfg["rooms"]:
+        for room in self.rooms:
             room.initialize()
 
         self.log("Registering event listener for heaty_reschedule.",
@@ -83,7 +85,7 @@ class HeatyApp(common.App):
             self.listen_state(self._master_switch_cb, master_switch)
 
         if self.master_switch_enabled():
-            for room in self.cfg["rooms"]:
+            for room in self.rooms:
                 if not room.check_for_open_window():
                     room.set_scheduled_temp()
         else:
@@ -101,7 +103,7 @@ class HeatyApp(common.App):
 
         self.log("Master switch turned {}.".format(new),
                  prefix=common.LOG_PREFIX_INCOMING)
-        for room in self.cfg["rooms"]:
+        for room in self.rooms:
             if new == "on":
                 room.set_scheduled_temp()
             else:
@@ -142,7 +144,7 @@ class HeatyApp(common.App):
             rooms = self.rooms
 
         self.log("Re-schedule event received for rooms: {}"
-                 .format(", ".join(rooms)),
+                 .format(", ".join([str(room) for room in rooms])),
                  prefix=common.LOG_PREFIX_INCOMING)
 
         for room in rooms:
@@ -196,6 +198,15 @@ class HeatyApp(common.App):
             reschedule_delay=reschedule_delay
         )
 
+    def get_room(self, room_name: str) -> T.Optional[_room.Room]:
+        """Returns the room with given name or None, if no such room
+        exists."""
+
+        for room in self.rooms:
+            if room.name == room_name:
+                return room
+        return None
+
     def master_switch_enabled(self):
         """Returns the state of the master switch or True if no master
         switch is configured."""
@@ -223,10 +234,13 @@ class HeatyApp(common.App):
         }
 
         rooms = {}
-        for room in self.cfg["rooms"]:
+        for room in self.rooms:
             schedule = room.schedule
             now = self.datetime()
-            next_schedule_datetime = schedule.next_schedule_datetime(now)
+            if schedule:
+                next_schedule_datetime = schedule.next_schedule_datetime(now)
+            else:
+                next_schedule_datetime = None
             if next_schedule_datetime:
                 next_schedule_time = next_schedule_datetime.time()
             else:

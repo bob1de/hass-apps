@@ -92,6 +92,7 @@ def config_post_hook(cfg):
         room.schedule = sched
 
     cfg["rooms"] = rooms
+    cfg["_app"].rooms = rooms
 
     return cfg
 
