@@ -91,7 +91,7 @@ def config_post_hook(cfg):
 
         room.schedule = sched
 
-    cfg["rooms"] = rooms
+    del cfg["rooms"], cfg["schedule_prepend"], cfg["schedule_append"]
     cfg["_app"].rooms = rooms
 
     return cfg
