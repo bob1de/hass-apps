@@ -17,7 +17,7 @@ __all__ = ["Add", "Break", "Ignore", "IncludeSchedule", "Off", "OFF",
 
 
 # type of an evaluable expression
-EXPR_TYPE = T.Union[str, types.CodeType]
+EXPR_TYPE = T.Union[str, types.CodeType, "Temp"]
 
 
 class AddibleMixin:
@@ -210,24 +210,21 @@ def eval_temp_expr(
     """This method evaluates the given temperature expression.
     The evaluation result is returned. The items of the extra_env
     dict are added to the globals available during evaluation.
-    The result is a ResultBase (or sub-type) object."""
+    If the expression is a Temp object already, it's just packed into
+    a Result and returned directly."""
 
     # pylint: disable=eval-used
 
-    try:
+    if isinstance(temp_expr, Temp):
         return Result(temp_expr)
-    except ValueError:
-        # it's an expression, not a simple temperature value
-        pass
 
     env = build_time_expression_env()
     if extra_env:
         env.update(extra_env)
-    eval_result = eval(temp_expr, env)
 
+    eval_result = eval(temp_expr, env)
     if isinstance(eval_result, ResultBase):
         result = eval_result
     else:
         result = Result(eval_result)
-
     return result

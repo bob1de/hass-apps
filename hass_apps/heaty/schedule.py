@@ -17,7 +17,7 @@ class Rule:
                    "start_date", "end_date")
 
     def __init__(
-            self, temp_expr: T.Union[expr.Temp, expr.EXPR_TYPE],
+            self, temp_expr: expr.EXPR_TYPE,
             start_time: datetime.time = None, end_time: datetime.time = None,
             end_plus_days: int = 0, constraints: T.Dict[str, T.Any] = None
         ) -> None:
@@ -47,7 +47,7 @@ class Rule:
             temp = expr.Temp(temp_expr)
         except ValueError:
             # this is a temperature expression, precompile it
-            self.temp_expr = compile(temp_expr, "temp_expr", "eval")  # type: T.Union[expr.Temp, expr.EXPR_TYPE]
+            self.temp_expr = compile(temp_expr, "temp_expr", "eval")  # type: expr.EXPR_TYPE
         else:
             self.temp_expr = temp
 

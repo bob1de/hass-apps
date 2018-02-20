@@ -242,6 +242,7 @@ class HeatyApp(common.App):
             else:
                 next_schedule_datetime = None
             if next_schedule_datetime:
+                # pylint: disable=line-too-long
                 next_schedule_time = next_schedule_datetime.time()  # type: T.Optional[datetime.time]
             else:
                 next_schedule_time = None
