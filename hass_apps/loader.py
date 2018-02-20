@@ -9,18 +9,21 @@ The __all__ list is populated with these loaders, hence a wildcard
 import will fetch them all.
 """
 
+import typing as T
+import types
+
 import importlib
 import os
 import sys
 
 
-def _import_app_module(package):
+def _import_app_module(package: str) -> types.ModuleType:
     mod_name = "{}.app".format(package)
     if __package__:
         mod_name = "{}.{}".format(__package__, mod_name)
     return importlib.import_module(mod_name)
 
-def _build_app_loader(app_package, app_class_name):
+def _build_app_loader(app_package: str, app_class_name: str) -> T.Callable:
     def _proxy_loader(*args, **kwargs):
         app_mod = _import_app_module(app_package)
         app_class = getattr(app_mod, app_class_name)
@@ -28,7 +31,7 @@ def _build_app_loader(app_package, app_class_name):
 
     return _proxy_loader
 
-def _generate_app_loaders():
+def _generate_app_loaders() -> T.Iterable[T.Tuple[str, T.Callable]]:
     """Scans for apps and yields tuples of the app class name and a
     deferred loader for each app found."""
 
@@ -38,10 +41,8 @@ def _generate_app_loaders():
         if not os.path.isdir(path) or \
            not os.path.isfile(os.path.join(path, "app.py")):
             continue
-        attr = []
-        for part in name.split("_"):
-            attr.append(part.capitalize())
-        attr = "{}App".format("".join(attr))
+        parts = [part.capitalize() for part in name.split("_")]
+        attr = "{}App".format("".join(parts))
         loader = _build_app_loader(name, attr)
         yield attr, loader
 
