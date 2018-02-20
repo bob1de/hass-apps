@@ -3,6 +3,9 @@ This module implements the WindowSensor class.
 """
 
 import typing as T
+if T.TYPE_CHECKING:
+    # pylint: disable=cyclic-import,unused-import
+    from . import room as _room
 
 from .. import common
 from . import util
@@ -11,7 +14,7 @@ from . import util
 class WindowSensor:
     """A sensor for Heaty's open window detection."""
 
-    def __init__(self, entity_id: str, cfg: dict, room) -> None:
+    def __init__(self, entity_id: str, cfg: dict, room: "_room.Room") -> None:
         self.entity_id = entity_id
         self.cfg = cfg
         self.room = room
@@ -80,7 +83,7 @@ class WindowSensor:
             states.append(open_state)
         return self.app.get_state(self.entity_id) in states
 
-    def log(self, msg: str, *args, **kwargs) -> None:
+    def log(self, msg: str, *args: T.Any, **kwargs: T.Any) -> None:
         """Prefixes the window sensor to log messages."""
         msg = "[{}] {}".format(self, msg)
         self.room.log(msg, *args, **kwargs)

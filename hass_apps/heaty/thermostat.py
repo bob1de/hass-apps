@@ -6,6 +6,7 @@ import typing as T
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     import uuid
+    from . import room as _room
 
 from .. import common
 from . import expr, util
@@ -14,7 +15,7 @@ from . import expr, util
 class Thermostat:
     """A thermostat to be controlled by Heaty."""
 
-    def __init__(self, entity_id: str, cfg: dict, room) -> None:
+    def __init__(self, entity_id: str, cfg: dict, room: "_room.Room") -> None:
         self.entity_id = entity_id
         self.cfg = cfg
         self.room = room
@@ -91,24 +92,25 @@ class Thermostat:
                  .format(self.cfg["opmode_state_attr"], opmode),
                  level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
 
-        temp = None
+        _temp = None
         if self.cfg["supports_opmodes"]:
             if opmode is None:
                 # don't consider this thermostat
                 return
             elif opmode == self.cfg["opmode_off"]:
-                temp = expr.Temp(expr.OFF)
+                _temp = expr.Off()
 
-        if temp is None:
-            temp = attrs.get(self.cfg["temp_state_attr"])
+        if _temp is None:
+            _temp = attrs.get(self.cfg["temp_state_attr"])
             self.log("Attribute {} is {}."
-                     .format(self.cfg["temp_state_attr"], temp),
+                     .format(self.cfg["temp_state_attr"], _temp),
                      level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
-            try:
-                temp = expr.Temp(temp)
-            except ValueError:
-                # not a valid temperature, don't consider this thermostat
-                return
+
+        try:
+            temp = expr.Temp(_temp)
+        except ValueError:
+            # not a valid temperature, don't consider this thermostat
+            return
 
         if temp == self.wanted_temp:
             # thermostat adapted to the temperature we set,
@@ -152,7 +154,7 @@ class Thermostat:
         self.log("Registering thermostat state listener.", level="DEBUG")
         self.app.listen_state(self._state_cb, self.entity_id, attribute="all")
 
-    def log(self, msg: str, *args, **kwargs) -> None:
+    def log(self, msg: str, *args: T.Any, **kwargs: T.Any) -> None:
         """Prefixes the thermostat to log messages."""
         msg = "[{}] {}".format(self, msg)
         self.room.log(msg, *args, **kwargs)
@@ -239,7 +241,7 @@ class Thermostat:
 
         return self.wanted_temp
 
-    def _set_temp_resend_cb(self, kwargs):
+    def _set_temp_resend_cb(self, kwargs: dict) -> None:
         """This callback sends the operation_mode and temperature to the
         thermostat. Expected values for kwargs are:
         - opmode and temp (incl. delta)

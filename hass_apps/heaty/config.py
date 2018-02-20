@@ -2,13 +2,15 @@
 This module contains the CONFIG_SCHEMA for validation with voluptuous.
 """
 
+import typing as T
+
 import voluptuous as vol
 
 from . import expr, schedule, thermostat, util, window_sensor
 from . import room as _room
 
 
-def build_schedule_rule(rule):
+def build_schedule_rule(rule: dict) -> schedule.Rule:
     """Builds and returns a schedule rule from the given rule
     definition."""
 
@@ -34,7 +36,7 @@ def build_schedule_rule(rule):
                          end_plus_days=end_plus_days,
                          constraints=constraints)
 
-def build_schedule(rules):
+def build_schedule(rules: T.Iterable[dict]) -> schedule.Schedule:
     """Compiles the given rules and returns a schedule containing them."""
 
     sched = schedule.Schedule()
@@ -42,7 +44,7 @@ def build_schedule(rules):
         sched.items.append(build_schedule_rule(rule))
     return sched
 
-def config_post_hook(cfg):
+def config_post_hook(cfg: dict) -> dict:
     """Creates room and thermostat objects after config has been parsed."""
 
     # Compile the pre/post schedules.

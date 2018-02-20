@@ -27,10 +27,10 @@ class AddibleMixin:
 class ResultBase:
     """Holds the result of a temperature expression."""
 
-    def __init__(self, temp) -> None:
+    def __init__(self, temp: T.Any) -> None:
         self.temp = Temp(temp)  # type: T.Optional[Temp]
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: T.Any) -> bool:
         return type(self) is type(other) and self.temp == other.temp
 
 
@@ -90,10 +90,10 @@ class Off:
     """A special value Temp() may be initialized with in order to turn
     a thermostat off."""
 
-    def __add__(self, other) -> "Off":
+    def __add__(self, other: T.Any) -> "Off":
         return self
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: T.Any) -> bool:
         return isinstance(other, Off)
 
     def __neg__(self) -> "Off":
@@ -102,7 +102,7 @@ class Off:
     def __repr__(self) -> str:
         return "OFF"
 
-    def __sub__(self, other) -> "Off":
+    def __sub__(self, other: T.Any) -> "Off":
         return self
 
 OFF = Off()
@@ -112,7 +112,7 @@ OFF = Off()
 class Temp:
     """A class holding a temperature value."""
 
-    def __init__(self, temp_value) -> None:
+    def __init__(self, temp_value: T.Any) -> None:
         if isinstance(temp_value, Temp):
             # Just copy the value over.
             parsed = self.parse_temp(temp_value.value)
@@ -125,7 +125,7 @@ class Temp:
 
         self.value = parsed  # type: T.Union[float, Off]
 
-    def __add__(self, other) -> "Temp":
+    def __add__(self, other: T.Any) -> "Temp":
         if isinstance(other, (float, int)):
             other = Temp(other)
         elif not isinstance(other, Temp):
@@ -138,10 +138,10 @@ class Temp:
 
         return Temp(self.value + other.value)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: T.Any) -> bool:
         return isinstance(other, Temp) and self.value == other.value
 
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other: T.Any) -> bool:
         if isinstance(other, (float, int)):
             other = Temp(other)
 
@@ -165,7 +165,7 @@ class Temp:
     def __str__(self) -> str:
         return str(self.value)
 
-    def __sub__(self, other) -> "Temp":
+    def __sub__(self, other: T.Any) -> "Temp":
         return self.__add__(-other)
 
     def is_off(self) -> bool:
@@ -173,7 +173,7 @@ class Temp:
         return isinstance(self.value, Off)
 
     @staticmethod
-    def parse_temp(value) -> T.Union[float, Off, None]:
+    def parse_temp(value: T.Any) -> T.Union[float, Off, None]:
         """Converts the given value to a valid temperature of type float
         or Off().
         If value is a string, all whitespace is removed first.
@@ -223,9 +223,11 @@ def eval_temp_expr(
     env = build_time_expression_env()
     if extra_env:
         env.update(extra_env)
-    result = eval(temp_expr, env)
+    eval_result = eval(temp_expr, env)
 
-    if not isinstance(result, ResultBase):
-        result = Result(result)
+    if isinstance(eval_result, ResultBase):
+        result = eval_result
+    else:
+        result = Result(eval_result)
 
     return result

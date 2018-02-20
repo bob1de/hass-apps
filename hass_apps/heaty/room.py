@@ -6,6 +6,7 @@ import typing as T
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     import uuid
+    from . import app as _app
     from . import thermostat
 
 import datetime
@@ -19,13 +20,13 @@ class Room:
 
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, name: str, cfg: dict, app) -> None:
+    def __init__(self, name: str, cfg: dict, app: "_app.HeatyApp") -> None:
         self.name = name
         self.cfg = cfg
         self.app = app
         self.thermostats = []  # type: T.List[thermostat.Thermostat]
         self.window_sensors = []  # type: T.List[window_sensor.WindowSensor]
-        self.schedule = None
+        self.schedule = None  # type: T.Optional[schedule.Schedule]
 
         self.wanted_temp = None  # type: T.Optional[expr.Temp]
         self.reschedule_timer = None  # type: T.Optional[uuid.UUID]
@@ -53,7 +54,7 @@ class Room:
 
         self.set_scheduled_temp()
 
-    def _schedule_timer_cb(self, kwargs: dict):
+    def _schedule_timer_cb(self, kwargs: dict) -> None:
         """Is called whenever a schedule timer fires."""
 
         self.log("Schedule timer fired.",
@@ -85,7 +86,7 @@ class Room:
                          level="DEBUG")
                 self.app.run_daily(self._schedule_timer_cb, _time)
 
-    def log(self, msg: str, *args, **kwargs) -> None:
+    def log(self, msg: str, *args: T.Any, **kwargs: T.Any) -> None:
         """Prefixes the room to log messages."""
         msg = "[{}] {}".format(self, msg)
         self.app.log(msg, *args, **kwargs)
@@ -149,7 +150,7 @@ class Room:
             return None
 
     def eval_schedule(
-            self, sched, when
+            self, sched: schedule.Schedule, when: datetime.datetime
     ) -> T.Optional[T.Tuple[expr.Temp, schedule.Rule]]:
         """Evaluates a schedule, computing the temperature for the time
         the given datetime object represents. The temperature and the

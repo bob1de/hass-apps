@@ -27,7 +27,7 @@ class HeatyApp(common.App):
         version = __version__
         config_schema = config.CONFIG_SCHEMA
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: T.Any, **kwargs: T.Any) -> None:
         self.app = self
         self.cfg = None
         self.rooms = []  # type: T.List[_room.Room]
@@ -113,7 +113,7 @@ class HeatyApp(common.App):
                 room.current_schedule_temp = None
                 room.current_schedule_rule = None
 
-    def _publish_state_timer_cb(self, kwargs: dict):
+    def _publish_state_timer_cb(self, kwargs: dict) -> None:
         """Runs when a publish_state timer fires."""
 
         self.publish_state_timer = None
@@ -207,12 +207,12 @@ class HeatyApp(common.App):
                 return room
         return None
 
-    def master_switch_enabled(self):
+    def master_switch_enabled(self) -> bool:
         """Returns the state of the master switch or True if no master
         switch is configured."""
         master_switch = self.cfg["master_switch"]
         if master_switch:
-            return self.get_state(master_switch) == "on"
+            return self.get_state(master_switch) == "on"  # type: ignore
         return True
 
     def publish_state(self) -> None:
@@ -242,7 +242,7 @@ class HeatyApp(common.App):
             else:
                 next_schedule_datetime = None
             if next_schedule_datetime:
-                next_schedule_time = next_schedule_datetime.time()
+                next_schedule_time = next_schedule_datetime.time()  # type: T.Optional[datetime.time]
             else:
                 next_schedule_time = None
 
@@ -274,7 +274,7 @@ class HeatyApp(common.App):
         state = {"state": None, "attributes": attrs}
         self.set_app_state(entity_id, state)
 
-    def update_publish_state_timer(self):
+    def update_publish_state_timer(self) -> None:
         """Sets the publish_state timer to fire in 1 second, if not
         running already."""
 

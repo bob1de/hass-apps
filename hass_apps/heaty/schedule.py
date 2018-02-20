@@ -16,8 +16,11 @@ class Rule:
     CONSTRAINTS = ("years", "months", "days", "weeks", "weekdays",
                    "start_date", "end_date")
 
-    def __init__(self, temp_expr, start_time=None, end_time=None,
-                 end_plus_days=0, constraints=None):
+    def __init__(
+            self, temp_expr: T.Union[expr.Temp, expr.EXPR_TYPE],
+            start_time: datetime.time = None, end_time: datetime.time = None,
+            end_plus_days: int = 0, constraints: T.Dict[str, T.Any] = None
+        ) -> None:
         if start_time is None:
             # make it midnight
             start_time = datetime.time(0, 0)
@@ -44,11 +47,11 @@ class Rule:
             temp = expr.Temp(temp_expr)
         except ValueError:
             # this is a temperature expression, precompile it
-            self.temp_expr = compile(temp_expr, "temp_expr", "eval")
+            self.temp_expr = compile(temp_expr, "temp_expr", "eval")  # type: T.Union[expr.Temp, expr.EXPR_TYPE]
         else:
             self.temp_expr = temp
 
-    def check_constraints(self, date):
+    def check_constraints(self, date: datetime.date) -> bool:
         """Checks all constraints of this rule against the given date."""
 
         # pylint: disable=too-many-return-statements
@@ -77,10 +80,10 @@ class Rule:
 class Schedule:
     """Holds the schedule for a room with all its rules."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.items = []  # type: T.List[T.Union[Rule, Schedule]]
 
-    def unfold(self):
+    def unfold(self) -> T.Iterator[Rule]:
         """Returns an iterator over all rules of this schedule. Included
         sub-schedules are replaced by the rules they contain."""
 
@@ -91,7 +94,7 @@ class Schedule:
                 for rule in item.unfold():
                     yield rule
 
-    def matching_rules(self, when):
+    def matching_rules(self, when: datetime.datetime) -> T.Iterator[Rule]:
         """Returns an iterator over all rules of the schedule that are
         valid at the time represented by the given datetime object,
         keeping the order from the items list. Rules of sub-schedules
@@ -128,7 +131,9 @@ class Schedule:
                 yield rule
                 break
 
-    def next_schedule_datetime(self, now):
+    def next_schedule_datetime(
+            self, now: datetime.datetime
+    ) -> T.Optional[datetime.datetime]:
         """Returns a datetime object with the time at which the next
         re-scheduling should be done. now should be a datetime object
         containing the current date and time.
@@ -147,7 +152,7 @@ class Schedule:
         today = now.date()
         tomorrow = today + datetime.timedelta(days=1)
 
-        def map_func(_time):
+        def map_func(_time: datetime.time) -> datetime.datetime:
             """Maps a time object to a datetime containing the next
             occurrence of that time. Midnight transitions are handled
             correctly."""
