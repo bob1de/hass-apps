@@ -2,6 +2,10 @@
 Common helpers and functionality used by all apps.
 """
 
+import typing as T
+
+import copy
+
 try:
     from appdaemon.plugins.hass import hassapi
 except ImportError:
@@ -11,6 +15,14 @@ except ImportError:
 else:
     AppBase = hassapi.Hass
     _IS_AD3 = True
+
+
+# types of log messages, used for determining the prefix
+LOG_PREFIX_NONE = ""
+LOG_PREFIX_STATUS = "---"
+LOG_PREFIX_WARNING = "!!!"
+LOG_PREFIX_INCOMING = "-->"
+LOG_PREFIX_OUTGOING = "<--"
 
 
 class App(AppBase):
@@ -31,15 +43,30 @@ class App(AppBase):
 
         name = "UNCONFIGURED"
         version = "0.0.0"
-        config_schema = None
+        config_schema = None  # type: T.Optional[T.Callable]
 
-    def log(self, msg, level="INFO"):
-        """Wrapper around Appdaemon.log() which changes the log level
-        from DEBUG to INFO if debug config option is enabled."""
+    def log(  # pylint: disable=arguments-differ
+            self, msg: str, level: str = "INFO",
+            prefix: T.Optional[str] = None
+    ) -> None:
+        """Wrapper around super().log() which changes the log level
+        from DEBUG to INFO if debug config option is enabled.
+        It also adds an appropriate prefix to the log message."""
 
-        if level.upper() == "DEBUG" and self.args and self.args.get("debug"):
+        level = level.upper()
+        if level == "DEBUG" and self.args and self.args.get("debug"):
             level = "INFO"
-        return super(App, self).log(msg, level=level)
+
+        if prefix is None:
+            if level in ("DEBUG", "INFO"):
+                prefix = LOG_PREFIX_STATUS
+            elif level in ("WARNING", "ERROR"):
+                prefix = LOG_PREFIX_WARNING
+
+        if prefix:
+            msg = "{} {}".format(prefix, msg)
+
+        super().log(msg, level=level)
 
     def initialize(self):
         """Parses the configuration and logs that initialization
@@ -48,16 +75,19 @@ class App(AppBase):
 
         # pylint: disable=attribute-defined-outside-init
 
-        self.log("--- {} v{} initialization started"
+        self.log("{} v{} initialization started"
                  .format(self.Meta.name, self.Meta.version))
 
-        if self.Meta.config_schema is not None:
-            # pylint: disable=not-callable
-            self.cfg = self.Meta.config_schema(self.args)
+        if callable(self.Meta.config_schema):
+            self.log("Validating the app's configuration.", level="DEBUG")
+            cfg = copy.deepcopy(self.args)
+            # Make the app object available during config validation.
+            cfg["_app"] = self
+            self.cfg = self.Meta.config_schema(cfg)  # pylint: disable=not-callable
 
         self.initialize_inner()
 
-        self.log("--- Initialization done")
+        self.log("Initialization done")
 
     def initialize_inner(self):
         """Overwrite this stub to do the real initialization of the
@@ -71,4 +101,4 @@ class App(AppBase):
 
         if self._is_ad3:
             return self.AD.set_app_state(entity_id, state)
-        return super(App, self).set_app_state(entity_id, state)  # pylint: disable=no-member
+        return super().set_app_state(entity_id, state)  # pylint: disable=no-member
