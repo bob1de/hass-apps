@@ -4,12 +4,8 @@ This module contains the CONFIG_SCHEMA for validation with voluptuous.
 
 import voluptuous as vol
 
-from . import expr, schedule, util
-
-
-# names of schedule rule constraints to be fetched from the rule definition
-CONSTRAINTS = ("years", "months", "days", "weeks", "weekdays",
-               "start_date", "end_date")
+from . import expr, schedule, thermostat, util, window_sensor
+from . import room as _room
 
 
 def build_schedule_rule(rule):
@@ -18,7 +14,7 @@ def build_schedule_rule(rule):
 
     constraints = {}
     for name, value in rule.items():
-        if name in CONSTRAINTS:
+        if name in schedule.Rule.CONSTRAINTS:
             constraints[name] = value
 
     start_time = rule.get("start")
@@ -38,38 +34,64 @@ def build_schedule_rule(rule):
                          end_plus_days=end_plus_days,
                          constraints=constraints)
 
-def build_schedule(items):
-    """Builds and returns a schedule containing the given items."""
+def build_schedule(rules):
+    """Compiles the given rules and returns a schedule containing them."""
 
     sched = schedule.Schedule()
-    sched.items.extend(items)
+    for rule in rules:
+        sched.items.append(build_schedule_rule(rule))
     return sched
 
 def config_post_hook(cfg):
-    """Sets some initial values after config has been parsed."""
+    """Creates room and thermostat objects after config has been parsed."""
 
-    for room_name, room in cfg["rooms"].items():
-        room.setdefault("friendly_name", room_name)
+    # Compile the pre/post schedules.
+    cfg["schedule_prepend"] = build_schedule(cfg["schedule_prepend"])
+    cfg["schedule_append"] = build_schedule(cfg["schedule_append"])
 
-        room["wanted_temp"] = None
-
-        room["schedule"].items.insert(0, cfg["schedule_prepend"])
-        room["schedule"].items.append(cfg["schedule_append"])
+    # Build room objects.
+    rooms = []
+    for room_name, room_data in cfg["rooms"].items():
+        therms = {}
+        wsensors = {}
 
         # copy settings from defaults sections to this room
-        for therm_name, therm in room["thermostats"].items():
+        for therm_name, therm_data in room_data["thermostats"].items():
             for key, val in cfg["thermostat_defaults"].items():
-                therm.setdefault(key, val)
-            therm = THERMOSTAT_SCHEMA(therm)
-            therm["current_temp"] = None
-            therm["wanted_temp"] = None
-            therm["wanted_room_temp"] = None
-            room["thermostats"][therm_name] = therm
-        for sensor_name, sensor in room["window_sensors"].items():
+                therm_data.setdefault(key, val)
+            therm_data = THERMOSTAT_SCHEMA(therm_data)
+            therms[therm_name] = therm_data
+        for wsensor_name, wsensor_data in room_data["window_sensors"].items():
             for key, val in cfg["window_sensor_defaults"].items():
-                sensor.setdefault(key, val)
-            sensor = WINDOW_SENSOR_SCHEMA(sensor)
-            room["window_sensors"][sensor_name] = sensor
+                wsensor_data.setdefault(key, val)
+            wsensor_data = WINDOW_SENSOR_SCHEMA(wsensor_data)
+            wsensors[wsensor_name] = wsensor_data
+
+        # Compile the room's schedule.
+        sched = build_schedule(room_data["schedule"])
+        sched.items.insert(0, cfg["schedule_prepend"])
+        sched.items.append(cfg["schedule_append"])
+
+        del room_data["thermostats"]
+        del room_data["window_sensors"]
+        del room_data["schedule"]
+
+        room = _room.Room(room_name, room_data, cfg["_app"])
+        rooms.append(room)
+
+        # Create thermostat and window sensor objects and attach to room.
+        for therm_name, therm_data in therms.items():
+            therm = thermostat.Thermostat(therm_name, therm_data, room)
+            room.thermostats.append(therm)
+        for wsensor_name, wsensor_data in wsensors.items():
+            wsensor = window_sensor.WindowSensor(
+                wsensor_name, wsensor_data, room
+            )
+            room.window_sensors.append(wsensor)
+
+        room.schedule = sched
+
+    cfg["rooms"] = rooms
 
     return cfg
 
@@ -90,18 +112,16 @@ PARTIAL_DATE_SCHEMA = vol.Schema({
 })
 TIME_SCHEMA = vol.Schema(vol.Match(r"^ *([01]\d|2[0123]) *\: *([012345]\d) *$"))
 TEMP_SCHEMA = vol.Schema(vol.All(
-    vol.Any(float, int, "OFF", "off"),
+    vol.Any(float, int, vol.All(str, lambda v: v.upper(), "OFF")),
     lambda v: expr.Temp(v),  # pylint: disable=unnecessary-lambda
 ))
 TEMP_EXPRESSION_SCHEMA = vol.Schema(str)
 
 # This schema does no real validation and default value insertion,
 # it just ensures a dictionary containing dictionaries is returned.
-DICT_IN_DICT_SCHEMA = vol.Schema(vol.All(
+DICTS_IN_DICT_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
-    {
-        vol.Extra: lambda v: v or {},
-    },
+    {vol.Extra: lambda v: v or {}},
 ))
 
 TEMP_EXPRESSION_MODULE_SCHEMA = vol.Schema(vol.All(
@@ -117,6 +137,7 @@ TEMP_EXPRESSION_MODULES_SCHEMA = vol.Schema({
 THERMOSTAT_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
     {
+        "friendly_name": str,
         vol.Optional("delta", default=0): vol.Any(float, int),
         vol.Optional("min_temp", default=None): vol.Any(
             vol.All(TEMP_SCHEMA, vol.NotIn([expr.Temp(expr.OFF)])),
@@ -143,14 +164,12 @@ STATE_SCHEMA = vol.Schema(vol.Any(float, int, str))
 WINDOW_SENSOR_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
     {
+        "friendly_name": str,
         vol.Optional("delay", default=10): vol.All(int, vol.Range(min=0)),
         vol.Optional("open_state", default="on"):
             vol.Any(STATE_SCHEMA, [STATE_SCHEMA]),
     },
 ))
-WINDOW_SENSORS_SCHEMA = vol.Schema({
-    vol.Extra: lambda v: WINDOW_SENSOR_SCHEMA(v or {}),
-})
 
 SCHEDULE_RULE_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
@@ -168,19 +187,15 @@ SCHEDULE_RULE_SCHEMA = vol.Schema(vol.All(
         vol.Optional("start_date"): PARTIAL_DATE_SCHEMA,
         vol.Optional("end_date"): PARTIAL_DATE_SCHEMA,
     },
-    build_schedule_rule,
 ))
 SCHEDULE_SCHEMA = vol.Schema(vol.All(
     lambda v: v or [],
     [SCHEDULE_RULE_SCHEMA],
-    build_schedule,
 ))
 
 SCHEDULE_SNIPPETS_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
-    {
-        vol.Extra: SCHEDULE_SCHEMA,
-    },
+    {vol.Extra: SCHEDULE_SCHEMA},
 ))
 
 ROOM_SCHEMA = vol.Schema(vol.All(
@@ -190,36 +205,36 @@ ROOM_SCHEMA = vol.Schema(vol.All(
         vol.Optional("replicate_changes", default=True): bool,
         vol.Optional("reschedule_delay", default=0):
             vol.All(int, vol.Range(min=0)),
-        vol.Optional("thermostats", default=dict): DICT_IN_DICT_SCHEMA,
-        vol.Optional("window_sensors", default=dict): DICT_IN_DICT_SCHEMA,
-        vol.Optional("schedule", default=lambda: build_schedule([])):
+        vol.Optional("thermostats", default=dict): DICTS_IN_DICT_SCHEMA,
+        vol.Optional("window_sensors", default=dict): DICTS_IN_DICT_SCHEMA,
+        vol.Optional("schedule", default=list):
             SCHEDULE_SCHEMA,
     },
 ))
-ROOMS_SCHEMA = vol.Schema(vol.All(
-    lambda v: v or {},
-    {
-        vol.Extra: ROOM_SCHEMA,
-    },
-))
 
-CONFIG_SCHEMA = vol.Schema(vol.All(vol.Schema({
-    vol.Optional("heaty_id", default="default"): str,
-    vol.Optional("untrusted_temp_expressions", default=False): bool,
-    vol.Optional("master_switch", default=None):
-        vol.Any(ENTITY_ID_SCHEMA, None),
-    vol.Optional("off_temp", default=expr.Temp(expr.OFF)): TEMP_SCHEMA,
-    vol.Optional("temp_expression_modules", default=dict):
-        TEMP_EXPRESSION_MODULES_SCHEMA,
-    # defaults sections are not parsed
-    vol.Optional("thermostat_defaults", default=dict): lambda v: v or {},
-    vol.Optional("window_sensor_defaults", default=dict): lambda v: v or {},
-    vol.Optional("schedule_prepend", default=lambda: build_schedule([])):
-        SCHEDULE_SCHEMA,
-    vol.Optional("schedule_append", default=lambda: build_schedule([])):
-        SCHEDULE_SCHEMA,
-    vol.Optional("schedule_snippets", default=dict):
-        SCHEDULE_SNIPPETS_SCHEMA,
-    vol.Optional("rooms", default=dict):
-        ROOMS_SCHEMA,
-}, extra=True), config_post_hook))
+CONFIG_SCHEMA = vol.Schema(vol.All(
+    vol.Schema({
+        vol.Optional("heaty_id", default="default"): str,
+        vol.Optional("untrusted_temp_expressions", default=False): bool,
+        vol.Optional("master_switch", default=None):
+            vol.Any(ENTITY_ID_SCHEMA, None),
+        vol.Optional("off_temp", default=expr.Temp(expr.OFF)): TEMP_SCHEMA,
+        vol.Optional("temp_expression_modules", default=dict):
+            TEMP_EXPRESSION_MODULES_SCHEMA,
+        vol.Optional("thermostat_defaults", default=dict):
+            lambda v: v or {},
+        vol.Optional("window_sensor_defaults", default=dict):
+            lambda v: v or {},
+        vol.Optional("schedule_prepend", default=list):
+            SCHEDULE_SCHEMA,
+        vol.Optional("schedule_append", default=list):
+            SCHEDULE_SCHEMA,
+        vol.Optional("schedule_snippets", default=dict):
+            SCHEDULE_SNIPPETS_SCHEMA,
+        vol.Optional("rooms", default=dict): vol.All(
+            lambda v: v or {},
+            {vol.Extra: ROOM_SCHEMA},
+        ),
+    }, extra=True),
+    config_post_hook,
+))

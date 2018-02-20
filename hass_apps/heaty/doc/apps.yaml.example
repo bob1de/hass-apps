@@ -91,6 +91,10 @@ heaty_full:
   # thermostat basis.
   thermostat_defaults:
 
+    # An alternative friendly name to display in logs.
+    # (optional)
+    friendly_name: Thermo
+
     # Delta that is added to the temperature value sent to this
     # thermostat in order to correct potential inaccuracies of
     # the temperature sensor.
@@ -160,6 +164,10 @@ heaty_full:
   # all window sensors in your setup. These can be overwritten on a per
   # sensor basis.
   window_sensor_defaults:
+
+    # An alternative friendly name to display in logs.
+    # (optional)
+    friendly_name: Window
 
     # Sensor state needs to stay constant for this number of seconds
     #  before the window open/closed detection kicks in.

@@ -2,6 +2,8 @@
 Utility functions that are used everywhere inside Heaty.
 """
 
+import typing as T
+
 import datetime
 import re
 import time
@@ -15,7 +17,7 @@ RANGE_PATTERN = re.compile(r"^(\d+)\-(\d+)$")
 TIME_FORMAT = "%H:%M"
 
 
-def escape_var_name(name):
+def escape_var_name(name: str) -> str:
     """Converts the given string to a valid Python variable name.
     All unsupported characters are replaced by "_". If name would
     start with a digit, "_" is put infront."""
@@ -44,7 +46,10 @@ def expand_range_string(range_string):
             numbers.add(int(part))
     return numbers
 
-def build_date_from_constraint(constraint, default_date, direction=0):
+def build_date_from_constraint(
+        constraint: T.Dict[str, int], default_date: datetime.date,
+        direction: int = 0
+) -> datetime.date:
     """Builds and returns a datetime.date object from the given constraint,
     taking missing values from the given default_date.
     In case the date is not valid (e.g. 2017-02-29), a ValueError is
@@ -81,11 +86,28 @@ def build_date_from_constraint(constraint, default_date, direction=0):
                 fields["month"] = 1
                 fields["year"] += 1
 
-def format_time(when, format_str=TIME_FORMAT):
+def format_time(when: datetime.time, format_str: str = TIME_FORMAT) -> str:
     """Returns a string representing the given datetime.time object.
     If no strftime-compatible format is provided, the default is used."""
 
     return when.strftime(format_str)
+
+def modifies_state(func: T.Callable) -> T.Callable:
+    """This decorator calls update_publish_state_timer() after the
+    method decorated with it ran. It may only be used for non-static
+    methods of a class containing the app as "app" attribute, because it
+    fetches the "app" attribute from the method's first argument."""
+
+    def _new_func(self, *args, **kwargs):
+        result = func(self, *args, **kwargs)
+        self.app.update_publish_state_timer()
+        return result
+
+    _new_func.__name__ = func.__name__
+    _new_func.__doc__ = func.__doc__
+    _new_func.__annotations__ = func.__annotations__
+    _new_func.__dict__.update(func.__dict__)
+    return _new_func
 
 def parse_time_string(time_str, format_str=TIME_FORMAT):
     """Parses a string of the given strptime-compatible format

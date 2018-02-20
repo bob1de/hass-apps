@@ -2,6 +2,8 @@
 This module implements the Schedule and Rule classes.
 """
 
+import typing as T  # pylint: disable=unused-import
+
 import datetime
 
 from . import expr, util
@@ -9,6 +11,10 @@ from . import expr, util
 
 class Rule:
     """A rule that can be added to a schedule."""
+
+    # names of schedule rule constraints to be fetched from a rule definition
+    CONSTRAINTS = ("years", "months", "days", "weeks", "weekdays",
+                   "start_date", "end_date")
 
     def __init__(self, temp_expr, start_time=None, end_time=None,
                  end_plus_days=0, constraints=None):
@@ -72,7 +78,7 @@ class Schedule:
     """Holds the schedule for a room with all its rules."""
 
     def __init__(self):
-        self.items = []
+        self.items = []  # type: T.List[T.Union[Rule, Schedule]]
 
     def unfold(self):
         """Returns an iterator over all rules of this schedule. Included

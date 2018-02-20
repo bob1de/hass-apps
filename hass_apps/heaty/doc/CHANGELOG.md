@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
+* Thermostats and window sensors can now also have friendly names.
 
 ### Changed
 
