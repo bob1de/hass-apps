@@ -24,7 +24,7 @@ def _import_app_module(package: str) -> types.ModuleType:
     return importlib.import_module(mod_name)
 
 def _build_app_loader(app_package: str, app_class_name: str) -> T.Callable:
-    def _proxy_loader(*args, **kwargs):
+    def _proxy_loader(*args, **kwargs):  # type: ignore
         app_mod = _import_app_module(app_package)
         app_class = getattr(app_mod, app_class_name)
         return app_class(*args, **kwargs)

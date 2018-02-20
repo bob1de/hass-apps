@@ -68,7 +68,7 @@ class App(AppBase):
 
         super().log(msg, level=level)
 
-    def initialize(self):
+    def initialize(self) -> None:
         """Parses the configuration and logs that initialization
         started/finished. The real work should be done in
         initialize_inner()."""
@@ -89,16 +89,18 @@ class App(AppBase):
 
         self.log("Initialization done")
 
-    def initialize_inner(self):
+    def initialize_inner(self) -> None:
         """Overwrite this stub to do the real initialization of the
         particular app."""
 
         pass
 
-    def set_app_state(self, entity_id, state):
+    def set_app_state(
+            self, entity_id: str, state: T.Dict[str, T.Any]
+    ) -> None:
         """A wrapper to make the new appdaemon.AppDaemon.set_app_state
         available under the appdaemon 2 interface."""
 
         if self._is_ad3:
-            return self.AD.set_app_state(entity_id, state)
-        return super().set_app_state(entity_id, state)  # pylint: disable=no-member
+            self.AD.set_app_state(entity_id, state)
+        super().set_app_state(entity_id, state)  # pylint: disable=no-member
