@@ -17,3 +17,11 @@ Currently, the following apps are included:
   constraints can be configured freely for each individual sensor.
 
 .. _heaty: hass_apps/heaty/doc/README.rst
+
+
+
+.. toctree::
+   :glob:
+   :hidden:
+
+   */index

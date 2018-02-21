@@ -40,6 +40,6 @@ it's entirely your choice.
 .. toctree::
    :hidden:
 
+   Introduction <self>
    getting-started
    apps/index
-
