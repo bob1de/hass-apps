@@ -9,15 +9,15 @@ Documentation
 -------------
 
 Read the `detailled documentation
-<http://hass_apps.readthedocs.org/en/latest/index.html>`_ hosted at
+<http://hass_apps.readthedocs.io/en/stable/index.html>`_ hosted at
 readthedocs.
 
 Some quick links:
 
 * `Getting started
-  <http://hass-apps.readthedocs.io/en/latest/getting-started.html>`_
+  <http://hass-apps.readthedocs.io/en/stable/getting-started.html>`_
 * `Available apps
-  <http://hass-apps.readthedocs.io/en/latest/apps/index.html>`_
+  <http://hass-apps.readthedocs.io/en/stable/apps/index.html>`_
 
 
 Donations
