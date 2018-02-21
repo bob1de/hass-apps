@@ -269,8 +269,9 @@ implement a schedule on/off switch with it, like so:
     schedule_prepend:
     - temp: Break() if app.get_state("input_boolean.heating_schedule") == "off" else Ignore()
 
+
 Security considerations
-~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------
 
 It has to be noted that temperature expressions are evaluated using
 Python's ``eval()`` function. In general, this is not suited for code

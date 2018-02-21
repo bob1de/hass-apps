@@ -4,6 +4,13 @@ Welcome to hass_apps's documentation!
 Some useful apps and snippets to empower Home Assistant and AppDaemon
 even more.
 
+.. toctree::
+   :hidden:
+
+   Introduction <self>
+   getting-started
+   apps/index
+
 
 Roadmap
 -------
@@ -34,11 +41,3 @@ it's entirely your choice.
 
 | ETH: 0xa424975a19903F7A6253bA00D5C3F28fACff3C6B
 | ZEC: t1RKFyt4qqtqdYfprf8HZoDHRNLNzhe35ED
-
-
-.. toctree::
-   :hidden:
-
-   Introduction <self>
-   getting-started
-   apps/index

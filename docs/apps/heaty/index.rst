@@ -5,15 +5,6 @@ A highly-configurable, comfortable to use Home Assistant / appdaemon app
 that controls thermostats based on a schedule while still facilitating
 manual intervention at any time.
 
-**Note:**
-Heaty is still a young piece of software which likely contains some bugs.
-Please keep that in mind when using it. Bug reports and suggestions are
-always welcome. Use the GitHub Issues for this sort of feedback.
-
-
-Features
---------
-
 These key features are implemented in Heaty. More are added continuously.
 
 * Schedules (based on time, days of week/month, month, year)
@@ -27,6 +18,13 @@ These key features are implemented in Heaty. More are added continuously.
 * Logging
 * Custom widgets for AppDaemon dashboards (WIP)
 
+.. toctree::
+   :caption: Contents:
+
+   writing-schedules
+   temperature-expressions
+   events
+
 
 Using Heaty without schedules
 -----------------------------
@@ -37,11 +35,3 @@ still benefitting from other features like the open window detection.
 
 To do so, just leave out everything that is related to schedules in
 your ``apps.yaml``.
-
-
-.. toctree::
-   :hidden:
-
-   writing-schedules
-   temperature-expressions
-   events
