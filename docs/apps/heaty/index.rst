@@ -21,6 +21,7 @@ These key features are implemented in Heaty. More are added continuously.
 .. toctree::
    :caption: Contents:
 
+   configuration
    writing-schedules
    temperature-expressions
    events

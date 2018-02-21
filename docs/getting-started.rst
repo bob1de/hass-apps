@@ -52,10 +52,12 @@ Configuration
    AppDaemon's ``apps`` directory. This is just a stub which imports
    the real app's code.
 3. Pick one or more apps you want to use.
-4. Copy the contents of ``hass_apps/some_app/doc/apps.yaml.example``
+4. Copy the contents of ``docs/apps/<some_app>/sample-apps.yaml``
    to your ``apps.yaml`` file and adapt it as necessary. The example
    files also contain documentation comments explaining what the
    different settings mean.
+   The sample configuration can also be found in the HTML docs for
+   each individual app and copied from there.
 5. AppDaemon should have noticed the changes made to ``apps.yaml`` and
    restart its apps automatically.
 
