@@ -63,13 +63,3 @@ it's entirely your choice.
 
 | ETH: 0xa424975a19903F7A6253bA00D5C3F28fACff3C6B
 | ZEC: t1RKFyt4qqtqdYfprf8HZoDHRNLNzhe35ED
-
-
-
-Indices and tables
-==================
-
-.. * :ref:`genindex`
-   * :ref:`modindex`
-
-* :ref:`search`
