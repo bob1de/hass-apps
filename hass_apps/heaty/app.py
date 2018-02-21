@@ -221,9 +221,9 @@ class HeatyApp(common.App):
 
         # shortcuts to make expr.Temp and datetime.time objects json
         # serializable
-        unpack_temp = lambda t: t.value if isinstance(t, expr.Temp) else t
+        unpack_temp = lambda t: t.value if isinstance(t, expr.Temp) else t  # type: T.Callable[[T.Any], T.Any]  # pylint: disable=line-too-long
         unpack_time = lambda t: t.strftime(util.TIME_FORMAT) \
-                      if isinstance(t, datetime.time) else None
+                if isinstance(t, datetime.time) else None  # type: T.Callable[[T.Any], T.Any]
 
         self.log("Publishing state to AppDaemon.",
                  level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
