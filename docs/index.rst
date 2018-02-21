@@ -4,8 +4,11 @@ Welcome to the documentation of hass_apps!
 This is a collection of useful apps and snippets to empower Home Assistant
 and AppDaemon even more.
 
+
+Contents
+--------
+
 .. toctree::
-   :caption: Contents:
    :maxdepth: 1
 
    Introduction <self>
