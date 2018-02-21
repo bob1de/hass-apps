@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/efficiosoft/hass_apps/compare/v0.20180218.0...HEAD
+[Unreleased]: https://github.com/efficiosoft/hass_apps/compare/v0.20180221.0...HEAD
 
 ### Fixed
 
@@ -15,11 +15,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 
 ### Changed
-* motion_light v0.1.1
 
 ### Deprecated
 
 ### Removed
+
+
+## [0.20180221.0] - 2018-02-21
+[0.20180221.0]: https://github.com/efficiosoft/hass_apps/compare/v0.20180218.0...v0.20180221.0
+
+### Changed
+* motion_light v0.1.1
+* Ported docs, sample configurations and changelogs to sphinx +
+  readthedocs.org.
 
 
 ## [0.20180218.0] - 2018-02-18
