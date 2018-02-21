@@ -1,37 +1,8 @@
 Welcome to hass_apps's documentation!
 =====================================
 
-
 Some useful apps and snippets to empower Home Assistant and AppDaemon
 even more.
-
-
-Apps
-----
-
-All apps for AppDaemon can be found inside the ``hass_apps`` directory
-of this repository. Each includes a sample configuration in the file
-``doc/apps.yaml.example``.
-
-Currently, the following apps are included:
-
-* `heaty`_:  A highly-configurable, comfortable to use Home Assistant /
-  appdaemon app that controls thermostats based on a schedule while still
-  facilitating manual intervention at any time.
-* **motion_light**:  This app can turn devices on/off according to the
-  state of sensors.
-  The most obvious use case is controlling lights when motion sensors
-  report motion, but other scenarios are imaginable as well. Delays and
-  constraints can be configured freely for each individual sensor.
-
-.. _heaty: hass_apps/heaty/doc/README.rst
-
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   getting-started
 
 
 Roadmap
@@ -63,3 +34,12 @@ it's entirely your choice.
 
 | ETH: 0xa424975a19903F7A6253bA00D5C3F28fACff3C6B
 | ZEC: t1RKFyt4qqtqdYfprf8HZoDHRNLNzhe35ED
+
+
+
+.. toctree::
+   :hidden:
+
+   getting-started
+   apps/index
+
