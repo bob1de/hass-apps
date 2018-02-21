@@ -36,7 +36,6 @@ it's entirely your choice.
 | ZEC: t1RKFyt4qqtqdYfprf8HZoDHRNLNzhe35ED
 
 
-
 .. toctree::
    :hidden:
 

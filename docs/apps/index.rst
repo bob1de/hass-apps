@@ -9,5 +9,6 @@ Currently, the following apps are included:
 
 .. toctree::
    :glob:
+   :maxdepth: 1
 
    */index
