@@ -20,6 +20,7 @@ These key features are implemented in Heaty. More are added continuously.
 
 .. toctree::
    :caption: Contents:
+   :maxdepth: 1
 
    configuration
    writing-schedules

@@ -8,6 +8,7 @@ constraints can be configured freely for each individual sensor.
 
 .. toctree::
    :caption: Contents:
+   :maxdepth: 1
 
    configuration
    CHANGELOG
