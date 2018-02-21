@@ -14,6 +14,7 @@ Contents
    Introduction <self>
    getting-started
    apps/index
+   CHANGELOG
 
 
 Contributing
