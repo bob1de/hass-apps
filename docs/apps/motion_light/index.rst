@@ -10,3 +10,4 @@ constraints can be configured freely for each individual sensor.
    :caption: Contents:
 
    configuration
+   CHANGELOG

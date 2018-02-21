@@ -25,6 +25,7 @@ These key features are implemented in Heaty. More are added continuously.
    writing-schedules
    temperature-expressions
    events
+   CHANGELOG
 
 
 Using Heaty without schedules
