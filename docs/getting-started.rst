@@ -1,13 +1,16 @@
 Getting started
 ===============
 
-
 Installation
 ------------
 
-In order to use one or more of the apps provided here, please install
-the whole ``hass_apps`` package. Don't worry, only the apps you configure
+In order to use one or more of the included apps, please install the
+whole ``hass_apps`` package. Don't worry, only the apps you configure
 will be loaded.
+
+The minimum required Python version is 3.5. If you are unsure what you
+have installed, run ``python3 --version``. If your version of Python is
+recent enough, you may continue with installing.
 
 Install from PyPi:
 

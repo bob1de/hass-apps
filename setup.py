@@ -14,9 +14,10 @@ def read_file(fname):
 setup(
     name = "hass_apps",
     version = __version__,
-    description = "Some useful apps for AppDaemon.",
+    description = "A collection of useful apps for AppDaemon + "
+                  "Home Assistant.",
     long_description = read_file("README.rst"),
-    url = "https://github.com/efficiosoft/hass-apps",
+    url = "https://github.com/efficiosoft/hass_apps",
     author = "Robert Schindler",
     author_email = "r.schindler@efficiosoft.com",
     license = "Apache 2.0",
