@@ -5,6 +5,7 @@ This is a collection of useful apps and snippets to empower Home Assistant
 and AppDaemon even more.
 
 .. toctree::
+   :caption: Contents:
    :maxdepth: 1
 
    Introduction <self>
