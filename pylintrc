@@ -1,6 +1,8 @@
 [pylint]
 disable =
-    too-few-public-methods
-max-args = 6
+    duplicate-code,
+    too-few-public-methods,
+    wrong-import-position
+max-args = 8
 max-branches = 20
 max-locals = 20

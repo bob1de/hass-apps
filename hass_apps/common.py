@@ -103,4 +103,5 @@ class App(AppBase):
 
         if self._is_ad3:
             self.AD.set_app_state(entity_id, state)
-        super().set_app_state(entity_id, state)  # pylint: disable=no-member
+        else:
+            super().set_app_state(entity_id, state)  # pylint: disable=no-member
