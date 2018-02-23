@@ -1,7 +1,3 @@
-# Example apps.yaml configuration for Heaty.
-# Simply copy this, paste it into your apps.yaml and adapt as needed.
-
-
 # This is a minimal example configuration that does just basic things.
 # If you want to have further control over your heatings, use open window
 # detection, set temperature based on entity states etc., please see the

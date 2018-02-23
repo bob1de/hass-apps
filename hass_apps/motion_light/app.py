@@ -4,6 +4,8 @@ in Home Assistant, so that motion causes these entities to be turned
 on or off.
 """
 
+import typing as T
+
 import voluptuous as vol
 
 from .. import common
@@ -53,7 +55,7 @@ class MotionLightApp(common.App):
         version = __version__
         config_schema = CONFIG_SCHEMA
 
-    def initialize_inner(self):
+    def initialize_inner(self) -> None:
         """Parses the configuration and sets up state listeners."""
 
         # pylint: disable=attribute-defined-outside-init
@@ -65,15 +67,17 @@ class MotionLightApp(common.App):
                     sensor_data["constraints"].setdefault(key, value)
 
         for sensor, sensor_data in self.cfg["sensors"].items():
-            self.listen_state(self.sensor_state_cb, sensor,
+            self.listen_state(self._sensor_state_cb, sensor,
                               new=sensor_data["on_state"],
                               duration=sensor_data["on_delay"],
                               **sensor_data["constraints"])
-            self.listen_state(self.sensor_state_cb, sensor,
+            self.listen_state(self._sensor_state_cb, sensor,
                               old=sensor_data["on_state"],
                               duration=sensor_data["off_delay"])
 
-    def sensor_state_cb(self, sensor, attr, old, new, kwargs):
+    def _sensor_state_cb(
+            self, sensor: str, attr: str, old: T.Any, new: T.Any, kwargs: dict
+    ) -> None:
         """Is called whenever a motion sensor changes between on and off."""
 
         sensor_data = self.cfg["sensors"][sensor]
