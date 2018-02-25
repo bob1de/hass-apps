@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 
 
-## 0.11.0 - 2018-03-18
+## 0.11.0 - 2018-02-18
 
 ### Added
 * Added plausibility checks pointing the user to possible mistakes in
@@ -41,7 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   with 3.0.0b2.
 
 
-## 0.10.2 - 2018-03-09
+## 0.10.2 - 2018-02-09
 
 ### Fixed
 * Fixed error when turning master switch off due to a wrong default
@@ -54,14 +54,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   consistency reasons, lower-case ``"off"`` will still work.
 
 
-## 0.10.1 - 2018-03-05
+## 0.10.1 - 2018-02-05
 
 ### Fixed
 * Fixed issue that lead to endless re-sending with AppDaemon 3.
 * thermostat_defaults and window_sensor_defaults are now handled correctly.
 
 
-## 0.10.0 - 2018-03-05
+## 0.10.0 - 2018-02-05
 
 ### Added
 * Added appdaemon 3 support alongside the old appdaemon 2
