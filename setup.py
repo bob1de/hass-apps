@@ -27,7 +27,7 @@ setup(
     },
     install_requires = [
         "appdaemon >= 2.1.12",
-        "voluptuous >= 0.10.5",
+        "voluptuous >= 0.11.1",
     ],
     zip_safe = False,
 )
