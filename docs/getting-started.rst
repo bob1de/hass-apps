@@ -36,7 +36,8 @@ Now install ``hass_apps`` from PyPi, together with some common packages.
 
 ::
 
-    pip install --upgrade hass_apps pip setuptools wheel
+    pip install --upgrade pip setuptools wheel
+    pip install --upgrade hass_apps
 
 Or, as an alternative, clone the GitHub repository to get even the
 latest changes. But please keep in mind that this shouldn't be considered
@@ -102,7 +103,8 @@ Now, simply pull upgrades from PyPi.
 
 ::
 
-    pip install --upgrade hass_apps pip setuptools wheel
+    pip install --upgrade pip setuptools wheel
+    pip install --upgrade hass_apps
 
 Or, if you installed from the git repository.
 
