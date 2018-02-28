@@ -12,19 +12,43 @@ The minimum required Python version is 3.5. If you are unsure what you
 have installed, run ``python3 --version``. If your version of Python is
 recent enough, you may continue with installing.
 
-Install from PyPi:
+It is strongly recommended to run hass_apps inside a virtualenv, separated
+even from Home Assistant in order to avoid conflicts with different versions
+of dependency packages.
+
+If you use a distribution like Debian or Ubuntu which doesn't ship
+``venv`` with Python by default, install it first:
 
 ::
 
-    pip3 install hass_apps
+    sudo apt install python3-venv
 
-Or clone the GitHub repository to get even the latest changes:
+Then, create and activate the virtualenv. We name it ``ad`` (which stands
+for AppDaemon) in this example.
+
+::
+
+    python3 -m venv ad
+    cd ad
+    source bin/activate
+
+Now install ``hass_apps`` from PyPi, together with some common packages.
+
+::
+
+    pip install --upgrade hass_apps pip setuptools wheel
+
+Or, as an alternative, clone the GitHub repository to get even the
+latest changes. But please keep in mind that this shouldn't be considered
+stable and isn't guaranteed to work all the time. Don't use the
+development version in production unless you have a good reason to do so.
 
 ::
 
     git clone https://github.com/efficiosoft/hass_apps
     cd hass_apps
-    pip3 install . --upgrade
+    pip install --upgrade pip setuptools wheel
+    pip install . --upgrade
 
 
 A note for hass.io users
@@ -67,19 +91,27 @@ You're done!
 Upgrade
 -------
 
-Simply pull upgrades from PyPi:
+First, ``cd`` into and activate your virtualenv.
 
 ::
 
-    pip3 install --upgrade hass_apps
+    cd ad
+    source bin/activate
 
-Or, if you installed from the git repository:
+Now, simply pull upgrades from PyPi.
 
 ::
 
-    cd /path/to/your/clone/of/the/repository
+    pip install --upgrade hass_apps pip setuptools wheel
+
+Or, if you installed from the git repository.
+
+::
+
+    cd hass_apps
     git pull
-    pip3 install . --upgrade
+    pip install --upgrade pip setuptools wheel
+    pip install . --upgrade
 
 Note that AppDaemon doesn't detect changes in the imported modules
 automatically and needs to be restarted manually after an upgrade.

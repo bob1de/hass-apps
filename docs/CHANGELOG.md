@@ -16,6 +16,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 * Require voluptuous >= 0.11.1.
+* It is now strongly recommended to install in a separate virtualenv to
+  avoid conflicts in versions of dependency packages that are needed by
+  both hass_apps and Home Assistant. The Getting started section has
+  been updated accordingly.
 
 ### Deprecated
 
