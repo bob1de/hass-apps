@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/efficiosoft/hass_apps/compare/v0.20180221.0...HEAD
+[Unreleased]: https://github.com/efficiosoft/hass_apps/compare/v0.20180302.0...HEAD
 
 ### Fixed
 
@@ -15,15 +15,22 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 
 ### Changed
+
+### Deprecated
+
+### Removed
+
+
+## [0.20180302.0] - 2018-03-02
+[0.20180302.0]: https://github.com/efficiosoft/hass_apps/compare/v0.20180221.0...v0.20180302.0
+
+### Changed
+* heaty v0.12.0
 * Require voluptuous >= 0.11.1.
 * It is now strongly recommended to install in a separate virtualenv to
   avoid conflicts in versions of dependency packages that are needed by
   both hass_apps and Home Assistant. The Getting started section has
   been updated accordingly.
-
-### Deprecated
-
-### Removed
 
 
 ## [0.20180221.0] - 2018-02-21
