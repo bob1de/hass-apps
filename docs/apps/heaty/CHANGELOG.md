@@ -9,9 +9,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
-* Fixed a bug which let state publishing fail on AppDaemon 3.
 
 ### Security
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+
+## 0.12.0 - 2018-03-02
+
+### Fixed
+* Fixed a bug which let state publishing fail on AppDaemon 3.
 
 ### Added
 * Thermostats and window sensors can now also have friendly names.
@@ -20,10 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Improved code quality:
   * Restructured Heaty into submodules.
   * Added type-hints
-
-### Deprecated
-
-### Removed
+  * Substantial parts of Heaty's core have been rewritten.
 
 
 ## 0.11.0 - 2018-02-18
