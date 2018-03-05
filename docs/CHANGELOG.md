@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/efficiosoft/hass_apps/compare/v0.20180302.0...HEAD
+[Unreleased]: https://github.com/efficiosoft/hass_apps/compare/v0.20180305.0...HEAD
 
 ### Fixed
 
@@ -19,6 +19,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Deprecated
 
 ### Removed
+
+
+## [0.20180305.0] - 2018-03-05
+[0.20180305.0]: https://github.com/efficiosoft/hass_apps/compare/v0.20180302.0...v0.20180305.0
+
+### Changed
+* heaty v0.12.1
 
 
 ## [0.20180302.0] - 2018-03-02
