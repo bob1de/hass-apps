@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
-* Omitting ``off_temp`` in the configuration works again. (#7)
 
 ### Security
 
@@ -20,6 +19,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Deprecated
 
 ### Removed
+
+
+## 0.12.1 - 2018-03-05
+
+### Fixed
+* Omitting ``off_temp`` in the configuration works again. (#7)
 
 
 ## 0.12.0 - 2018-03-02
