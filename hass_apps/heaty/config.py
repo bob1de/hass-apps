@@ -115,7 +115,7 @@ PARTIAL_DATE_SCHEMA = vol.Schema({
 })
 TIME_SCHEMA = vol.Schema(vol.Match(r"^ *([01]\d|2[0123]) *\: *([012345]\d) *$"))
 TEMP_SCHEMA = vol.Schema(vol.All(
-    vol.Any(float, int, vol.All(str, lambda v: v.upper(), "OFF")),
+    vol.Any(float, int, expr.Off, vol.All(str, lambda v: v.upper(), "OFF")),
     lambda v: expr.Temp(v),  # pylint: disable=unnecessary-lambda
 ))
 TEMP_EXPRESSION_SCHEMA = vol.Schema(str)
@@ -221,7 +221,7 @@ CONFIG_SCHEMA = vol.Schema(vol.All(
         vol.Optional("untrusted_temp_expressions", default=False): bool,
         vol.Optional("master_switch", default=None):
             vol.Any(ENTITY_ID_SCHEMA, None),
-        vol.Optional("off_temp", default=expr.Temp(expr.OFF)): TEMP_SCHEMA,
+        vol.Optional("off_temp", default=expr.OFF): TEMP_SCHEMA,
         vol.Optional("temp_expression_modules", default=dict):
             TEMP_EXPRESSION_MODULES_SCHEMA,
         vol.Optional("thermostat_defaults", default=dict):

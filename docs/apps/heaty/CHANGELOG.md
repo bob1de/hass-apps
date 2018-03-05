@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
+* Omitting ``off_temp`` in the configuration works again. (#7)
 
 ### Security
 
