@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
-* Fixed a bug that prevented the temperature from being restored after
-  window has been closed. (#8)
 
 ### Security
 
@@ -21,6 +19,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Deprecated
 
 ### Removed
+
+
+## 0.12.2 - 2018-03-07
+
+### Fixed
+* Fixed a bug that prevented the temperature from being restored after
+  window has been closed. (#8)
 
 
 ## 0.12.1 - 2018-03-05
