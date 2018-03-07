@@ -58,8 +58,12 @@ class WindowSensor:
             # could be None if we didn't know the temperature before
             # opening the window
             if orig_temp is None:
+                self.log("Restoring temperature from schedule.",
+                         level="DEBUG")
                 self.room.set_scheduled_temp()
             else:
+                self.log("Restoring temperature to {}.".format(orig_temp),
+                         level="DEBUG")
                 self.room.set_temp(orig_temp, scheduled=False)
 
     def initialize(self) -> None:

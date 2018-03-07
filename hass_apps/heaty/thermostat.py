@@ -113,7 +113,7 @@ class Thermostat:
             return
 
         if temp == self.wanted_temp:
-            # thermostat adapted to the temperature we set,
+            # thermostat adapted to the temperature we want,
             # cancel any re-send timer
             self.cancel_resend_timer()
 

@@ -365,16 +365,16 @@ class Room:
         externally, e.g. by manual adjustment at a thermostat.
         Setting no_reschedule prevents re-scheduling."""
 
-        self.wanted_temp = temp
-
-        if not self.app.master_switch_enabled():
-            return
-
         if self.get_open_windows():
             # After window has been opened and heating turned off,
             # thermostats usually report to be off, but we don't
             # care to not mess up self.wanted_temp and prevent
             # replication.
+            return
+
+        self.wanted_temp = temp
+
+        if not self.app.master_switch_enabled():
             return
 
         if self.cfg["replicate_changes"] and len(self.thermostats) > 1 and \
