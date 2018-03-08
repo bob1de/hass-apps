@@ -218,7 +218,7 @@ heaty_full:
       # All thermostats of this room go here.
       thermostats:
 
-        climate.living1
+        climate.living1:
           # We could, for instance, overwrite the delta defined in the
           # defaults, if any, for this particular thermostat only.
           delta: 1.0
