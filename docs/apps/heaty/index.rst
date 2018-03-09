@@ -37,7 +37,11 @@ heating setup. I always tend to repeat myself in these situations,
 hence I want to explain here what the exact preconditions for using
 Heaty actually are.
 
-1. You need at least one radiator thermostat in each room you want to
+1. Heaty controls so-called rooms. However, a room doesn't have to be
+   a real room inside of a building. Think of it as a zone in which the
+   temperature should be the same everywhere.
+
+2. You need at least one radiator thermostat in each room you want to
    control. Such a thermostat must be recognized as a climate entity
    in Home Assistant, and setting the target temperature from the
    Home Assistant web interface should work reliably. Additional wall
@@ -47,14 +51,14 @@ Heaty actually are.
    at Home Assistant's `Generic Thermostat platform`_ to build a virtual
    thermostat first.
 
-2. If your thermostat is used for both heating and cooling, there has
+3. If your thermostat is used for both heating and cooling, there has
    to be an automatic operation mode which does heating/cooling based
    on the difference between current and target temperature. Heaty
    will only switch the operation mode between on and off (exact names
    can be configured) and set the target temperature according to the
    configured schedule.
 
-3. Heaty doesn't care about where your heating energy comes from. Whether
+4. Heaty doesn't care about where your heating energy comes from. Whether
    that's a gas, oil, wood or solid fuel oven, solar energy or something
    fancy doesn't matter. This implies that Heaty won't control the energy
    source in any way. Especially, it won't turn the heating source off
