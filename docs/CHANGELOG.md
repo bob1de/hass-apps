@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/efficiosoft/hass_apps/compare/v0.20180310.0...HEAD
+[Unreleased]: https://github.com/efficiosoft/hass_apps/compare/v0.20180310.1...HEAD
 
 ### Fixed
 
@@ -19,6 +19,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Deprecated
 
 ### Removed
+
+
+## [0.20180310.1] - 2018-03-10
+[0.20180310.1]: https://github.com/efficiosoft/hass_apps/compare/v0.20180310.0...v0.20180310.1
+
+### Changed
+* Fixed old project name in setup.py left over by mistake.
 
 
 ## [0.20180310.0] - 2018-03-10

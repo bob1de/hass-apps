@@ -12,7 +12,7 @@ def read_file(fname):
 
 
 setup(
-    name = "hass_apps",
+    name = "hass-apps",
     version = __version__,
     description = "A collection of useful apps for AppDaemon + "
                   "Home Assistant.",
