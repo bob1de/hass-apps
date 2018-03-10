@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 
 
+## 0.12.3 - 2018-03-10
+
+### Added
+* Added section about prerequisites to docs.
+
+
 ## 0.12.2 - 2018-03-07
 
 ### Fixed
