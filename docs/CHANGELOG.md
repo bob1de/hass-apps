@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 [Unreleased]: https://github.com/efficiosoft/hass_apps/compare/v0.20180310.1...HEAD
 
 ### Fixed
+* Fixed wrong path to sample configuration files in docs/apps/index.rst.
 
 ### Security
 
