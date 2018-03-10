@@ -1,4 +1,4 @@
-hass_apps
+hass-apps
 =========
 
 This is a collection of useful apps and snippets to empower Home Assistant
@@ -9,7 +9,7 @@ Documentation
 -------------
 
 Read the `detailled documentation
-<http://hass_apps.readthedocs.io/en/stable/index.html>`_ hosted at
+<http://hass-apps.readthedocs.io/en/stable/index.html>`_ hosted at
 readthedocs.
 
 Some quick links:

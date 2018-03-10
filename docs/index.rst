@@ -1,4 +1,4 @@
-Welcome to the documentation of hass_apps!
+Welcome to the documentation of hass-apps!
 ==========================================
 
 This is a collection of useful apps and snippets to empower Home Assistant
@@ -23,7 +23,7 @@ Contributing
 You are welcome to contribute your own apps for AppDaemon to this
 project. But please don't submit a pull request without talking to
 me first. This is because there is currently no developer documentation
-on how to integrate properly with the environment provided by hass_apps
+on how to integrate properly with the environment provided by hass-apps
 and I want to save you the hassle of re-designing your app after it's
 already written.
 

@@ -5,14 +5,14 @@ Installation
 ------------
 
 In order to use one or more of the included apps, please install the
-whole ``hass_apps`` package. Don't worry, only the apps you configure
+whole ``hass-apps`` package. Don't worry, only the apps you configure
 will be loaded.
 
 The minimum required Python version is 3.5. If you are unsure what you
 have installed, run ``python3 --version``. If your version of Python is
 recent enough, you may continue with installing.
 
-It is strongly recommended to run hass_apps inside a virtualenv, separated
+It is strongly recommended to run hass-apps inside a virtualenv, separated
 even from Home Assistant in order to avoid conflicts with different versions
 of dependency packages.
 
@@ -32,12 +32,12 @@ for AppDaemon) in this example.
     cd ad
     source bin/activate
 
-Now install ``hass_apps`` from PyPi, together with some common packages.
+Now install ``hass-apps`` from PyPi, together with some common packages.
 
 ::
 
     pip install --upgrade pip setuptools wheel
-    pip install --upgrade hass_apps
+    pip install --upgrade hass-apps
 
 Or, as an alternative, clone the GitHub repository to get even the
 latest changes. But please keep in mind that this shouldn't be considered
@@ -46,8 +46,8 @@ development version in production unless you have a good reason to do so.
 
 ::
 
-    git clone https://github.com/efficiosoft/hass_apps
-    cd hass_apps
+    git clone https://github.com/efficiosoft/hass-apps
+    cd hass-apps
     pip install --upgrade pip setuptools wheel
     pip install . --upgrade
 
@@ -104,13 +104,13 @@ Now, simply pull upgrades from PyPi.
 ::
 
     pip install --upgrade pip setuptools wheel
-    pip install --upgrade hass_apps
+    pip install --upgrade hass-apps
 
 Or, if you installed from the git repository.
 
 ::
 
-    cd hass_apps
+    cd hass-apps
     git pull
     pip install --upgrade pip setuptools wheel
     pip install . --upgrade
