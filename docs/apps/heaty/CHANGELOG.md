@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
+* Support for different time formats (07:40 = 7:40) (#9)
 
 ### Changed
 

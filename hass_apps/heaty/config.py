@@ -19,21 +19,10 @@ def build_schedule_rule(rule: dict) -> schedule.Rule:
         if name in schedule.Rule.CONSTRAINTS:
             constraints[name] = value
 
-    start_time = rule.get("start")
-    if start_time is not None:
-        start_time = util.parse_time_string(start_time)
-
-    end_time = rule.get("end")
-    if end_time is not None:
-        end_time = util.parse_time_string(end_time)
-    end_plus_days = rule["end_plus_days"]
-
-    temp_expr = rule["temp"]
-
-    return schedule.Rule(temp_expr=temp_expr,
-                         start_time=start_time,
-                         end_time=end_time,
-                         end_plus_days=end_plus_days,
+    return schedule.Rule(temp_expr=rule["temp"],
+                         start_time=rule["start"],
+                         end_time=rule["end"],
+                         end_plus_days=rule["end_plus_days"],
                          constraints=constraints)
 
 def build_schedule(rules: T.Iterable[dict]) -> schedule.Schedule:
@@ -113,7 +102,10 @@ PARTIAL_DATE_SCHEMA = vol.Schema({
     vol.Optional("month"): vol.All(int, vol.Range(min=1, max=12)),
     vol.Optional("day"): vol.All(int, vol.Range(min=1, max=31)),
 })
-TIME_SCHEMA = vol.Schema(vol.Match(r"^ *([01]\d|2[0123]) *\: *([012345]\d) *$"))
+TIME_SCHEMA = vol.Schema(vol.All(
+    vol.Match(util.TIME_REGEXP),
+    util.parse_time_string,
+))
 TEMP_SCHEMA = vol.Schema(vol.All(
     vol.Any(float, int, expr.Off, vol.All(str, lambda v: v.upper(), "OFF")),
     lambda v: expr.Temp(v),  # pylint: disable=unnecessary-lambda

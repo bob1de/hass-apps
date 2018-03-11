@@ -6,7 +6,6 @@ import typing as T
 
 import datetime
 import re
-import time
 
 
 # matches any character that is not allowed in Python variable names
@@ -15,6 +14,8 @@ INVALID_VAR_NAME_CHAR_PATTERN = re.compile(r"[^0-9A-Za-z_]")
 RANGE_PATTERN = re.compile(r"^(\d+)\-(\d+)$")
 # strftime-compatible format string for military time
 TIME_FORMAT = "%H:%M"
+# regular expression for time formats, group 1 is hours, group 2 is minutes
+TIME_REGEXP = re.compile(r"^ *([01]?\d|2[0123]) *\: *([012345]?\d) *$")
 
 
 def escape_var_name(name: str) -> str:
@@ -109,15 +110,14 @@ def modifies_state(func: T.Callable) -> T.Callable:
     _new_func.__dict__.update(func.__dict__)
     return _new_func
 
-def parse_time_string(
-        time_str: str, format_str: str = TIME_FORMAT
-) -> datetime.time:
-    """Parses a string of the given strptime-compatible format into
+def parse_time_string(time_str: str) -> datetime.time:
+    """Parses a string recognizable by TIME_REGEXP format into
     a datetime.time object. If the string has an invalid format, a
-    ValueError is raised. If no format is provided, the default will
-    be used."""
+    ValueError is raised."""
 
-    # remove whitespace
-    time_str = "".join(time_str.split())
-    t_struct = time.strptime(time_str, format_str)
-    return datetime.time(t_struct.tm_hour, t_struct.tm_min, t_struct.tm_sec)
+    match = TIME_REGEXP.match(time_str)
+    if not match:
+        raise ValueError("time string {} has an invalid format"
+                         .format(repr(time_str)))
+    components = [int(comp) for comp in match.groups() if comp is not None]
+    return datetime.time(*components)  # type: ignore
