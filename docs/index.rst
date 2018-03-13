@@ -36,7 +36,8 @@ Roadmap
 
 Currently, the following enhancements are planned.
 
-* [Heaty] Restructure core parts to make maintaining easier.
+* **heaty:** Build a mechanism to control the source of heat energy
+  (e.g. turning an oven on based on the amount of heat needed).
 
 
 Donations
