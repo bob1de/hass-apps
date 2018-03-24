@@ -13,6 +13,7 @@ Contents
 
    Introduction <self>
    getting-started
+   upgrading
    apps/index
    CHANGELOG
 
