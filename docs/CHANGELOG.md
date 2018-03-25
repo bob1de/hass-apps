@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Security
 
 ### Added
+* Blacklisted AppDaemon version 3.0.0 in requirements. (#12)
 
 ### Changed
 
