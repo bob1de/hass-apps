@@ -9,18 +9,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
-* Schedule snippets now get compiled again. (#13)
 
 ### Security
 
 ### Added
-* Support for different time formats (07:40 = 7:40) (#9)
 
 ### Changed
 
 ### Deprecated
 
 ### Removed
+
+
+## 0.12.4 - 2018-03-25
+
+### Fixed
+* Schedule snippets now get compiled again. (#13)
+
+### Added
+* Support for different time formats (07:40 = 7:40) (#9)
 
 
 ## 0.12.3 - 2018-03-10
