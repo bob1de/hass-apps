@@ -4,7 +4,7 @@ Writing schedules
 A schedule controls the temperature in a room over time. It consists
 of a set of rules.
 
-Each rule must define a temperature:
+Each rule must at least define a temperature:
 
 ::
 
@@ -26,14 +26,15 @@ Here is another one:
     - temp: 21.5
       start: "07:00"
       end: "22:00"
-
     - temp: 16
 
 This schedule contains the same rule as the schedule before, but
-additionally, it got a new one. The new rule overwrites the other
+additionally, it got a new one. The new rule overwrites the second
 and will set a temperature of ``21.5`` degrees, but only from 7.00 am
-to 10.00 pm. This is because it's placed before the ``16``-degrees-rule.
-That is how Heaty schedules work. The first matching rule wins.
+to 10.00 pm. This is because it's placed before the 16-degrees-rule
+and Heaty evaluates rules from top to bottom. That is how schedules
+work. The first matching rule wins and specifies the temperature to
+set.
 
 If you omit the ``start`` parameter, Heaty assumes that you mean
 midnight (``00:00``) and fills that in for you.
@@ -60,6 +61,11 @@ This is no special feature of Heaty, it's rather normal YAML. But
 writing rules this way is often more readable, especially if you
 need to create multiple similar ones which, for instance, only
 differ in weekdays, time or temperature.
+
+Having that said, it is always a good idea to add a fallback rule
+(one with just a temperature and neither ``start`` nor ``end``) as the
+last rule in your schedule, which specifies a temperature to use when
+no other rule matched.
 
 Now we have covered the basics, but we can't create schedules based
 on, for instance, the days of the week. Let's do that next.
