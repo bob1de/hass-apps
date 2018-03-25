@@ -36,9 +36,11 @@ def build_schedule(rules: T.Iterable[dict]) -> schedule.Schedule:
 def config_post_hook(cfg: dict) -> dict:
     """Creates room and thermostat objects after config has been parsed."""
 
-    # Compile the pre/post schedules.
+    # Compile the pre/post schedules. and schedule snippets
     cfg["schedule_prepend"] = build_schedule(cfg["schedule_prepend"])
     cfg["schedule_append"] = build_schedule(cfg["schedule_append"])
+    for name, snippet in cfg["schedule_snippets"].items():
+        cfg["schedule_snippets"][name] = build_schedule(snippet)
 
     # Build room objects.
     rooms = []
