@@ -205,6 +205,9 @@ class Thermostat:
                 opmode = self.cfg["opmode_off"]
             else:
                 opmode = self.cfg["opmode_heat"]
+                if isinstance(self.cfg["max_temp"], expr.Temp) and \
+                   temp > self.cfg["max_temp"]:
+                    temp = self.cfg["max_temp"]
 
         if not self.cfg["supports_opmodes"]:
             if opmode == self.cfg["opmode_off"]:
@@ -216,11 +219,10 @@ class Thermostat:
                              "instead.",
                              level="DEBUG")
                     temp = self.cfg["min_temp"]
-
             opmode = None
 
         if opmode is None and temp is None:
-            self.log("Nothing to send to thermostat.",
+            self.log("Nothing to send to this thermostat.",
                      level="DEBUG")
             return None
 

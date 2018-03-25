@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
+* Added ``max_temp`` setting for thermostats. (#14)
 
 ### Changed
 

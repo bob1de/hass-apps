@@ -97,11 +97,14 @@ heaty_full:
     # (optional, default: 0)
     #delta: 0
 
-    # The minimum temperature the thermostat supports.
-    # If a lower temperature than this is going to be set, the operation
-    # mode will be switched off instead of setting the temperature.
+    # The minimum/maximum temperature the thermostat supports.
+    # If a temperature lower than min_temp is going to be set, the
+    # operation mode will be switched off instead of setting the
+    # temperature. A temperature setting higher than max_temp causes
+    # max_temp to be set instead.
     # (optional, default: null, which means there is no limitation)
     #min_temp: null
+    #max_temp: null
 
     # This setting tells Heaty how often it should retry sending
     # a temperature to the thermostat. If the thermostat reports
