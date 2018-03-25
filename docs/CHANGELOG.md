@@ -6,21 +6,32 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/efficiosoft/hass_apps/compare/v0.20180310.1...HEAD
+[Unreleased]: https://github.com/efficiosoft/hass-apps/compare/v0.20180325.0...HEAD
 
 ### Fixed
-* Fixed wrong path to sample configuration files in docs/apps/index.rst.
 
 ### Security
 
 ### Added
-* Blacklisted AppDaemon version 3.0.0 in requirements. (#12)
 
 ### Changed
 
 ### Deprecated
 
 ### Removed
+
+
+## [0.20180325.0] - 2018-03-25
+[0.20180325.0]: https://github.com/efficiosoft/hass-apps/compare/v0.20180310.1...v0.20180325.0
+
+### Fixed
+* Fixed wrong path to sample configuration files in docs/apps/index.rst.
+
+### Added
+* Blacklisted AppDaemon version 3.0.0 in requirements. (#12)
+
+### Changed
+* heaty v0.12.4
 
 
 ## [0.20180310.1] - 2018-03-10
