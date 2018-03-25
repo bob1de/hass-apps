@@ -62,10 +62,10 @@ heaty_full:
   # (optional, default: none)
   #master_switch: input_boolean.heating_master
 
-  # Temperature that should be set when heatings are turned off.
+  # Temperature that should be set when the master switch is turned off.
   # 4 °C is recommended to protect against frost-induced damage.
   # A value of "OFF" will set the thermostat's operation mode
-  # to off explicitly.
+  # to <opmode_off> explicitly.
   # (optional, default: "OFF")
   #off_temp: "OFF"
 
