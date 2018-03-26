@@ -131,6 +131,9 @@ heaty_full:
     # without temperature support. In this case, the temperature you
     # configure in your schedules doesn't matter. Any value different
     # from OFF will turn the thermostat on.
+    # Additionally, a thermostat with disabled temperature support
+    # will neither trigger the change replication nor the delayed
+    # re-scheduling feature.
     # (optional, default: true)
     #supports_temps: true
 
