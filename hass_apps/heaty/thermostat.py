@@ -134,7 +134,7 @@ class Thermostat:
                          .format(self.cfg["temp_state_attr"], _temp),
                          level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
             else:
-                _temp = self.cfg["assumed_temp"]
+                _temp = 0
 
         try:
             temp = expr.Temp(_temp)
@@ -160,7 +160,8 @@ class Thermostat:
         if self.cfg["supports_temps"]:
             temp -= self.cfg["delta"]
 
-        self.room.notify_temp_changed(temp, no_reschedule=no_reschedule)
+        self.room.notify_temp_changed(temp, no_reschedule=no_reschedule,
+                                      actor=self)
 
     def initialize(self) -> None:
         """Should be called in order to register state listeners and
@@ -268,7 +269,7 @@ class Thermostat:
         elif self.cfg["supports_temps"]:
             self.wanted_temp = temp
         else:
-            self.wanted_temp = self.cfg["assumed_temp"]
+            self.wanted_temp = expr.Temp(0)
 
         if not force_resend and self.is_synced():
             self.log("Not sending temperature redundantly.",

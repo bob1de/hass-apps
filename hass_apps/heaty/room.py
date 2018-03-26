@@ -359,7 +359,8 @@ class Room:
                              reschedule_delay=reschedule_delay)
 
     def notify_temp_changed(
-            self, temp: expr.Temp, no_reschedule: bool = False
+            self, temp: expr.Temp, no_reschedule: bool = False,
+            actor: T.Any = None,
     ) -> None:
         """Should be called when the temperature has been changed
         externally, e.g. by manual adjustment at a thermostat.
@@ -370,6 +371,10 @@ class Room:
             # thermostats usually report to be off, but we don't
             # care to not mess up self.wanted_temp and prevent
             # replication.
+            return
+
+        if actor is not None and not actor.cfg["supports_temps"]:
+            # dumb switches don't trigger change replication
             return
 
         self.wanted_temp = temp

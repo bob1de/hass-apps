@@ -150,9 +150,6 @@ THERMOSTAT_SCHEMA = vol.Schema(vol.All(
             vol.All(int, vol.Range(min=1)),
         vol.Optional("supports_opmodes", default=True): bool,
         vol.Optional("supports_temps", default=True): bool,
-        vol.Optional("assumed_temp", default=0): vol.All(
-            TEMP_SCHEMA, vol.NotIn([expr.Temp(expr.OFF)]),
-        ),
         vol.Optional("opmode_heat", default="Heat"): str,
         vol.Optional("opmode_off", default="Off"): str,
         vol.Optional("opmode_heat_service",

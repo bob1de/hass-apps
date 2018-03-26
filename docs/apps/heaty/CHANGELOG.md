@@ -14,8 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 * Added ``max_temp`` setting for thermostats. (#14)
-* Added ``supports_temps`` and ``assumed_temp`` settings for thermostats
-  which don't support setpoints. (#15)
+* Added ``supports_temps`` setting for thermostats which don't support
+  setpoints. (#15)
 * Added support for ordinary switches that are no climate entities. (#16)
 
 ### Changed
