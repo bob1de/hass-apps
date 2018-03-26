@@ -155,9 +155,14 @@ THERMOSTAT_SCHEMA = vol.Schema(vol.All(
         ),
         vol.Optional("opmode_heat", default="Heat"): str,
         vol.Optional("opmode_off", default="Off"): str,
-        vol.Optional("opmode_service", default="climate/set_operation_mode"):
-            str,
-        vol.Optional("opmode_service_attr", default="operation_mode"): str,
+        vol.Optional("opmode_heat_service",
+                     default="climate/set_operation_mode"): str,
+        vol.Optional("opmode_off_service",
+                     default="climate/set_operation_mode"): str,
+        vol.Optional("opmode_heat_service_attr", default="operation_mode"):
+            vol.Any(str, None),
+        vol.Optional("opmode_off_service_attr", default="operation_mode"):
+            vol.Any(str, None),
         vol.Optional("opmode_state_attr", default="operation_mode"): str,
         vol.Optional("temp_service", default="climate/set_temperature"): str,
         vol.Optional("temp_service_attr", default="temperature"): str,

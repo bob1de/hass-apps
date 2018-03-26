@@ -8,6 +8,8 @@ if T.TYPE_CHECKING:
     import uuid
     from . import room as _room
 
+import copy
+
 from .. import common
 from . import expr, util
 
@@ -79,6 +81,10 @@ class Thermostat:
                          .format(allowed_opmodes),
                          level="WARNING")
             return
+
+        if self.cfg["opmode_state_attr"] != "operation_mode":
+            # we can't rely on operation_list in this case
+            return
         if not allowed_opmodes:
             self.log("Attributes for thermostat contain no "
                      "'operation_list', Consider disabling "
@@ -103,7 +109,8 @@ class Thermostat:
         This method fetches the set target temperature from the
         thermostat and reacts accordingly."""
 
-        attrs = (new or {}).get("attributes", {})
+        attrs = copy.deepcopy((new or {}).get("attributes", {}))
+        attrs.update(new or {})
 
         _temp = None
         if self.cfg["supports_opmodes"]:
@@ -290,18 +297,23 @@ class Thermostat:
 
         self.cancel_resend_timer()
 
-        self.log("Setting {} = {}, {} = {}, left retries = {}"
-                 .format(self.cfg["temp_service_attr"],
-                         temp if temp is not None else "<unset>",
-                         self.cfg["opmode_service_attr"],
-                         opmode if opmode is not None else "<unset>",
+        self.log("Setting temperature = {}, operation mode = {}, "
+                 "left retries = {}"
+                 .format(temp or "<unset>", opmode or "<unset>",
                          left_retries),
                  level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
 
         if opmode is not None:
-            attrs = {"entity_id": self.entity_id,
-                     self.cfg["opmode_service_attr"]: opmode}
-            self.app.call_service(self.cfg["opmode_service"], **attrs)
+            if opmode == self.cfg["opmode_heat"]:
+                opmode_service = self.cfg["opmode_heat_service"]
+                opmode_service_attr = self.cfg["opmode_heat_service_attr"]
+            else:
+                opmode_service = self.cfg["opmode_off_service"]
+                opmode_service_attr = self.cfg["opmode_off_service_attr"]
+            attrs = {"entity_id": self.entity_id}
+            if opmode_service_attr:
+                attrs[opmode_service_attr] = opmode
+            self.app.call_service(opmode_service, **attrs)
         if temp is not None:
             attrs = {"entity_id": self.entity_id,
                      self.cfg["temp_service_attr"]: temp.value}

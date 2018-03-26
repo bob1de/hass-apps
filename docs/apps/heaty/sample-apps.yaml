@@ -151,9 +151,12 @@ heaty_full:
     # You might want to use an alternative service that receives
     # the operation mode value.
     # (optional, default: climate/set_operation_mode)
-    #opmode_service: climate/set_operation_mode
+    #opmode_heat_service: climate/set_operation_mode
+    #opmode_off_service: climate/set_operation_mode
+    # Set to null in order to omit the operation mode from the service call.
     # (optional, default: operation_mode)
-    #opmode_service_attr: operation_mode
+    #opmode_heat_service_attr: operation_mode
+    #opmode_off_service_attr: operation_mode
     # Entity attribute that holds the current operation mode.
     # This is used to detect manual temperature adjustments, provide
     # correct temperature values on startup and notice that a
