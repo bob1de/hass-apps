@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Added support for ordinary switches that are no climate entities. (#16)
 
 ### Changed
+* The known thermostat settings ``opmode_service`` and
+  ``opmode_service_attr`` were split up into ``opmode_heat_service``,
+  ``opmode_off_service``, ``opmode_heat_service_attr`` and
+  ``opmode_off_service_attr``. The default values remain the same. More
+  info can be found in #16.
 
 ### Deprecated
 
