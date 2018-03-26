@@ -126,6 +126,21 @@ heaty_full:
     # (optional, default: true)
     #supports_opmodes: true
 
+    # Set this to false if your thermostat doesn't support setpoints.
+    # Please note that you will only be able to turn it on and off
+    # without temperature support. In this case, the temperature you
+    # configure in your schedules doesn't matter. Any value different
+    # from OFF will turn the thermostat on.
+    # (optional, default: true)
+    #supports_temps: true
+    # When supports_temps is disabled and the thermostat goes into
+    # heating mode, Heaty assumes the thermostat to be set to this
+    # temperature. The only situation in which the value configured
+    # here matters is when you use the change replication feature.
+    # A value of OFF is not supported here for obvious reasons.
+    # (optional, default: 0)
+    #assumed_temp: 0
+
     # These two settings can be used to tweak the names of the
     # operation modes.
     # (optional, default: Heat)

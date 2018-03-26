@@ -41,15 +41,33 @@ class Thermostat:
 
         state = (state or {}).get("attributes", {})
 
-        required_attrs = [self.cfg["temp_state_attr"]]
+        required_attrs = []
         if self.cfg["supports_opmodes"]:
             required_attrs.append(self.cfg["opmode_state_attr"])
+        if self.cfg["supports_temps"]:
+            required_attrs.append(self.cfg["temp_state_attr"])
+        if not required_attrs:
+            self.log("At least one of supports_opmodes and "
+                     "supports_temps should be enabled. "
+                     "Please check your config!",
+                     level="WARNING")
         for attr in required_attrs:
             if attr not in state:
                 self.log("Thermostat has no attribute named {}. "
                          "Available attributes are {}. "
                          "Please check your config!"
                          .format(repr(attr), list(state.keys())),
+                         level="WARNING")
+
+        if self.cfg["supports_temps"]:
+            value = state.get(self.cfg["temp_state_attr"])
+            try:
+                value = float(value)
+            except (TypeError, ValueError):
+                self.log("The value {} for attribute {} is no valid "
+                         "temperature value. "
+                         "Please check your config!"
+                         .format(repr(value), self.cfg["temp_state_attr"]),
                          level="WARNING")
 
         allowed_opmodes = state.get("operation_list")
@@ -87,29 +105,33 @@ class Thermostat:
 
         attrs = (new or {}).get("attributes", {})
 
-        opmode = attrs.get(self.cfg["opmode_state_attr"])
-        self.log("Attribute {} is {}."
-                 .format(self.cfg["opmode_state_attr"], opmode),
-                 level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
-
         _temp = None
         if self.cfg["supports_opmodes"]:
+            opmode = attrs.get(self.cfg["opmode_state_attr"])
+            self.log("Attribute {} is {}."
+                     .format(self.cfg["opmode_state_attr"], opmode),
+                     level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
             if opmode is None:
                 # don't consider this thermostat
                 return
             elif opmode == self.cfg["opmode_off"]:
                 _temp = expr.Off()
+        else:
+            opmode = None
 
         if _temp is None:
-            _temp = attrs.get(self.cfg["temp_state_attr"])
-            self.log("Attribute {} is {}."
-                     .format(self.cfg["temp_state_attr"], _temp),
-                     level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
+            if self.cfg["supports_temps"]:
+                _temp = attrs.get(self.cfg["temp_state_attr"])
+                self.log("Attribute {} is {}."
+                         .format(self.cfg["temp_state_attr"], _temp),
+                         level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
+            else:
+                _temp = self.cfg["assumed_temp"]
 
         try:
             temp = expr.Temp(_temp)
         except ValueError:
-            # not a valid temperature, don't consider this thermostat
+            # no valid temperature, don't consider this thermostat
             return
 
         if temp == self.wanted_temp:
@@ -127,7 +149,8 @@ class Thermostat:
                  .format(repr(temp)),
                  prefix=common.LOG_PREFIX_INCOMING)
 
-        temp -= self.cfg["delta"]
+        if self.cfg["supports_temps"]:
+            temp -= self.cfg["delta"]
 
         self.room.notify_temp_changed(temp, no_reschedule=no_reschedule)
 
@@ -221,12 +244,24 @@ class Thermostat:
                     temp = self.cfg["min_temp"]
             opmode = None
 
+        if not self.cfg["supports_temps"] and temp is not None:
+            self.log("Not setting temperature because thermostat doesn't "
+                     "support temperatures.",
+                     level="DEBUG")
+            temp = None
+
         if opmode is None and temp is None:
             self.log("Nothing to send to this thermostat.",
                      level="DEBUG")
             return None
 
-        self.wanted_temp = temp or expr.Temp(expr.OFF)
+        if opmode == self.cfg["opmode_off"]:
+            self.wanted_temp = expr.Temp(expr.OFF)
+        elif self.cfg["supports_temps"]:
+            self.wanted_temp = temp
+        else:
+            self.wanted_temp = self.cfg["assumed_temp"]
+
         if not force_resend and self.is_synced():
             self.log("Not sending temperature redundantly.",
                      level="DEBUG")
