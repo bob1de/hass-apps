@@ -36,12 +36,13 @@ class Thermostat:
         """Is called during initialization to warn the user about some
         possible common configuration mistakes."""
 
-        state = self.app.get_state(self.entity_id, attribute="all")
-        if not state:
+        _state = self.app.get_state(self.entity_id, attribute="all")
+        if not _state:
             self.log("Thermostat couldn't be found.", level="WARNING")
             return
 
-        state = (state or {}).get("attributes", {})
+        state = copy.deepcopy((_state or {}).get("attributes", {}))
+        state.update(copy.deepcopy(_state or {}))
 
         required_attrs = []
         if self.cfg["supports_opmodes"]:
@@ -110,7 +111,7 @@ class Thermostat:
         thermostat and reacts accordingly."""
 
         attrs = copy.deepcopy((new or {}).get("attributes", {}))
-        attrs.update(new or {})
+        attrs.update(copy.deepcopy(new or {}))
 
         _temp = None
         if self.cfg["supports_opmodes"]:
