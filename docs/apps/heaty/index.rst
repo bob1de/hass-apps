@@ -26,6 +26,7 @@ These key features are implemented in Heaty. More are added continuously.
    writing-schedules
    temperature-expressions
    events
+   tips-and-tricks
    CHANGELOG
 
 
@@ -75,14 +76,3 @@ If you are happy with all these points and your setup fulfills them,
 there should be nothing stopping you from integrating Heaty's great
 scheduling capabilities into your home. If you have questions going
 beyond what's explained above, feel free to ask.
-
-
-Using Heaty without schedules
------------------------------
-
-Schedules are not mandatory when using Heaty. It is perfectly valid to
-use Heaty just for controlling temperatures in rooms manually while
-still benefitting from other features like the open window detection.
-
-To do so, just leave out everything that is related to schedules in
-your ``apps.yaml``.
