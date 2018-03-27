@@ -51,18 +51,25 @@ Heaty actually are.
    external temperature sensor, have a look at Home Assistant's `Generic
    Thermostat platform`_ to build a virtual thermostat first.
 
-3. If your thermostat is used for both heating and cooling, there has
+3. Ordinary on/off-switches can be used instead of real thermostats, but
+   they can only be turned on and off by Heaty. Setting a target
+   temperature doesn't work with such entities for obvious reasons.
+   See `here
+   <tips-and-tricks.html#using-ordinary-switches-as-thermostats>`_
+   for instructions on how to configure dumb switches in Heaty.
+
+4. If your thermostat is used for both heating and cooling, there has
    to be an automatic operation mode which does heating/cooling based
    on the difference between current and target temperature. Heaty
    will only switch the operation mode between on and off (exact names
    can be configured) and set the target temperature according to the
    configured schedule.
 
-4. Optionally, each room can have multiple door/window sensors
+5. Optionally, each room can have multiple door/window sensors
    configured. Opening a window will then turn off all thermostats in
    the particular room.
 
-5. Heaty doesn't care about where your heating energy comes from. Whether
+6. Heaty doesn't care about where your heating energy comes from. Whether
    that's a gas, oil, wood or solid fuel oven, solar energy or something
    fancy doesn't matter. This implies that Heaty won't control the energy
    source in any way. Especially, it won't turn the oven off when there
