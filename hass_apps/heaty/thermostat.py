@@ -113,7 +113,7 @@ class Thermostat:
         attrs = copy.deepcopy((new or {}).get("attributes", {}))
         attrs.update(copy.deepcopy(new or {}))
 
-        _temp = None
+        _temp = None  # type: T.Union[None, expr.Off, float, int]
         if self.cfg["supports_opmodes"]:
             opmode = attrs.get(self.cfg["opmode_state_attr"])
             self.log("Attribute {} is {}."
