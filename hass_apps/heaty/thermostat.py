@@ -153,8 +153,12 @@ class Thermostat:
 
         self.current_temp = temp
 
-        self.log("Received target temperature {}."
-                 .format(repr(temp)),
+        if self.cfg["supports_temps"] or temp.is_off():
+            display_value = str(temp)
+        else:
+            display_value = "ON"
+        self.log("Received target of {}."
+                 .format(display_value),
                  prefix=common.LOG_PREFIX_INCOMING)
 
         if self.cfg["supports_temps"]:
