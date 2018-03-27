@@ -161,7 +161,7 @@ class Temp:
 
     def __str__(self) -> str:
         if isinstance(self.value, (float, int)):
-            return "{} °".format(self.value)
+            return "{}°".format(self.value)
         return "{}".format(self.value)
 
     def __sub__(self, other: T.Any) -> "Temp":
