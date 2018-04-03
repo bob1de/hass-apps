@@ -59,13 +59,13 @@ the following:
 
 ::
 
-    { temp: 20 if time.hour >= int(app.get_state("input_number.start_hour")) and time.hour <= int(app.get_state("input_number.end_hour")) else Ignore() }
+    - temp: 20 if time.hour >= int(float(app.get_state("input_number.start_hour"))) and time.hour <= int(float(app.get_state("input_number.end_hour"))) else Ignore()
 
 Or, the same thing a little shorter:
 
 ::
 
-    { temp: 20 if time.hour in range(int(app.get_state("input_number.start_hour")), int(app.get_state("input_number.end_hour")) + 1) else Ignore() }
+    - temp: 20 if time.hour in range(int(float(app.get_state("input_number.start_hour"))), int(float(app.get_state("input_number.end_hour"))) + 1) else Ignore()
 
 What this does is quite simple. It sets the temperature to 20 degrees
 if the current hour is between the values configured by the two entities
@@ -82,4 +82,4 @@ You could now make the temperature configurable via an
 
 ::
 
-    { temp: int(app.get_state("input_number.day_temperature")) if time.hour in range(int(app.get_state("input_number.start_hour")), int(app.get_state("input_number.end_hour")) + 1) else Ignore() }
+    - temp: int(app.get_state("input_number.day_temperature")) if time.hour in range(int(float(app.get_state("input_number.start_hour"))), int(float(app.get_state("input_number.end_hour"))) + 1) else Ignore()
