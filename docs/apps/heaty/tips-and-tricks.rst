@@ -41,3 +41,45 @@ The configuration for such a switch could look as follows:
 
 As always, the detailled description of each setting can be found in
 the sample configuration.
+
+
+Schedule rules with dynamic start and end times
+-----------------------------------------------
+
+The start and end time of a schedule rule are always static. They can't
+be computed by something like temperature expressions. However, there
+is a trick you can utilize in order to get start and end times which
+are based on the state of entities in Home Assistant.
+
+Let's assume you've got two entities, ``input_number.start_hour`` and
+``input_number.end_hour``. Then you could write a schedule rule without
+the ``start`` and ``end`` fields set, resulting in it always being valid.
+As the value for ``temp``, you configure a temperature expression like
+the following:
+
+::
+
+    { temp: 20 if time.hour >= int(app.get_state("input_number.start_hour")) and time.hour <= int(app.get_state("input_number.end_hour")) else Ignore() }
+
+Or, the same thing a little shorter:
+
+::
+
+    { temp: 20 if time.hour in range(int(app.get_state("input_number.start_hour")), int(app.get_state("input_number.end_hour")) + 1) else Ignore() }
+
+What this does is quite simple. It sets the temperature to 20 degrees
+if the current hour is between the values configured by the two entities
+we introduced. If it's not, the rule is ignored and processing continues
+at the next rule, as always.
+
+There is still one thing missing to make this work. You need to notify
+Heaty about state changes of the used entities by firing
+an event. How that's done is described at the end of `this example
+<temperature-expressions.html#example-use-of-an-external-module>`_.
+
+You could now make the temperature configurable via an
+``input_number.day_temperature`` entity as well:
+
+::
+
+    { temp: int(app.get_state("input_number.day_temperature")) if time.hour in range(int(app.get_state("input_number.start_hour")), int(app.get_state("input_number.end_hour")) + 1) else Ignore() }
