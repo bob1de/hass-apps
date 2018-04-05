@@ -59,13 +59,7 @@ the following:
 
 ::
 
-    20 if time.hour >= int(float(app.get_state("input_number.start_hour"))) and time.hour <= int(float(app.get_state("input_number.end_hour"))) else Ignore()
-
-Or, the same thing a little shorter:
-
-::
-
-    20 if time.hour in range(int(float(app.get_state("input_number.start_hour"))), int(float(app.get_state("input_number.end_hour"))) + 1) else Ignore()
+    20 if time.hour >= float(app.get_state("input_number.start_hour")) and time.hour <= float(app.get_state("input_number.end_hour")) else Ignore()
 
 What this does is quite simple. It sets the temperature to 20 degrees
 if the current hour is between the values configured by the two entities
@@ -84,4 +78,4 @@ Now let's put this all together into a valid schedule rule:
 
 ::
 
-    - temp: app.get_state("input_number.day_temperature") if time.hour in range(int(float(app.get_state("input_number.start_hour"))), int(float(app.get_state("input_number.end_hour"))) + 1) else Ignore()
+    - temp: app.get_state("input_number.day_temperature") if time.hour >= float(app.get_state("input_number.start_hour")) and time.hour <= float(app.get_state("input_number.end_hour")) else Ignore()
