@@ -13,6 +13,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+
+## 0.13.0 - 2018-04-05
+
+### Added
 * Added ``max_temp`` setting for thermostats. (#14)
 * Added ``supports_temps`` setting for thermostats which don't support
   setpoints. (#15)
@@ -24,10 +35,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   ``opmode_off_service``, ``opmode_heat_service_attr`` and
   ``opmode_off_service_attr``. The default values remain the same. More
   info can be found in #16.
-
-### Deprecated
-
-### Removed
 
 
 ## 0.12.4 - 2018-03-25
