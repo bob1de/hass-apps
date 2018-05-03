@@ -128,7 +128,8 @@ class HeatyApp(common.App):
 
         if not self.master_switch_enabled():
             self.log("Ignoring re-schedule event because master "
-                     "switch is off.")
+                     "switch is off.",
+                     level="DEBUG")
             return
 
         room_name = data.get("room_name")
