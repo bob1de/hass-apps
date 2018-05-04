@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
+* The ``heaty_id`` of the target instance can now be passed when emitting
+  events from inside Home Assistant in order to let only one particular
+  instance of Heaty receive the event, in case there is more than one
+  running at the same time.
 
 ### Changed
 

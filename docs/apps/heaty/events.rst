@@ -1,20 +1,28 @@
 Events
 ======
 
-Heaty introduces two new events it listens to:
+Heaty introduces two new events it listens for:
 
 * ``heaty_reschedule``: Trigger a re-scheduling of the temperature.
   Parameters are:
 
-  * ``room_name``: the name of the room to re-schedule as defined in Heaty's configuration (not the ``friendly_name``) (optional, default: ``null``, which means all rooms)
+  * ``room_name``: the name of the room to re-schedule as defined in
+    Heaty's configuration (not the ``friendly_name``) (optional, default:
+    ``null``, which means all rooms)
 
 * ``heaty_set_temp``: Sets a given temperature in a room.
   Parameters are:
 
-  * ``room_name``: the name of the room as defined in Heaty's configuration (not the ``friendly_name``)
+  * ``room_name``: the name of the room as defined in Heaty's
+    configuration (not the ``friendly_name``)
   * ``temp``: a temperature expression
-  * ``force_resend``: whether to re-send the temperature to the thermostats even if it hasn't changed due to Heaty's records (optional, default: ``false``)
-  * ``reschedule_delay``: a number of minutes after which Heaty should automatically switch back to the schedule (optional, default: the ``reschedule_delay`` set in Heaty's configuration for the particular room)
+  * ``force_resend``: whether to re-send the temperature to the
+    thermostats even if it hasn't changed due to Heaty's records (optional,
+    default: ``false``)
+  * ``reschedule_delay``: a number of minutes after which Heaty should
+    automatically switch back to the schedule (optional, default: the
+    ``reschedule_delay`` set in Heaty's configuration for the particular
+    room)
 
 You can emit these events from your custom Home Assistant automations
 or scripts in order to control Heaty's behaviour.
@@ -32,3 +40,8 @@ regular schedule after one hour:
           room_name: living
           temp: 25.0
           reschedule_delay: 60
+
+In case you run multiple instances of Heaty in parallel, a ``heaty_id``
+attribute can be added to the event's data in order to let only one
+particular instance receive the event. When no ``heaty_id`` is specified,
+all running instances will react to the event.

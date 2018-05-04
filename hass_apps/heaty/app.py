@@ -126,6 +126,13 @@ class HeatyApp(common.App):
         data may contain a "room_name", which limits the re-scheduling
         to the given room."""
 
+        if data.get("heaty_id", self.cfg["heaty_id"]) != self.cfg["heaty_id"]:
+            self.log("Ignoring reschedule event for heaty_id '{}', "
+                     "ours is '{}'."
+                     .format(data.get("heaty_id"), self.cfg["heaty_id"]),
+                     level="DEBUG")
+            return
+
         if not self.master_switch_enabled():
             self.log("Ignoring re-schedule event because master "
                      "switch is off.",
@@ -163,6 +170,13 @@ class HeatyApp(common.App):
         False by default. If it is set to True, the temperature is
         re-sent to the thermostats even if it hasn't changed due to
         Heaty's records."""
+
+        if data.get("heaty_id", self.cfg["heaty_id"]) != self.cfg["heaty_id"]:
+            self.log("Ignoring set_temp event for heaty_id '{}', "
+                     "ours is '{}'."
+                     .format(data.get("heaty_id"), self.cfg["heaty_id"]),
+                     level="DEBUG")
+            return
 
         try:
             room_name = data["room_name"]
@@ -222,7 +236,7 @@ class HeatyApp(common.App):
 
         # shortcuts to make expr.Temp and datetime.time objects json
         # serializable
-        unpack_temp = lambda t: t.value if isinstance(t, expr.Temp) else t  # type: T.Callable[[T.Any], T.Any]  # pylint: disable=line-too-long
+        unpack_temp = lambda t: str(t.value) if isinstance(t, expr.Temp) else t  # type: T.Callable[[T.Any], T.Any]  # pylint: disable=line-too-long
         unpack_time = lambda t: t.strftime(util.TIME_FORMAT) \
                 if isinstance(t, datetime.time) else None  # type: T.Callable[[T.Any], T.Any]
 
