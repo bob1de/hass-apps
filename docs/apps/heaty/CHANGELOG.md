@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   events from inside Home Assistant in order to let only one particular
   instance of Heaty receive the event, in case there is more than one
   running at the same time.
+* It is now possible to optionally specify seconds for ``start`` and
+  ``end`` times in schedule rules in addition to hours and minutes. The
+  format is HH:MM:SS. However, the known HH:MM will still work as before
+  and imply a value of 00 for seconds.
 
 ### Changed
 

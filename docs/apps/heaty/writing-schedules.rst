@@ -24,7 +24,7 @@ Here is another one:
 
     schedule:
     - temp: 21.5
-      start: "07:00"
+      start: "7:00"
       end: "22:00"
     - temp: 16
 
@@ -36,11 +36,14 @@ and Heaty evaluates rules from top to bottom. That is how schedules
 work. The first matching rule wins and specifies the temperature to
 set.
 
+For more fine-grained control, you may also specify seconds in addition to
+hour and minute. ``22:00:30`` means 10.00 pm + 30 seconds, for instance.
+
 If you omit the ``start`` parameter, Heaty assumes that you mean
 midnight (``00:00``) and fills that in for you.
 
 When ``end`` is not specified, Heaty does two things. First, it sets
-``00:00`` as value for ``end``. This alone wouldn't make sense,
+``0:00`` as value for ``end``. This alone wouldn't make sense,
 because the resulting rule would stop being valid before it started.
 To achieve the behaviour we'd expect, Heaty sets another attribute,
 ``end_plus_days: 1``. This means that the rule is valid up to the
@@ -53,8 +56,8 @@ which behaves exactly like the previous one.
 ::
 
     schedule:
-    - { temp: 21.5, start: "07:00", end: "22:00" }
-    - { temp: 16,   start: "00:00", end: "00:00", end_plus_days: 1 }
+    - { temp: 21.5, start: "7:00", end: "22:00" }
+    - { temp: 16,   start: "0:00", end: "0:00", end_plus_days: 1 }
 
 Note how each rule has been rewritten to take just a single line.
 This is no special feature of Heaty, it's rather normal YAML. But
@@ -78,12 +81,12 @@ Constraints
     schedule:
     - temp: 22
       weekdays: 1-5
-      start: "07:00"
+      start: "7:00"
       end: "22:00"
 
     - temp: 22
       weekdays: 6,7
-      start: "07:45"
+      start: "7:45"
 
     - temp: 15
 

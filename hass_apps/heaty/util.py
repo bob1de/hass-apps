@@ -13,9 +13,10 @@ INVALID_VAR_NAME_CHAR_PATTERN = re.compile(r"[^0-9A-Za-z_]")
 # regexp pattern matching a range like 3-7 without spaces
 RANGE_PATTERN = re.compile(r"^(\d+)\-(\d+)$")
 # strftime-compatible format string for military time
-TIME_FORMAT = "%H:%M"
-# regular expression for time formats, group 1 is hours, group 2 is minutes
-TIME_REGEXP = re.compile(r"^ *([01]?\d|2[0123]) *\: *([012345]?\d) *$")
+TIME_FORMAT = "%H:%M:%S"
+# regular expression for time formats, group 1 is hours, group 2 is minutes,
+# optional group 3 is seconds
+TIME_REGEXP = re.compile(r"^ *([01]?\d|2[0-3]) *\: *([0-5]\d) *(?:\: *([0-5]\d) *)?$")
 
 
 def escape_var_name(name: str) -> str:
