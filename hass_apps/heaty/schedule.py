@@ -32,7 +32,7 @@ class Rule:
             end_plus_days += 1
         self.end_time = end_time
 
-        if end_time < start_time and end_plus_days == 0:
+        if end_time <= start_time and end_plus_days == 0:
             end_plus_days = 1
         self.end_plus_days = end_plus_days
 

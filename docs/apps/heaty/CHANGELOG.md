@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   and imply a value of 00 for seconds.
 
 ### Changed
+* If the ``end`` time of a schedule rule is equal or prior to its
+  ``start`` time and ``end_plus_days`` hasn't been set, ``end_plus_days:
+  1`` is now assumed automatically.
 
 ### Deprecated
 
