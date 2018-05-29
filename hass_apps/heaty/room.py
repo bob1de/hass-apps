@@ -190,7 +190,7 @@ class Room:
             if isinstance(result, expr.IncludeSchedule):
                 self.log("Inserting sub-schedule.",
                          level="DEBUG")
-                _rules = result.schedule.matching_rules(self.app.datetime())
+                _rules = result.schedule.matching_rules(when)
                 for _idx, _rule in enumerate(_rules):
                     rules.insert(idx + _idx, _rule)
                 continue
