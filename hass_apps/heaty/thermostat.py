@@ -269,11 +269,12 @@ class Thermostat:
             return None
 
         if opmode == self.cfg["opmode_off"]:
-            self.wanted_temp = expr.Temp(expr.OFF)
+            wanted_temp = expr.Temp(expr.OFF)  # type: T.Optional[expr.Temp]
         elif self.cfg["supports_temps"]:
-            self.wanted_temp = temp
+            wanted_temp = temp
         else:
-            self.wanted_temp = expr.Temp(0)
+            wanted_temp = expr.Temp(0)
+        self.wanted_temp = temp
 
         if not force_resend and self.is_synced():
             self.log("Not sending temperature redundantly.",
@@ -289,7 +290,7 @@ class Thermostat:
         )
         self.resend_timer = timer
 
-        return self.wanted_temp
+        return wanted_temp
 
     def _set_temp_resend_cb(self, kwargs: dict) -> None:
         """This callback sends the operation_mode and temperature to the

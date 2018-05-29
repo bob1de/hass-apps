@@ -117,7 +117,7 @@ def parse_time_string(time_str: str) -> datetime.time:
     ValueError is raised."""
 
     match = TIME_REGEXP.match(time_str)
-    if not match:
+    if match is None:
         raise ValueError("time string {} has an invalid format"
                          .format(repr(time_str)))
     components = [int(comp) for comp in match.groups() if comp is not None]
