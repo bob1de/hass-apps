@@ -5,7 +5,7 @@ This module implements the WindowSensor class.
 import typing as T
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
-    from . import room as _room
+    from .room import Room
 
 from .. import common
 from . import util
@@ -14,7 +14,7 @@ from . import util
 class WindowSensor:
     """A sensor for Heaty's open window detection."""
 
-    def __init__(self, entity_id: str, cfg: dict, room: "_room.Room") -> None:
+    def __init__(self, entity_id: str, cfg: dict, room: "Room") -> None:
         self.entity_id = entity_id
         self.cfg = cfg
         self.room = room

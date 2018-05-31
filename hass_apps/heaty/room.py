@@ -7,12 +7,13 @@ if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     import uuid
     from . import app as _app
-    from . import thermostat
+    from .thermostat import Thermostat
 
 import datetime
 
 from .. import common
-from . import expr, schedule, util, window_sensor
+from . import expr, schedule, util
+from .window_sensor import WindowSensor
 
 
 class Room:
@@ -24,8 +25,8 @@ class Room:
         self.name = name
         self.cfg = cfg
         self.app = app
-        self.thermostats = []  # type: T.List[thermostat.Thermostat]
-        self.window_sensors = []  # type: T.List[window_sensor.WindowSensor]
+        self.thermostats = []  # type: T.List[Thermostat]
+        self.window_sensors = []  # type: T.List[WindowSensor]
         self.schedule = None  # type: T.Optional[schedule.Schedule]
 
         self.wanted_temp = None  # type: T.Optional[expr.Temp]
@@ -319,7 +320,7 @@ class Room:
         self.log("Cancelled re-schedule timer.", level="DEBUG")
         return True
 
-    def get_open_windows(self) -> T.List[window_sensor.WindowSensor]:
+    def get_open_windows(self) -> T.List[WindowSensor]:
         """Returns a list of window sensors in this room which
         currently report to be open,"""
 

@@ -12,7 +12,7 @@ import importlib
 
 from .. import common
 from . import __version__, config, expr, util
-from . import room as _room
+from .room import Room
 
 
 __all__ = ["HeatyApp"]
@@ -30,7 +30,7 @@ class HeatyApp(common.App):
     def __init__(self, *args: T.Any, **kwargs: T.Any) -> None:
         self.app = self
         self.cfg = None
-        self.rooms = []  # type: T.List[_room.Room]
+        self.rooms = []  # type: T.List[Room]
         self.publish_state_timer = None
         self.temp_expression_modules = {}  # type: T.Dict[str, types.ModuleType]
         super().__init__(*args, **kwargs)
@@ -213,7 +213,7 @@ class HeatyApp(common.App):
             reschedule_delay=reschedule_delay
         )
 
-    def get_room(self, room_name: str) -> T.Optional[_room.Room]:
+    def get_room(self, room_name: str) -> T.Optional[Room]:
         """Returns the room with given name or None, if no such room
         exists."""
 
