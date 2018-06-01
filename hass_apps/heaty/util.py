@@ -94,23 +94,6 @@ def format_time(when: datetime.time, format_str: str = TIME_FORMAT) -> str:
 
     return when.strftime(format_str)
 
-def modifies_state(func: T.Callable) -> T.Callable:
-    """This decorator calls update_publish_state_timer() after the
-    method decorated with it ran. It may only be used for non-static
-    methods of a class containing the app as "app" attribute, because it
-    fetches the "app" attribute from the method's first argument."""
-
-    def _new_func(self: T.Any, *args: T.Any, **kwargs: T.Any) -> T.Any:
-        result = func(self, *args, **kwargs)
-        self.app.update_publish_state_timer()
-        return result
-
-    _new_func.__name__ = func.__name__
-    _new_func.__doc__ = func.__doc__
-    _new_func.__annotations__ = func.__annotations__
-    _new_func.__dict__.update(func.__dict__)
-    return _new_func
-
 def parse_time_string(time_str: str) -> datetime.time:
     """Parses a string recognizable by TIME_REGEXP format into
     a datetime.time object. If the string has an invalid format, a

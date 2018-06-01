@@ -11,7 +11,7 @@ if T.TYPE_CHECKING:
 import copy
 
 from .. import common
-from . import expr, util
+from . import expr
 
 
 class Thermostat:
@@ -100,7 +100,6 @@ class Thermostat:
                          .format(opmode, allowed_opmodes),
                          level="WARNING")
 
-    @util.modifies_state
     def _state_cb(
             self, entity: str, attr: str,
             old: T.Optional[dict], new: T.Optional[dict],
@@ -216,7 +215,6 @@ class Thermostat:
                self.current_temp is not None and \
                self.current_temp == self.wanted_temp
 
-    @util.modifies_state
     def set_temp(
             self, target_temp: expr.Temp, force_resend: bool = False
     ) -> T.Optional[expr.Temp]:

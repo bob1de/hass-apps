@@ -8,7 +8,6 @@ if T.TYPE_CHECKING:
     from .room import Room
 
 from .. import common
-from . import util
 
 
 class WindowSensor:
@@ -28,7 +27,6 @@ class WindowSensor:
     def __str__(self) -> str:
         return self.cfg.get("friendly_name", self.entity_id)
 
-    @util.modifies_state
     def _state_cb(
             self, entity: str, attr: str,
             old: T.Optional[dict], new: T.Optional[dict],

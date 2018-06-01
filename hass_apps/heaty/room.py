@@ -40,7 +40,6 @@ class Room:
     def __str__(self) -> str:
         return self.cfg.get("friendly_name", self.name)
 
-    @util.modifies_state
     def _reschedule_timer_cb(self, kwargs: dict) -> None:
         """Is called whenever a re-schedule timer fires."""
 
@@ -92,7 +91,6 @@ class Room:
         msg = "[{}] {}".format(self, msg)
         self.app.log(msg, *args, **kwargs)
 
-    @util.modifies_state
     def set_temp(
             self, target_temp: expr.Temp, scheduled: bool = False,
             force_resend: bool = False
@@ -306,7 +304,6 @@ class Room:
 
         self.update_reschedule_timer(reschedule_delay=reschedule_delay)
 
-    @util.modifies_state
     def cancel_reschedule_timer(self) -> bool:
         """Cancels the reschedule timer for this room, if one
         exists. Returns whether a timer has been cancelled."""
@@ -393,7 +390,6 @@ class Room:
         if not no_reschedule:
             self.update_reschedule_timer()
 
-    @util.modifies_state
     def update_reschedule_timer(
             self, reschedule_delay: T.Union[float, int, None] = None,
             force: bool = False,

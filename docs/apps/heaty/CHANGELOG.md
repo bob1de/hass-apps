@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Deprecated
 
 ### Removed
+* Removed experimental state publishing to AppDaemon because the
+  implementation was nasty and it wasn't used anyway.
 
 
 ## 0.13.0 - 2018-04-05

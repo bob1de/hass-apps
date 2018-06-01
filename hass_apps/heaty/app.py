@@ -7,7 +7,6 @@ manual intervention at any time.
 import typing as T
 import types  # pylint: disable=unused-import
 
-import datetime
 import importlib
 
 from .. import common
@@ -31,11 +30,9 @@ class HeatyApp(common.App):
         self.app = self
         self.cfg = None
         self.rooms = []  # type: T.List[Room]
-        self.publish_state_timer = None
         self.temp_expression_modules = {}  # type: T.Dict[str, types.ModuleType]
         super().__init__(*args, **kwargs)
 
-    @util.modifies_state
     def initialize_inner(self) -> None:
         """Checks the configuration, initializes all timers, state and
         event callbacks and sets temperatures in all rooms according
@@ -92,7 +89,6 @@ class HeatyApp(common.App):
             self.log("Master switch is off, not setting temperatures "
                      "initially.")
 
-    @util.modifies_state
     def _master_switch_cb(
             self, entity: str, attr: str, old: T.Any, new: T.Any, kwargs: dict
     ) -> None:
@@ -112,12 +108,6 @@ class HeatyApp(common.App):
                 # invalidate cached temp/rule
                 room.current_schedule_temp = None
                 room.current_schedule_rule = None
-
-    def _publish_state_timer_cb(self, kwargs: dict) -> None:
-        """Runs when a publish_state timer fires."""
-
-        self.publish_state_timer = None
-        self.publish_state()
 
     def _reschedule_event_cb(
             self, event: str, data: dict, kwargs: dict
@@ -229,73 +219,3 @@ class HeatyApp(common.App):
         if master_switch:
             return self.get_state(master_switch) == "on"  # type: ignore
         return True
-
-    def publish_state(self) -> None:
-        """Publishes Heaty's current state to AppDaemon for use by
-        dashboards."""
-
-        # shortcuts to make expr.Temp and datetime.time objects json
-        # serializable
-        unpack_temp = lambda t: str(t.value) if isinstance(t, expr.Temp) else t  # type: T.Callable[[T.Any], T.Any]  # pylint: disable=line-too-long
-        unpack_time = lambda t: t.strftime(util.TIME_FORMAT) \
-                if isinstance(t, datetime.time) else None  # type: T.Callable[[T.Any], T.Any]
-
-        self.log("Publishing state to AppDaemon.",
-                 level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
-
-        attrs = {
-            "heaty_id": self.cfg["heaty_id"],
-            "master_switch_enabled": self.master_switch_enabled(),
-        }
-
-        rooms = {}
-        for room in self.rooms:
-            schedule = room.schedule
-            now = self.datetime()
-            if schedule:
-                next_schedule_datetime = schedule.next_schedule_datetime(now)
-            else:
-                next_schedule_datetime = None
-            if next_schedule_datetime:
-                # pylint: disable=line-too-long
-                next_schedule_time = next_schedule_datetime.time()  # type: T.Optional[datetime.time]
-            else:
-                next_schedule_time = None
-
-            rooms[room.name] = {
-                "friendly_name": room.cfg.get("friendly_name", room.name),
-                "wanted_temp": unpack_temp(room.wanted_temp),
-                "current_schedule_temp":
-                    unpack_temp(room.current_schedule_temp),
-                "next_schedule_time": unpack_time(next_schedule_time),
-            }
-
-            thermostats = {}
-            for therm in room.thermostats:
-                thermostats[therm.entity_id] = {
-                    "current_temp": unpack_temp(therm.current_temp),
-                    "resend_timer": bool(therm.resend_timer),
-                }
-            rooms[room.name]["thermostats"] = thermostats
-
-            window_sensors = {}
-            for sensor in room.window_sensors:
-                window_sensors[sensor.entity_id] = {
-                    "open": sensor.is_open(),
-                }
-            rooms[room.name]["window_sensors"] = window_sensors
-        attrs["rooms"] = rooms
-
-        entity_id = "appdaemon.heaty_{}".format(self.cfg["heaty_id"])
-        state = {"state": None, "attributes": attrs}
-        self.set_app_state(entity_id, state)
-
-    def update_publish_state_timer(self) -> None:
-        """Sets the publish_state timer to fire in 1 second, if not
-        running already."""
-
-        self.log("Called update_publish_state_timer.", level="DEBUG")
-
-        if not self.publish_state_timer:
-            timer = self.run_in(self._publish_state_timer_cb, 1)
-            self.publish_state_timer = timer
