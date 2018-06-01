@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
+* Fixed a bug that caused unnecessary re-sending of commands to ordinary
+  switches that don't support setting a target temperature.
 
 ### Security
 

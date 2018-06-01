@@ -274,7 +274,7 @@ class Thermostat:
             wanted_temp = temp
         else:
             wanted_temp = expr.Temp(0)
-        self.wanted_temp = temp
+        self.wanted_temp = wanted_temp
 
         if not force_resend and self.is_synced():
             self.log("Not sending temperature redundantly.",
