@@ -16,6 +16,7 @@ Contents
    upgrading
    apps/index
    CHANGELOG
+   CODE_OF_CONDUCT
 
 
 Contributing
@@ -30,6 +31,9 @@ already written.
 
 If you've got an interesting idea for a new app you'd like to contribute,
 just open an issue on GitHub and we can discuss it there.
+
+Please note that all contributions are subject to the `Code of Conduct
+<CODE_OF_CONDUCT.html>`_. Don't contribute if you don't aggree with that.
 
 
 Roadmap
