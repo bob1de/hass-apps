@@ -38,7 +38,7 @@ class ResultBase:
 class Result(ResultBase, AddibleMixin):
     """Final result of a temperature expression."""
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return "{}".format(self.temp)
 
 class Add(ResultBase, AddibleMixin):
@@ -52,7 +52,7 @@ class Add(ResultBase, AddibleMixin):
 
         return type(other)(self.temp + other.temp)
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return "Add({})".format(self.temp)
 
 class Break(ResultBase):
@@ -63,7 +63,7 @@ class Break(ResultBase):
         # pylint: disable=super-init-not-called
         self.temp = None
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return "Break()"
 
 class Ignore(ResultBase):
@@ -73,7 +73,7 @@ class Ignore(ResultBase):
         # pylint: disable=super-init-not-called
         self.temp = None
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return "Ignore()"
 
 class IncludeSchedule(ResultBase):
@@ -83,7 +83,7 @@ class IncludeSchedule(ResultBase):
         # pylint: disable=super-init-not-called
         self.schedule = sched
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return "IncludeSchedule({})".format(self.schedule)
 
 
@@ -100,7 +100,7 @@ class Off:
     def __neg__(self) -> "Off":
         return self
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return "OFF"
 
     def __sub__(self, other: T.Any) -> "Off":
@@ -160,7 +160,7 @@ class Temp:
     def __neg__(self) -> "Temp":
         return Temp(-self.value)  # pylint: disable=invalid-unary-operand-type
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         if isinstance(self.value, (float, int)):
             return "{}°".format(self.value)
         return "{}".format(self.value)
