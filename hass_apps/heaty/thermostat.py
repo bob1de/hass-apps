@@ -152,13 +152,14 @@ class Thermostat:
 
         self.current_temp = temp
 
-        if self.cfg["supports_temps"] or temp.is_off():
-            display_value = str(temp)
+        if self.cfg["supports_temps"]:
+            self.log("Received state of {}."
+                     .format(str(temp) if temp.is_off() else "ON"),
+                     prefix=common.LOG_PREFIX_INCOMING)
         else:
-            display_value = "ON"
-        self.log("Received target of {}."
-                 .format(display_value),
-                 prefix=common.LOG_PREFIX_INCOMING)
+            self.log("Received target temperature of {}."
+                     .format(str(temp)),
+                     prefix=common.LOG_PREFIX_INCOMING)
 
         if self.cfg["supports_temps"]:
             temp -= self.cfg["delta"]
