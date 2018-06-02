@@ -23,6 +23,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   ``end`` times in schedule rules in addition to hours and minutes. The
   format is HH:MM:SS. However, the known HH:MM will still work as before
   and imply a value of 00 for seconds.
+* New helper functions have been added to the evaluation environment of
+  time expressions for convenience:
+  * ``state(entity_id)``: a shortcut for ``app.get_state(entity_id)``
+  * ``is_on(entity_id)``: returns ``True`` if the state of the given entity
+    is ``"on"`` (case-insensitive)
+  * ``is_off(entity_id)``: returns ``True`` if the state of the given entity
+    is ``"off"`` (case-insensitive)
 
 ### Changed
 * If the ``end`` time of a schedule rule is equal or prior to its

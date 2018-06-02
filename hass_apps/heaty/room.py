@@ -128,20 +128,12 @@ class Room:
         exception which is raised during evaluation. In this case,
         None is returned."""
 
-        # use date/time provided by appdaemon to support time-traveling
-        now = self.app.datetime()
         extra_env = {
-            "app": self.app,
-            "schedule_snippets": self.app.cfg["schedule_snippets"],
             "room_name": self.name,
-            "now": now,
-            "date": now.date(),
-            "time": now.time(),
         }
-        extra_env.update(self.app.temp_expression_modules)
 
         try:
-            return expr.eval_temp_expr(temp_expr, extra_env=extra_env)
+            return expr.eval_temp_expr(temp_expr, self.app, extra_env=extra_env)
         except Exception as err:  # pylint: disable=broad-except
             self.log("Error while evaluating temperature expression: "
                      "{}".format(repr(err)),

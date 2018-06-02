@@ -6,6 +6,7 @@ import typing as T
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     from . import schedule
+    from .app import HeatyApp
 import types
 
 import datetime
@@ -192,18 +193,39 @@ class Temp:
             return None
 
 
-def build_time_expression_env() -> T.Dict[str, T.Any]:
+def build_time_expression_env(app: "HeatyApp") -> T.Dict[str, T.Any]:
     """This function builds and returns an environment usable as globals
     for the evaluation of a time expression. It will add all members
-    of this module's __all__ to the environment."""
+    of this module's __all__ to the environment. Additionally, some
+    helpers will be constructed based on the HeatyApp object"""
 
-    env = {"datetime": datetime}
+    # use date/time provided by appdaemon to support time-traveling
+    now = app.datetime()
+    env = {
+        "app": app,
+        "schedule_snippets": app.cfg["schedule_snippets"],
+        "datetime": datetime,
+        "now": now,
+        "date": now.date(),
+        "time": now.time(),
+        "state": app.get_state,
+        "is_on":
+            lambda entity_id: str(app.get_state(entity_id)).lower() == "on",
+        "is_off":
+            lambda entity_id: str(app.get_state(entity_id)).lower() == "off",
+    }
+
+    globs = globals()
     for name in __all__:
-        env[name] = globals()[name]
+        env[name] = globs[name]
+
+    env.update(app.temp_expression_modules)
+
     return env
 
 def eval_temp_expr(
         temp_expr: EXPR_TYPE,
+        app: "HeatyApp",
         extra_env: T.Optional[T.Dict[str, T.Any]] = None
 ) -> ResultBase:
     """This method evaluates the given temperature expression.
@@ -217,7 +239,7 @@ def eval_temp_expr(
     if isinstance(temp_expr, Temp):
         return Result(temp_expr)
 
-    env = build_time_expression_env()
+    env = build_time_expression_env(app)
     if extra_env:
         env.update(extra_env)
 

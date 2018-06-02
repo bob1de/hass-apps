@@ -55,6 +55,11 @@ expressions:
 * ``date``: a shortcut for ``now.date()``
 * ``time``: a shortcut for ``now.time()``
 * ``datetime``: Python's ``datetime`` module
+* ``state(entity_id)``: a shortcut for ``app.get_state(entity_id)``
+* ``is_on(entity_id)``: returns ``True`` if the state of the given entity
+  is ``"on"`` (case-insensitive)
+* ``is_off(entity_id)``: returns ``True`` if the state of the given entity
+  is ``"off"`` (case-insensitive)
 
 
 Using code from custom modules
