@@ -35,6 +35,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * If the ``end`` time of a schedule rule is equal or prior to its
   ``start`` time and ``end_plus_days`` hasn't been set, ``end_plus_days:
   1`` is now assumed automatically.
+* Whenever a room, thermostat etc. is mentioned in a log message, it
+  now has a prefix that indicates the type of object it is. "R:Living"
+  would, for instance, represent the room named "Living".
 
 ### Deprecated
 

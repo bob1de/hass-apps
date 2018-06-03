@@ -30,7 +30,7 @@ class Thermostat:
         return "<Thermostat {}>".format(str(self))
 
     def __str__(self) -> str:
-        return self.cfg.get("friendly_name", self.entity_id)
+        return "R:{}".format(self.cfg.get("friendly_name", self.entity_id))
 
     def _check_config_plausibility(self) -> None:
         """Is called during initialization to warn the user about some

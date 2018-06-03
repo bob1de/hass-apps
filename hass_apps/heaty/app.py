@@ -141,7 +141,7 @@ class HeatyApp(common.App):
         else:
             rooms = self.rooms
 
-        self.log("Re-schedule event received for rooms: {}"
+        self.log("Re-schedule event received for: {}"
                  .format(", ".join([str(room) for room in rooms])),
                  prefix=common.LOG_PREFIX_INCOMING)
 

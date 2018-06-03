@@ -38,7 +38,7 @@ class Room:
         return "<Room {}>".format(str(self))
 
     def __str__(self) -> str:
-        return self.cfg.get("friendly_name", self.name)
+        return "R:{}".format(self.cfg.get("friendly_name", self.name))
 
     def _reschedule_timer_cb(self, kwargs: dict) -> None:
         """Is called whenever a re-schedule timer fires."""

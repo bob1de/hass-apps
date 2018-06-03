@@ -25,7 +25,7 @@ class WindowSensor:
         )
 
     def __str__(self) -> str:
-        return self.cfg.get("friendly_name", self.entity_id)
+        return "W:{}".format(self.cfg.get("friendly_name", self.entity_id))
 
     def _state_cb(
             self, entity: str, attr: str,
