@@ -66,6 +66,11 @@ class Zone:
 
         self._stats_timer = None
 
+        if not self.cfg["parameters"]:
+            self.log("No parameters configured, nothing to update.",
+                     level="DEBUG")
+            return
+
         self.log("Updating statistics for: {}"
                  .format(", ".join(self.cfg["parameters"])),
                  level="DEBUG")
@@ -101,6 +106,9 @@ class Zone:
         """Fetches the Room objects and sets up internal data structures
         before triggering an initial statistics update."""
 
+        if not self.cfg["parameters"]:
+            self.log("No parameters configured.", level="WARNING")
+
         for room_name in self.cfg["rooms"]:
             room = self.app.get_room(room_name)
             if room is None:
@@ -110,13 +118,16 @@ class Zone:
                 continue
             self.rooms.append(room)
             for therm in room.thermostats:
-                self.log("Listening for changes of thermostat {} in room {}."
+                self.log("Listening for changes of {} in {}."
                          .format(therm, room),
                          level="DEBUG")
                 therm.events.on("current_temp_changed",
                                 lambda *a, **kw: self.update_stats())
                 therm.events.on("target_temp_changed",
                                 lambda *a, **kw: self.update_stats())
+
+        if not self.rooms:
+            self.log("No rooms configured.", level="WARNING")
 
         self.update_stats()
 
