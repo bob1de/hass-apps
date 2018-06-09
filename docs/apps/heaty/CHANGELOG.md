@@ -36,8 +36,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * A new component implementing a concept called "Zones" has been
   added. With zones, it is possible to get some statistical values
   reported back to Home Assistant, where one could then react to changing
-  parameters of your heating system with simple automationss. `See here
-  for more information. <zones.html>`_
+  parameters of your heating system with simple automationss. See
+  [here](zones.html) for more information.
 * Thermostats now have a ``current_temp_state_attr`` setting which
   defaults to ``"current_temperature"``. This specifies a state attribute
   used to fetch the real temperature as measured by the thermostat's
