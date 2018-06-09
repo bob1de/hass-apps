@@ -94,14 +94,3 @@ class App(AppBase):
         particular app."""
 
         pass
-
-    def set_app_state(
-            self, entity_id: str, state: T.Dict[str, T.Any]
-    ) -> None:
-        """A wrapper to make the new appdaemon.AppDaemon.set_app_state
-        available under the appdaemon 2 interface."""
-
-        if self._is_ad3:
-            self.AD.set_app_state(entity_id, state)
-        else:
-            super().set_app_state(entity_id, state)  # pylint: disable=no-member

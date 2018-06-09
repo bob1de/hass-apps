@@ -15,6 +15,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 
 ### Changed
+* No longer using broken ``set_app_state()`` feature of AppDaemon, hence
+  AppDaemon 3.0.0+ should now work and blacklisting has been removed.
 
 ### Deprecated
 
