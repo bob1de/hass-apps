@@ -30,6 +30,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
     is ``"on"`` (case-insensitive)
   * ``is_off(entity_id)``: returns ``True`` if the state of the given entity
     is ``"off"`` (case-insensitive)
+* A new configuration option ``window_open_temp`` has been added with a
+  default of ``OFF`` to configure the temperature that should be set
+  when a window is opened.
+* A new component implementing a concept called "Zones" has been
+  added. With zones, it is possible to get some statistical values
+  reported back to Home Assistant, where one could then react to changing
+  parameters of your heating system with simple automationss. `See here
+  for more information. <zones.html>`_
+* Thermostats now have a ``current_temp_state_attr`` setting which
+  defaults to ``"current_temperature"``. This specifies a state attribute
+  used to fetch the real temperature as measured by the thermostat's
+  temperature sensor. This data is used by the new zone component.
 
 ### Changed
 * If the ``end`` time of a schedule rule is equal or prior to its
@@ -38,6 +50,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Whenever a room, thermostat etc. is mentioned in a log message, it
   now has a prefix that indicates the type of object it is. "R:Living"
   would, for instance, represent the room named "Living".
+* The configuration option ``off_temp`` has been renamed to
+  ``master_off_temp`` to be more meaningful.
+* The thermostat configuration options ``temp_service``,
+  ``temp_service_attr`` and ``temp_state_attr`` have been renamed
+  to ``target_temp_service``, ``target_temp_service_attr`` and
+  ``target_temp_state_attr`` to be more meaningful.
+* Open window detection now sets the temperature to the value configured
+  by the new ``window_open_temp`` option instead of using the value of
+  ``master_off_temp`` (formerly ``off_temp``).
 
 ### Deprecated
 

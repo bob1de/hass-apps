@@ -26,6 +26,7 @@ These key features are implemented in Heaty. More are added continuously.
    writing-schedules
    temperature-expressions
    events
+   zones
    tips-and-tricks
    CHANGELOG
 
@@ -39,7 +40,7 @@ hence I want to explain here what the exact preconditions for using
 Heaty actually are.
 
 1. Heaty controls so-called rooms. However, a room doesn't have to be
-   a real room inside of a building. Think of it as a zone in which the
+   a real room inside of a building. Think of it as an area in which the
    temperature should be the same everywhere.
 
 2. You need at least one thermostat in each room you want to control.

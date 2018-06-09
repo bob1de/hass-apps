@@ -9,6 +9,7 @@ if T.TYPE_CHECKING:
     from .room import Room
 
 import copy
+import observable
 
 from .. import common
 from . import expr
@@ -17,14 +18,18 @@ from . import expr
 class Thermostat:
     """A thermostat to be controlled by Heaty."""
 
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self, entity_id: str, cfg: dict, room: "Room") -> None:
         self.entity_id = entity_id
         self.cfg = cfg
         self.room = room
         self.app = room.app
         self.current_temp = None  # type: T.Optional[expr.Temp]
+        self.current_target_temp = None  # type: T.Optional[expr.Temp]
         self.wanted_temp = None  # type: T.Optional[expr.Temp]
         self.resend_timer = None  # type: T.Optional[uuid.UUID]
+        self.events = observable.Observable()  # type: observable.Observable
 
     def __repr__(self) -> str:
         return "<Thermostat {}>".format(str(self))
@@ -48,7 +53,7 @@ class Thermostat:
         if self.cfg["supports_opmodes"]:
             required_attrs.append(self.cfg["opmode_state_attr"])
         if self.cfg["supports_temps"]:
-            required_attrs.append(self.cfg["temp_state_attr"])
+            required_attrs.append(self.cfg["target_temp_state_attr"])
         if not required_attrs:
             self.log("At least one of supports_opmodes and "
                      "supports_temps should be enabled. "
@@ -63,14 +68,15 @@ class Thermostat:
                          level="WARNING")
 
         if self.cfg["supports_temps"]:
-            value = state.get(self.cfg["temp_state_attr"])
+            value = state.get(self.cfg["target_temp_state_attr"])
             try:
                 value = float(value)
             except (TypeError, ValueError):
                 self.log("The value {} for attribute {} is no valid "
                          "temperature value. "
                          "Please check your config!"
-                         .format(repr(value), self.cfg["temp_state_attr"]),
+                         .format(repr(value),
+                                 self.cfg["target_temp_state_attr"]),
                          level="WARNING")
 
         allowed_opmodes = state.get("operation_list")
@@ -106,13 +112,13 @@ class Thermostat:
             kwargs: dict, no_reschedule: bool = False
     ) -> None:
         """Is called when the thermostat's state changes.
-        This method fetches the set target temperature from the
-        thermostat and reacts accordingly."""
+        This method fetches both the current and target temperature from
+        the thermostat and reacts accordingly."""
 
         attrs = copy.deepcopy((new or {}).get("attributes", {}))
         attrs.update(copy.deepcopy(new or {}))
 
-        _temp = None  # type: T.Union[None, expr.Off, float, int]
+        _target_temp = None  # type: T.Union[None, expr.Off, float, int]
         if self.cfg["supports_opmodes"]:
             opmode = attrs.get(self.cfg["opmode_state_attr"])
             self.log("Attribute {} is {}."
@@ -122,50 +128,60 @@ class Thermostat:
                 # don't consider this thermostat
                 return
             elif opmode == self.cfg["opmode_off"]:
-                _temp = expr.Off()
+                _target_temp = expr.Off()
         else:
             opmode = None
 
-        if _temp is None:
+        if _target_temp is None:
             if self.cfg["supports_temps"]:
-                _temp = attrs.get(self.cfg["temp_state_attr"])
+                _target_temp = attrs.get(self.cfg["target_temp_state_attr"])
                 self.log("Attribute {} is {}."
-                         .format(self.cfg["temp_state_attr"], _temp),
+                         .format(self.cfg["target_temp_state_attr"],
+                                 _target_temp),
                          level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
             else:
-                _temp = 0
+                _target_temp = 0
 
         try:
-            temp = expr.Temp(_temp)
+            target_temp = expr.Temp(_target_temp)
         except ValueError:
             # no valid temperature, don't consider this thermostat
             return
 
-        if temp == self.wanted_temp:
+        _current_temp = attrs.get(self.cfg["current_temp_state_attr"])
+        self.log("Attribute {} is {}."
+                 .format(self.cfg["current_temp_state_attr"], _current_temp),
+                 level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
+        try:
+            current_temp = expr.Temp(_current_temp)  # type: T.Optional[expr.Temp]
+        except ValueError:
+            current_temp = None
+        if current_temp != self.current_temp:
+            self.current_temp = current_temp
+            self.events.trigger("current_temp_changed", self, current_temp)
+
+        if target_temp == self.wanted_temp:
             # thermostat adapted to the temperature we want,
             # cancel any re-send timer
             self.cancel_resend_timer()
 
-        if temp == self.current_temp:
-            # nothing changed, hence no further actions needed
-            return
+        if target_temp != self.current_target_temp:
+            self.current_target_temp = target_temp
 
-        self.current_temp = temp
+            if self.cfg["supports_temps"]:
+                self.log("Received target temperature of {}."
+                         .format(str(target_temp)),
+                         prefix=common.LOG_PREFIX_INCOMING)
+                target_temp -= self.cfg["delta"]
+            else:
+                self.log("Received state of {}."
+                         .format("OFF" if target_temp.is_off() else "ON"),
+                         prefix=common.LOG_PREFIX_INCOMING)
 
-        if self.cfg["supports_temps"]:
-            self.log("Received target temperature of {}."
-                     .format(str(temp)),
-                     prefix=common.LOG_PREFIX_INCOMING)
-        else:
-            self.log("Received state of {}."
-                     .format("OFF" if temp.is_off() else "ON"),
-                     prefix=common.LOG_PREFIX_INCOMING)
-
-        if self.cfg["supports_temps"]:
-            temp -= self.cfg["delta"]
-
-        self.room.notify_temp_changed(temp, no_reschedule=no_reschedule,
-                                      actor=self)
+            self.events.trigger(
+                "target_temp_changed", self, target_temp,
+                no_reschedule=no_reschedule
+            )
 
     def initialize(self) -> None:
         """Should be called in order to register state listeners and
@@ -183,7 +199,8 @@ class Thermostat:
                 self.log("State for thermostat is None, ignoring it.",
                          level="WARNING")
             else:
-                # populate self.current_temp by simulating a state change
+                # populate self.current_target_temp by simulating a
+                # state change
                 self._state_cb(self.entity_id, "all", state, state, {},
                                no_reschedule=True)
 
@@ -213,8 +230,8 @@ class Thermostat:
         wanted temperature and no re-sending is in progress."""
 
         return self.resend_timer is None and \
-               self.current_temp is not None and \
-               self.current_temp == self.wanted_temp
+               self.current_target_temp is not None and \
+               self.current_target_temp == self.wanted_temp
 
     def set_temp(
             self, target_temp: expr.Temp, force_resend: bool = False
@@ -322,8 +339,8 @@ class Thermostat:
             self.app.call_service(opmode_service, **attrs)
         if temp is not None:
             attrs = {"entity_id": self.entity_id,
-                     self.cfg["temp_service_attr"]: temp.value}
-            self.app.call_service(self.cfg["temp_service"], **attrs)
+                     self.cfg["target_temp_service_attr"]: temp.value}
+            self.app.call_service(self.cfg["target_temp_service"], **attrs)
 
         if not left_retries:
             return

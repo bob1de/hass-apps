@@ -6,8 +6,11 @@ import typing as T
 
 import voluptuous as vol
 
-from . import expr, schedule, thermostat, util, window_sensor
-from . import room as _room
+from . import expr, schedule, util
+from .room import Room
+from .thermostat import Thermostat
+from .window_sensor import WindowSensor
+from .zone import Zone
 
 
 def build_schedule_rule(rule: dict) -> schedule.Rule:
@@ -34,7 +37,9 @@ def build_schedule(rules: T.Iterable[dict]) -> schedule.Schedule:
     return sched
 
 def config_post_hook(cfg: dict) -> dict:
-    """Creates room and thermostat objects after config has been parsed."""
+    """Creates Room and other objects after config has been parsed."""
+
+    # pylint: disable=too-many-locals
 
     # Compile the pre/post schedules. and schedule snippets
     cfg["schedule_prepend"] = build_schedule(cfg["schedule_prepend"])
@@ -69,26 +74,32 @@ def config_post_hook(cfg: dict) -> dict:
         del room_data["window_sensors"]
         del room_data["schedule"]
 
-        room = _room.Room(room_name, room_data, cfg["_app"])
+        room = Room(room_name, room_data, cfg["_app"])
         rooms.append(room)
 
         # Create thermostat and window sensor objects and attach to room.
         for therm_name, therm_data in therms.items():
-            therm = thermostat.Thermostat(therm_name, therm_data, room)
+            therm = Thermostat(therm_name, therm_data, room)
             room.thermostats.append(therm)
         for wsensor_name, wsensor_data in wsensors.items():
-            wsensor = window_sensor.WindowSensor(
-                wsensor_name, wsensor_data, room
-            )
+            wsensor = WindowSensor(wsensor_name, wsensor_data, room)
             room.window_sensors.append(wsensor)
 
         room.schedule = sched
-
     del cfg["rooms"], cfg["schedule_prepend"], cfg["schedule_append"]
     cfg["_app"].rooms = rooms
 
+    zones = []
+    for zone_name, zone_cfg in cfg["zones"].items():
+        zone = Zone(zone_name, zone_cfg, cfg["_app"])
+        zones.append(zone)
+    del cfg["zones"]
+    cfg["_app"].zones = zones
+
     return cfg
 
+
+########## MISCELLANEOUS
 
 ENTITY_ID_SCHEMA = vol.Schema(vol.Match(r"^[A-Za-z_]+\.[A-Za-z0-9_]+$"))
 PYTHON_VAR_SCHEMA = vol.Schema(vol.Match(r"^[a-zA-Z_]+[a-zA-Z0-9_]*$"))
@@ -131,6 +142,9 @@ TEMP_EXPRESSION_MODULES_SCHEMA = vol.Schema({
     vol.Extra: lambda v: TEMP_EXPRESSION_MODULE_SCHEMA(v or {}),
 })
 
+
+########## THERMOSTATS
+
 THERMOSTAT_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
     {
@@ -152,20 +166,30 @@ THERMOSTAT_SCHEMA = vol.Schema(vol.All(
         vol.Optional("supports_temps", default=True): bool,
         vol.Optional("opmode_heat", default="Heat"): str,
         vol.Optional("opmode_off", default="Off"): str,
-        vol.Optional("opmode_heat_service",
-                     default="climate/set_operation_mode"): str,
-        vol.Optional("opmode_off_service",
-                     default="climate/set_operation_mode"): str,
+        vol.Optional(
+            "opmode_heat_service", default="climate/set_operation_mode"
+        ): str,
+        vol.Optional(
+            "opmode_off_service", default="climate/set_operation_mode"
+        ): str,
         vol.Optional("opmode_heat_service_attr", default="operation_mode"):
             vol.Any(str, None),
         vol.Optional("opmode_off_service_attr", default="operation_mode"):
             vol.Any(str, None),
         vol.Optional("opmode_state_attr", default="operation_mode"): str,
-        vol.Optional("temp_service", default="climate/set_temperature"): str,
-        vol.Optional("temp_service_attr", default="temperature"): str,
-        vol.Optional("temp_state_attr", default="temperature"): str,
+        vol.Optional(
+            "target_temp_service", default="climate/set_temperature"
+        ): str,
+        vol.Optional("target_temp_service_attr", default="temperature"): str,
+        vol.Optional("target_temp_state_attr", default="temperature"): str,
+        vol.Optional(
+            "current_temp_state_attr", default="current_temperature"
+        ): str,
     },
 ))
+
+
+########## WINDOW SENSORS
 
 STATE_SCHEMA = vol.Schema(vol.Any(float, int, str))
 WINDOW_SENSOR_SCHEMA = vol.Schema(vol.All(
@@ -177,6 +201,9 @@ WINDOW_SENSOR_SCHEMA = vol.Schema(vol.All(
             vol.Any(STATE_SCHEMA, [STATE_SCHEMA]),
     },
 ))
+
+
+########## SCHEDULES
 
 SCHEDULE_RULE_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
@@ -205,6 +232,9 @@ SCHEDULE_SNIPPETS_SCHEMA = vol.Schema(vol.All(
     {vol.Extra: SCHEDULE_SCHEMA},
 ))
 
+
+########## ROOMS
+
 ROOM_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
     {
@@ -219,13 +249,64 @@ ROOM_SCHEMA = vol.Schema(vol.All(
     },
 ))
 
+
+########## ZONES
+
+ZONE_ROOM_SCHEMA = vol.Schema(vol.All(
+    lambda v: v or {},
+    vol.Schema({
+        # More parameters may be added here in the future.
+    }, extra=False),
+))
+
+ZONE_PARAM_THERMOSTAT_SETTINGS_ADDIN = {
+    vol.Optional("thermostat_factors", default=dict): vol.All(
+        lambda v: v or {},
+        {
+            vol.Extra: vol.All(vol.Any(float, int),
+                               vol.Range(min=0), min_included=False),
+        },
+    ),
+    vol.Optional("thermostat_weights", default=dict): vol.All(
+        lambda v: v or {},
+        {
+            vol.Extra: vol.All(vol.Any(float, int), vol.Range(min=0)),
+        },
+    ),
+}
+
+ZONE_SCHEMA = vol.Schema(vol.All(
+    lambda v: v or {},
+    {
+        "friendly_name": str,
+        vol.Optional("rooms", default=dict): vol.All(
+            lambda v: v or {},
+            {vol.Extra: ZONE_ROOM_SCHEMA},
+        ),
+        vol.Optional("parameters", default=dict): vol.All(
+            lambda v: v or {},
+            vol.Schema({
+                "temp_delta": vol.All(
+                    lambda v: v or {},
+                    vol.Schema(util.mixin_dict({
+                    }, ZONE_PARAM_THERMOSTAT_SETTINGS_ADDIN), extra=False),
+                ),
+            }, extra=False),
+        ),
+    },
+))
+
+
+########## MAIN CONFIG SCHEMA
+
 CONFIG_SCHEMA = vol.Schema(vol.All(
     vol.Schema({
         vol.Optional("heaty_id", default="default"): str,
         vol.Optional("untrusted_temp_expressions", default=False): bool,
         vol.Optional("master_switch", default=None):
             vol.Any(ENTITY_ID_SCHEMA, None),
-        vol.Optional("off_temp", default=expr.OFF): TEMP_SCHEMA,
+        vol.Optional("master_off_temp", default=expr.OFF): TEMP_SCHEMA,
+        vol.Optional("window_open_temp", default=expr.OFF): TEMP_SCHEMA,
         vol.Optional("temp_expression_modules", default=dict):
             TEMP_EXPRESSION_MODULES_SCHEMA,
         vol.Optional("thermostat_defaults", default=dict):
@@ -241,6 +322,10 @@ CONFIG_SCHEMA = vol.Schema(vol.All(
         vol.Optional("rooms", default=dict): vol.All(
             lambda v: v or {},
             {vol.Extra: ROOM_SCHEMA},
+        ),
+        vol.Optional("zones", default=dict): vol.All(
+            lambda v: v or {},
+            {vol.Extra: ZONE_SCHEMA},
         ),
     }, extra=True),
     config_post_hook,
