@@ -6,12 +6,15 @@ manual intervention at any time.
 
 import typing as T
 import types  # pylint: disable=unused-import
+if T.TYPE_CHECKING:
+    # pylint: disable=cyclic-import,unused-import
+    from .room import Room
+    from .zone import Zone
 
 import importlib
 
 from .. import common
 from . import __version__, config, expr, util
-from .room import Room
 
 
 __all__ = ["HeatyApp"]
@@ -30,6 +33,7 @@ class HeatyApp(common.App):
         self.app = self
         self.cfg = None
         self.rooms = []  # type: T.List[Room]
+        self.zones = []  # type: T.List[Zone]
         self.temp_expression_modules = {}  # type: T.Dict[str, types.ModuleType]
         super().__init__(*args, **kwargs)
 
@@ -89,13 +93,16 @@ class HeatyApp(common.App):
             self.log("Master switch is off, not setting temperatures "
                      "initially.")
 
+        for zone in self.zones:
+            zone.initialize()
+
     def _master_switch_cb(
             self, entity: str, attr: str, old: T.Any, new: T.Any, kwargs: dict
     ) -> None:
         """Is called when the master switch is toggled.
         If turned on, it sets the scheduled temperatures in all rooms.
-        If switch is turned off, all re-schedule timers are cancelled
-        and temperature is set to self.cfg["off_temp"] everywhere."""
+        If switch is turned off, all re-schedule timers are cancelled and
+        temperature is set to self.cfg["master_off_temp"] everywhere."""
 
         self.log("Master switch turned {}.".format(new),
                  prefix=common.LOG_PREFIX_INCOMING)
@@ -104,7 +111,7 @@ class HeatyApp(common.App):
                 room.set_scheduled_temp()
             else:
                 room.cancel_reschedule_timer()
-                room.set_temp(self.cfg["off_temp"], scheduled=False)
+                room.set_temp(self.cfg["master_off_temp"], scheduled=False)
                 # invalidate cached temp/rule
                 room.current_schedule_temp = None
                 room.current_schedule_rule = None
@@ -203,7 +210,7 @@ class HeatyApp(common.App):
             reschedule_delay=reschedule_delay
         )
 
-    def get_room(self, room_name: str) -> T.Optional[Room]:
+    def get_room(self, room_name: str) -> T.Optional["Room"]:
         """Returns the room with given name or None, if no such room
         exists."""
 

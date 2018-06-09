@@ -7,6 +7,8 @@ if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     from .room import Room
 
+import observable
+
 from .. import common
 
 
@@ -14,10 +16,12 @@ class WindowSensor:
     """A sensor for Heaty's open window detection."""
 
     def __init__(self, entity_id: str, cfg: dict, room: "Room") -> None:
+        super().__init__()
         self.entity_id = entity_id
         self.cfg = cfg
         self.room = room
         self.app = room.app
+        self.events = observable.Observable()  # type: observable.Observable
 
     def __repr__(self) -> str:
         return "<WindowSensor {}, {}>".format(
@@ -33,36 +37,12 @@ class WindowSensor:
             kwargs: dict
     ) -> None:
         """Is called when the window sensor's state has changed.
-        This method handles the window open/closed detection and
-        performs actions accordingly."""
+        This method triggers the opened/closed event."""
 
-        action = "opened" if self.is_open() else "closed"
         self.log("State is now {}.".format(new),
                  level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
-        self.room.log("Window has been {}.".format(action),
-                      prefix=common.LOG_PREFIX_INCOMING)
 
-        if not self.app.master_switch_enabled():
-            self.log("Master switch is off, ignoring window event.")
-            return
-
-        if action == "opened":
-            # turn heating off, but store the original temperature
-            self.room.check_for_open_window()
-        elif not self.room.get_open_windows():
-            # all windows closed
-            # restore temperature from before opening the window
-            orig_temp = self.room.wanted_temp
-            # could be None if we didn't know the temperature before
-            # opening the window
-            if orig_temp is None:
-                self.log("Restoring temperature from schedule.",
-                         level="DEBUG")
-                self.room.set_scheduled_temp()
-            else:
-                self.log("Restoring temperature to {}.".format(orig_temp),
-                         level="DEBUG")
-                self.room.set_temp(orig_temp, scheduled=False)
+        self.events.trigger("open_close", self, self.is_open())
 
     def initialize(self) -> None:
         """Should be called in order to register state listeners and

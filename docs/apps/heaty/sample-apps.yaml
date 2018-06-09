@@ -44,57 +44,65 @@ heaty_full:
   # If set, the id has to be passed with every heaty_* event you emit
   # for Heaty to be able to determine the instance the event is
   # intended for.
-  # (optional, default: "default")
+  # (default: "default")
   #heaty_id: default
 
   # Enable debugging output
-  # (optional, default: false)
+  # (default: false)
   #debug: false
 
   # If you enable this option, potentially harmful temperature
   # expressions received in a heaty_set_temp event are evaluated.
   # For more information, please see README.rst.
-  # (optional, default: false)
+  # (default: false)
   #untrusted_temp_expressions: false
 
   # This switch can be used to turn off all rooms (e.g. for vacation times).
   # You may use any switch that has the states "on" and "off".
-  # (optional, default: none)
+  # (default: none)
   #master_switch: input_boolean.heating_master
 
   # Temperature that should be set when the master switch is turned off.
   # 4 °C is recommended to protect against frost-induced damage.
   # A value of "OFF" will set the thermostat's operation mode
   # to <opmode_off> explicitly.
-  # (optional, default: "OFF")
-  #off_temp: "OFF"
+  # (default: "OFF")
+  #master_off_temp: "OFF"
+
+  # Temperature that should be set when a window is opened.
+  # 4 °C is recommended to protect against frost-induced damage.
+  # A value of "OFF" will set the thermostat's operation mode
+  # to <opmode_off> explicitly.
+  # (default: "OFF")
+  #window_open_temp: "OFF"
 
   # Here you can define Python modules that should be available from
   # inside your temperature expressions. These modules are imported
   # upon Heaty's initialization, hence you have to restart AppDaemon
   # after making changes to these modules.
-  # (optional)
+  # (default: {})
   temp_expression_modules:
     #math:
     #my_custom_module:
       # Optionally, define an alternative name under which the module
       # should be available.
-      # (optional)
+      # (default: <original module name>)
       #as: alt_name
 
   # In the following config block, you may define settings that affect
   # all thermostats in your setup. These can be overwritten on a per
   # thermostat basis.
+  # (default: {})
   thermostat_defaults:
 
     # An alternative friendly name to display in logs.
     # (optional)
-    friendly_name: Thermo
+    #friendly_name: Thermo
 
     # Delta that is added to the temperature value sent to this
     # thermostat in order to correct potential inaccuracies of
     # the temperature sensor.
-    # (optional, default: 0)
+    # (default: 0)
     #delta: 0
 
     # The minimum/maximum temperature the thermostat supports.
@@ -102,7 +110,7 @@ heaty_full:
     # operation mode will be switched off instead of setting the
     # temperature. A temperature setting higher than max_temp causes
     # max_temp to be set instead.
-    # (optional, default: null, which means there is no limitation)
+    # (default: null, which means there is no limitation)
     #min_temp: null
     #max_temp: null
 
@@ -114,64 +122,64 @@ heaty_full:
     # Set to 0 in order to disable retrying. -1 removes the limit
     # and causes the temperature to be re-sent until the thermostat
     # reports it back in its state (avoid this).
-    # (optional, default: 10)
+    # (default: 10)
     #set_temp_retries: 10
-    # How many seconds to wait between retryings.
-    # (optional, default: 30)
+    # How many seconds to wait before retrying.
+    # (default: 30)
     #set_temp_retry_interval: 30
 
     # Set this to false if your thermostat doesn't support operation modes.
     # Please note that you won't be able to turn it off completely without
     # operation mode support.
-    # (optional, default: true)
+    # (default: true)
     #supports_opmodes: true
 
     # Set this to false if your thermostat doesn't support setpoints.
     # Please note that you will only be able to turn it on and off
     # without temperature support. In this case, the temperature you
-    # configure in your schedules doesn't matter. Any value different
+    # configure in your schedule doesn't matter. Any value different
     # from OFF will turn the thermostat on.
     # Additionally, a thermostat with disabled temperature support
     # will neither trigger the change replication nor the delayed
     # re-scheduling feature.
-    # (optional, default: true)
+    # (default: true)
     #supports_temps: true
 
     # These two settings can be used to tweak the names of the
     # operation modes.
-    # (optional, default: Heat)
+    # (default: Heat)
     #opmode_heat: Heat
-    # (optional, default: "Off")
+    # (default: "Off")
     #opmode_off: "Off"
 
     # You might want to use an alternative service that receives
-    # the operation mode value.
-    # (optional, default: climate/set_operation_mode)
+    # the operation mode name.
+    # (default: climate/set_operation_mode)
     #opmode_heat_service: climate/set_operation_mode
     #opmode_off_service: climate/set_operation_mode
     # Set to null in order to omit the operation mode from the service call.
-    # (optional, default: operation_mode)
+    # (default: operation_mode)
     #opmode_heat_service_attr: operation_mode
     #opmode_off_service_attr: operation_mode
-    # Entity attribute that holds the current operation mode.
+    # Entity attribute that holds the name of the current operation mode.
     # This is used to detect manual temperature adjustments, provide
     # correct temperature values on startup and notice that a
     # thermostat picked up temperature changes.
-    # (optional, default: operation_mode)
+    # (default: operation_mode)
     #opmode_state_attr: operation_mode
 
     # You might want to use an alternative service that receives
-    # the temperature value.
-    # (optional, default: climate/set_temperature)
-    temp_service: climate/set_temperature
-    # (optional, default: temperature)
-    #temp_service_attr: temperature
+    # the target temperature value.
+    # (default: climate/set_temperature)
+    #target_temp_service: climate/set_temperature
+    # (default: temperature)
+    #target_temp_service_attr: temperature
     # Entity attribute that holds the current target temperature.
     # This is used to detect manual temperature adjustments, provide
     # correct temperature values on startup and notice that a
     # thermostat picked up temperature changes.
-    # (optional, default: temperature)
-    #temp_state_attr: temperature
+    # (default: temperature)
+    #target_temp_state_attr: temperature
 
   # In the following config block, you may define settings that affect
   # all window sensors in your setup. These can be overwritten on a per
@@ -180,48 +188,53 @@ heaty_full:
 
     # An alternative friendly name to display in logs.
     # (optional)
-    friendly_name: Window
+    #friendly_name: Window
 
     # Sensor state needs to stay constant for this number of seconds
     #  before the window open/closed detection kicks in.
-    # (optional, default: 10)
+    # (default: 10)
     #delay: 10
 
     # By default, a state of "on" means open.
     # If your sensor reports differently, you need to adjust this setting.
     # If multiple states should be considered as open, specify a list
     # of states instead.
-    # (optional, default: "on")
+    # (default: "on")
     #open_state: "on"
     #open_state: [1, "on"]
 
   # Add schedule rules you want to have prepended to each room's schedule
   # automatically here.
+  # (default: [])
   schedule_prepend:
 
   # Add schedule rules you want to have appended to each room's schedule
   # automatically here.
+  # (default: [])
   schedule_append:
 
   # Optionally, configure schedules that can be included by temperature
   # expressions dynamically. See the README.rst for an example on how
   # to use them.
+  # (default: {})
   schedule_snippets:
-    summer:
+    #summer:
     # ...
 
+  # Configure your rooms here.
+  # (default: {})
   rooms:
 
     # Create such a block for every room you want to control.
     living:
       # An alternative friendly name to display in logs.
       # (optional)
-      friendly_name: Living Room
+      #friendly_name: Living Room
 
       # This setting controls whether changes made locally at one thermostat
       # should automatically be replicated at the other ones in this
       # particular room.
-      # (optional, default: true)
+      # (default: true)
       #replicate_changes: true
 
       # Set this value to a number of minutes and Heaty will automatically
@@ -229,10 +242,11 @@ heaty_full:
       # If you, for instance, change the target temperature at one of your
       # thermostats and this value is set to 120, Heaty will again apply
       # the schedule 2 hours after you made the change.
-      # (optional, default: 0, which means never re-schedule)
+      # (default: 0, which means never re-schedule)
       #reschedule_delay: 0
 
       # All thermostats of this room go here.
+      # (default: {})
       thermostats:
 
         climate.living1:
@@ -244,6 +258,7 @@ heaty_full:
           # ...
 
       # Window open/closed detection
+      # (default: {})
       window_sensors:
 
         # Create a sensor item for each window sensor you want to consider
@@ -254,10 +269,32 @@ heaty_full:
           open_state: open
 
       # Schedule for this room.
-      # The explanation of schedules has been removed from this file,
-      # because it is simply to detailled.
-      #
-      # Please see README.rst.
-      #
+      # The explanation of schedules is far too detailled for this file.
+      # Please consult the docs.
+      # (default: [])
       schedule:
         # ...
+
+  # Configure zones here.
+  # A zone is a group of one or more rooms that generates statistics about
+  # the heating in these rooms and sends them to Home Assistant as sensor
+  # entities.
+  # Please consult the docs for more information.
+  # (default: {})
+  zones:
+
+    # Define such a block for each zone you want to create.
+    upstairs:
+
+      # The names (not the friendly names) of the rooms in that zone go here.
+      # (default: {})
+      rooms:
+        bathroom:
+        kidsroom:
+
+      # Configure which parameters to collect.
+      # By default, no parameters are enabled. See the docs for a list
+      # of supported parameters and how to configure them.
+      # (default: {})
+      #parameters:
+      #  temp_delta:

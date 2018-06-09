@@ -41,8 +41,7 @@ Roadmap
 
 Currently, the following enhancements are planned.
 
-* **heaty:** Build a mechanism to control the source of heat energy
-  (e.g. turning an oven on based on the amount of heat needed).
+* Nothing concrete
 
 
 Donations

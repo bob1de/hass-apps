@@ -88,11 +88,30 @@ def build_date_from_constraint(
                 fields["month"] = 1
                 fields["year"] += 1
 
+def format_sensor_value(value: T.Any) -> str:
+    """Formats values as strings for usage as HA sensor state.
+    Floats are rounded to 2 decimal digits."""
+
+    if isinstance(value, float):
+        state = "{:.2f}".format(value).rstrip("0")
+        if state.endswith("."):
+            state += "0"
+    else:
+        state = str(value)
+
+    return state
+
 def format_time(when: datetime.time, format_str: str = TIME_FORMAT) -> str:
     """Returns a string representing the given datetime.time object.
     If no strftime-compatible format is provided, the default is used."""
 
     return when.strftime(format_str)
+
+def mixin_dict(dest: dict, mixin: dict) -> dict:
+    """Updates the first dict with the items from the second and returns it."""
+
+    dest.update(mixin)
+    return dest
 
 def parse_time_string(time_str: str) -> datetime.time:
     """Parses a string recognizable by TIME_REGEXP format into

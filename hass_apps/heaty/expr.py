@@ -139,6 +139,11 @@ class Temp:
 
         return Temp(self.value + other.value)
 
+    def __float__(self) -> float:
+        if isinstance(self.value, float):
+            return self.value
+        raise ValueError("{} has no numeric value.".format(repr(self)))
+
     def __eq__(self, other: T.Any) -> bool:
         return isinstance(other, Temp) and self.value == other.value
 

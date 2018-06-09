@@ -68,9 +68,13 @@ class Room:
 
         for therm in self.thermostats:
             therm.initialize()
+            therm.events.on(
+                "target_temp_changed", self.notify_target_temp_changed
+            )
 
         for wsensor in self.window_sensors:
             wsensor.initialize()
+            wsensor.events.on("open_close", self.notify_window_action)
 
         if self.schedule:
             self.log("Creating schedule timers.", level="DEBUG")
@@ -327,12 +331,12 @@ class Room:
         if self.get_open_windows():
             # window is open, turn heating off
             orig_temp = self.wanted_temp
-            off_temp = self.app.cfg["off_temp"]
-            if orig_temp != off_temp:
-                self.log("Turning heating off due to an open "
-                         "window.",
+            open_temp = self.app.cfg["window_open_temp"]
+            if orig_temp != open_temp:
+                self.log("Setting heating to {} due to an open window."
+                         .format(open_temp),
                          prefix=common.LOG_PREFIX_OUTGOING)
-                self.set_temp(off_temp, scheduled=False)
+                self.set_temp(open_temp, scheduled=False)
                 self.wanted_temp = orig_temp
             return True
         return False
@@ -348,12 +352,12 @@ class Room:
         self.set_manual_temp(temp_expr, force_resend=force_resend,
                              reschedule_delay=reschedule_delay)
 
-    def notify_temp_changed(
-            self, temp: expr.Temp, no_reschedule: bool = False,
-            actor: T.Any = None,
+    def notify_target_temp_changed(
+            self, therm: "Thermostat", temp: expr.Temp,
+            no_reschedule: bool = False,
     ) -> None:
         """Should be called when the temperature has been changed
-        externally, e.g. by manual adjustment at a thermostat.
+        externally by manual adjustment at a thermostat.
         Setting no_reschedule prevents re-scheduling."""
 
         if self.get_open_windows():
@@ -363,7 +367,7 @@ class Room:
             # replication.
             return
 
-        if actor is not None and not actor.cfg["supports_temps"]:
+        if not therm.cfg["supports_temps"]:
             # dumb switches don't trigger change replication
             return
 
@@ -372,8 +376,7 @@ class Room:
         if not self.app.master_switch_enabled():
             return
 
-        if self.cfg["replicate_changes"] and len(self.thermostats) > 1 and \
-           self.app.master_switch_enabled():
+        if self.cfg["replicate_changes"] and len(self.thermostats) > 1:
             self.log("Propagating the change to all thermostats "
                      "in the room.",
                      prefix=common.LOG_PREFIX_OUTGOING)
@@ -381,6 +384,37 @@ class Room:
 
         if not no_reschedule:
             self.update_reschedule_timer()
+
+    def notify_window_action(self, sensor: WindowSensor, is_open: bool) -> None:  # pylint: disable=unused-argument
+        """This method reacts on window opened/closed events.
+        It handles the window open/closed detection and performs actions
+        accordingly."""
+
+        action = "opened" if is_open else "closed"
+        self.log("Window has been {}.".format(action),
+                 prefix=common.LOG_PREFIX_INCOMING)
+
+        if not self.app.master_switch_enabled():
+            self.log("Master switch is off, ignoring window event.")
+            return
+
+        if is_open:
+            # turn heating off, but store the original temperature
+            self.check_for_open_window()
+        elif not self.get_open_windows():
+            # all windows closed
+            # restore temperature from before opening the window
+            orig_temp = self.wanted_temp
+            # could be None if we didn't know the temperature before
+            # opening the window
+            if orig_temp is None:
+                self.log("Restoring temperature from schedule.",
+                         level="DEBUG")
+                self.set_scheduled_temp()
+            else:
+                self.log("Restoring temperature to {}.".format(orig_temp),
+                         level="DEBUG")
+                self.set_temp(orig_temp, scheduled=False)
 
     def update_reschedule_timer(
             self, reschedule_delay: T.Union[float, int, None] = None,
