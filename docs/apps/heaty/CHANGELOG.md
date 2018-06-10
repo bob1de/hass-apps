@@ -42,6 +42,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   defaults to ``"current_temperature"``. This specifies a state attribute
   used to fetch the real temperature as measured by the thermostat's
   temperature sensor. This data is used by the new zone component.
+* Schedule rules may now have a set of sub-rules. The sub-rules are only
+  evaluated when the constraints of the parent rule passed before,
+  so this can be used to group rules with equal or partially equal
+  constraints together. The rule list goes into the ``rules`` parameter
+  of the parent rule. The ``temp`` parameter has to be specified in the
+  parent rule or in all child rules.
 
 ### Changed
 * If the ``end`` time of a schedule rule is equal or prior to its

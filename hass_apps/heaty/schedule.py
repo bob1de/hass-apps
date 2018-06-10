@@ -9,6 +9,11 @@ import datetime
 from . import expr, util
 
 
+# Type of a rule path, a tuple of Rule objects representing  the hirarchy
+# of SubScheduleRules that lead to a Rule.
+RULE_PATH_TYPE = T.Tuple["Rule", ...]
+
+
 class Rule:
     """A rule that can be added to a schedule."""
 
@@ -17,10 +22,12 @@ class Rule:
                    "start_date", "end_date")
 
     def __init__(
-            self, temp_expr: expr.EXPR_TYPE,
+            self,
             start_time: datetime.time = None, end_time: datetime.time = None,
-            end_plus_days: int = 0, constraints: T.Dict[str, T.Any] = None
+            end_plus_days: int = 0, constraints: T.Dict[str, T.Any] = None,
+            temp_expr: expr.EXPR_TYPE = None
         ) -> None:
+
         if start_time is None:
             # make it midnight
             start_time = datetime.time(0, 0)
@@ -40,16 +47,20 @@ class Rule:
             constraints = {}
         self.constraints = constraints
 
-        if isinstance(temp_expr, str):
-            temp_expr = temp_expr.strip()
-        self.temp_expr_raw = temp_expr
-        try:
-            temp = expr.Temp(temp_expr)
-        except ValueError:
-            # this is a temperature expression, precompile it
-            self.temp_expr = compile(temp_expr, "temp_expr", "eval")  # type: expr.EXPR_TYPE
-        else:
-            self.temp_expr = temp
+        self.temp_expr = None  # type: T.Optional[expr.EXPR_TYPE]
+        self.temp_expr_raw = None  # type: T.Optional[expr.EXPR_TYPE]
+        if temp_expr is not None:
+            if isinstance(temp_expr, str):
+                temp_expr = temp_expr.strip()
+            self.temp_expr_raw = temp_expr
+            try:
+                temp = expr.Temp(temp_expr)
+            except ValueError:
+                # this is a temperature expression, precompile it
+                self.temp_expr = compile(temp_expr, "temp_expr", "eval")  # type: expr.EXPR_TYPE
+            else:
+                self.temp_expr = temp
+
 
     def check_constraints(self, date: datetime.date) -> bool:
         """Checks all constraints of this rule against the given date."""
@@ -77,59 +88,80 @@ class Rule:
         return True
 
 
+class SubScheduleRule(Rule):
+    """A schedule rule with a sub-schedule attached."""
+
+    def __init__(
+            self, sub_schedule: "Schedule",
+            *args: T.Any, **kwargs: T.Any
+        ) -> None:
+
+        super().__init__(*args, **kwargs)
+
+        self.sub_schedule = sub_schedule
+
+
 class Schedule:
     """Holds the schedule for a room with all its rules."""
 
-    def __init__(self) -> None:
-        self.items = []  # type: T.List[T.Union[Rule, Schedule]]
+    def __init__(self, rules: T.Iterable[Rule] = None) -> None:
+        self.rules = []  # type: T.List[Rule]
+        if rules is not None:
+            self.rules.extend(rules)
 
-    def unfold(self) -> T.Iterator[Rule]:
-        """Returns an iterator over all rules of this schedule. Included
-        sub-schedules are replaced by the rules they contain."""
+    def __add__(self, other: "Schedule") -> "Schedule":
+        if not isinstance(other, type(self)):
+            raise ValueError("{} objects may not be added to {}."
+                             .format(type(other), self))
+        return Schedule(self.rules + other.rules)
 
-        for item in self.items:
-            if isinstance(item, Rule):
-                yield item
-            elif isinstance(item, Schedule):
-                for rule in item.unfold():
-                    yield rule
-
-    def matching_rules(self, when: datetime.datetime) -> T.Iterator[Rule]:
-        """Returns an iterator over all rules of the schedule that are
+    def matching_rules(
+            self, when: datetime.datetime
+        ) -> T.Iterator[RULE_PATH_TYPE]:
+        """Returns an iterator over paths of all rules that are
         valid at the time represented by the given datetime object,
-        keeping the order from the items list. Rules of sub-schedules
-        are included."""
+        keeping the order from the rules list. SubScheduleRule objects
+        are expanded and their matching rules are included."""
 
         _time = when.time()
-        for rule in self.unfold():
-            days_back = -1
-            found_start_day = False
-            while days_back < rule.end_plus_days:
-                days_back += 1
-                # starts with days=0 (meaning the current date)
-                _date = when.date() - datetime.timedelta(days=days_back)
+        for path in self.unfold():
+            for path_idx, rule in enumerate(path):
+                break_path = False
+                days_back = -1
+                found_start_day = False
+                while days_back < rule.end_plus_days:
+                    days_back += 1
+                    # starts with days=0 (meaning the current date)
+                    _date = when.date() - datetime.timedelta(days=days_back)
 
-                found_start_day = found_start_day or \
-                                  rule.check_constraints(_date)
-                if not found_start_day:
-                    # try next day
-                    continue
+                    found_start_day = found_start_day or \
+                                      rule.check_constraints(_date)
+                    if not found_start_day:
+                        # try next day
+                        continue
 
-                # in first loop run, rule has to start today and not
-                # later than now (rule start <= when.time())
-                if days_back == 0 and rule.start_time > _time:
-                    # maybe there is a next day to try out
-                    continue
+                    # in first loop run, rule has to start today and not
+                    # later than now (rule start <= when.time())
+                    if days_back == 0 and rule.start_time > _time:
+                        # maybe there is a next day to try out
+                        continue
 
-                # in last loop run, rule is going to end today and that
-                # has to be later than now (rule end > when.time())
-                if days_back == rule.end_plus_days and rule.end_time <= _time:
-                    # rule finally disqualified
+                    # in last loop run, rule is going to end today and that
+                    # has to be later than now (rule end > when.time())
+                    if days_back == rule.end_plus_days and \
+                       rule.end_time <= _time:
+                        # rule finally disqualified, continue with next path
+                        break_path = True
+                        break
+
+                    # rule matches!
+                    if isinstance(rule, Rule):
+                        yield path[:path_idx + 1]
                     break
 
-                # rule matches!
-                yield rule
-                break
+                if break_path:
+                    # continue with next path
+                    break
 
     def next_schedule_datetime(
             self, now: datetime.datetime
@@ -137,12 +169,14 @@ class Schedule:
         """Returns a datetime object with the time at which the next
         re-scheduling should be done. now should be a datetime object
         containing the current date and time.
+        SubScheduleRule objects and their rules are considered as well.
         None is returned in case there are no rules in the schedule."""
 
         times = set()
-        for rule in self.unfold():
-            times.add(rule.start_time)
-            times.add(rule.end_time)
+        for path in self.unfold():
+            for rule in path:
+                times.add(rule.start_time)
+                times.add(rule.end_time)
 
         if not times:
             # no rules in schedule
@@ -164,3 +198,17 @@ class Schedule:
             return datetime.datetime.combine(today, _time)
 
         return min(map(map_func, times))
+
+    def unfold(self) -> T.Iterator[RULE_PATH_TYPE]:
+        """Returns an iterator over rule paths (tuples of Rule objects).
+        The last element of each tuple is a Rule object, the elements
+        before - if any - represent the chain of SubScheduleRule objects
+        that led to the final Rule."""
+
+        for rule in self.rules:
+            if isinstance(rule, SubScheduleRule):
+                _rule = rule  # type: Rule
+                for path in rule.sub_schedule.unfold():
+                    yield (_rule,) + path
+            else:
+                yield (rule,)

@@ -81,8 +81,9 @@ class Room:
             # We collect the times in a set first to avoid registering
             # multiple timers for the same time.
             times = set()  # type: T.Set[datetime.time]
-            for rule in self.schedule.unfold():
-                times.update((rule.start_time, rule.end_time))
+            for path in self.schedule.unfold():
+                for rule in path:
+                    times.update((rule.start_time, rule.end_time))
 
             # Now register a timer for each time a rule starts or ends.
             for _time in times:
@@ -154,21 +155,41 @@ class Room:
         rules evaluate to Ignore()), None is returned."""
 
         result_sum = expr.Add(0)
-        rules = list(sched.matching_rules(when))
-        idx = 0
-        while idx < len(rules):
-            rule = rules[idx]
-            idx += 1
+        paths = list(sched.matching_rules(when))
+        path_idx = 0
+        while path_idx < len(paths):
+            path = paths[path_idx]
+            path_idx += 1
 
-            result = self.eval_temp_expr(rule.temp_expr)
+            self.log("Processing rule path: {}"
+                     .format(path),
+                     level="DEBUG")
+
+            # has to be a final Rule, no SubScheduleRule
+            assert isinstance(path[-1], schedule.Rule)
+
+            temp_expr = None
+            temp_expr_raw = None
+            for _rule in reversed(path):
+                if _rule.temp_expr is not None:
+                    temp_expr = _rule.temp_expr
+                    temp_expr_raw = _rule.temp_expr_raw
+                    break
+            if temp_expr is None:
+                self.log("Can't find a temperature expression in any "
+                         "parent rule, skipping this path.",
+                         level="ERROR")
+                continue
+
+            result = self.eval_temp_expr(temp_expr)
             self.log("Evaluated temperature expression {} to {}."
-                     .format(repr(rule.temp_expr_raw), result),
+                     .format(repr(temp_expr_raw), result),
                      level="DEBUG")
 
             if result is None:
                 self.log("Skipping rule with faulty temperature "
                          "expression: {}"
-                         .format(rule.temp_expr_raw))
+                         .format(temp_expr_raw))
                 continue
 
             if isinstance(result, expr.Break):
@@ -185,16 +206,16 @@ class Room:
             if isinstance(result, expr.IncludeSchedule):
                 self.log("Inserting sub-schedule.",
                          level="DEBUG")
-                _rules = result.schedule.matching_rules(when)
-                for _idx, _rule in enumerate(_rules):
-                    rules.insert(idx + _idx, _rule)
+                _paths = result.schedule.matching_rules(when)
+                for _path_idx, _path in enumerate(_paths):
+                    paths.insert(path_idx + _path_idx, _path)
                 continue
 
             if isinstance(result, expr.AddibleMixin):
                 result_sum += result
 
             if isinstance(result_sum, expr.Result):
-                return result_sum.temp, rule
+                return result_sum.temp, path[-1]
 
         return None
 

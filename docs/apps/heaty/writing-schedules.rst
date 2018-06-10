@@ -15,6 +15,7 @@ This schedule would just always set the temperature to ``16``
 degrees, nothing else. Of course, schedules wouldn't make a lot
 sense if they couldn't do more than that.
 
+
 Basic scheduling based on time of the day
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -73,6 +74,7 @@ no other rule matched.
 Now we have covered the basics, but we can't create schedules based
 on, for instance, the days of the week. Let's do that next.
 
+
 Constraints
 ~~~~~~~~~~~
 
@@ -130,6 +132,58 @@ no decimal values.
 * Any spaces are ignored.
 
 All constraints you define need to be fulfilled for the rule to match.
+
+
+Rules with sub-schedules
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Imagine you need to turn on heating three times a day for one hour,
+but only on working days from January to April. The obvious way of doing
+this is to define four rules:
+
+::
+
+    schedule:
+    - { temp: 20, start: "06:00", end: "07:00", months: "1-4", weekdays: "1-5" }
+    - { temp: 20, start: "11:30", end: "12:30", months: "1-4", weekdays: "1-5" }
+    - { temp: 20, start: "18:00", end: "19:00", months: "1-4", weekdays: "1-5" }
+    - { temp: "OFF" }
+
+But what if you want to extend the schedule to heat on Saturdays as
+well? You'd end up changing this at three different places.
+
+The more elegant way involves so-called sub-schedule rules. Look at this:
+
+::
+
+    schedule:
+    - months: 1-4
+      weekdays: 1-6
+      rules:
+      - { temp: 20, start: "06:00", end: "07:00" }
+      - { temp: 20, start: "11:30", end: "12:30" }
+      - { temp: 20, start: "18:00", end: "19:00" }
+    - temp: "OFF"
+
+We can go even further and move the ``temp`` parameter one level up,
+so that it counts for all child rules that don't have their own ``temp``
+defined.
+
+::
+
+    schedule:
+    - temp: 20
+      months: 1-4
+      weekdays: 1-6
+      rules:
+      - { start: "06:00", end: "07:00" }
+      - { start: "11:30", end: "12:30" }
+      - { start: "18:00", end: "19:00" }
+    - temp: "OFF"
+
+I've to admit that this was a small and well arranged example, but the
+benefit becomes clearer when you start to write longer schedules, maybe
+with separate sections for the different seasons.
 
 With this knowledge, writing quite powerful Heaty schedules should be
 easy and quick.

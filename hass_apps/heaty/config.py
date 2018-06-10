@@ -22,30 +22,33 @@ def build_schedule_rule(rule: dict) -> schedule.Rule:
         if name in schedule.Rule.CONSTRAINTS:
             constraints[name] = value
 
-    return schedule.Rule(temp_expr=rule["temp"],
-                         start_time=rule["start"],
-                         end_time=rule["end"],
-                         end_plus_days=rule["end_plus_days"],
-                         constraints=constraints)
+    kwargs = {
+        "start_time": rule["start"],
+        "end_time": rule["end"],
+        "end_plus_days": rule["end_plus_days"],
+        "constraints": constraints,
+        "temp_expr": rule.get("temp"),
+    }
+
+    if "rules" in rule:
+        return schedule.SubScheduleRule(rule["rules"], **kwargs)
+    return schedule.Rule(**kwargs)
 
 def build_schedule(rules: T.Iterable[dict]) -> schedule.Schedule:
-    """Compiles the given rules and returns a schedule containing them."""
+    """Compiles the given rules and returns a schedule containing them.
+    When check is True, a check is run after schedule creation to ensure
+    each path contains at least one rule with a temperature expression.
+    A ValueError is raised when this check fails."""
 
     sched = schedule.Schedule()
     for rule in rules:
-        sched.items.append(build_schedule_rule(rule))
+        sched.rules.append(build_schedule_rule(rule))
     return sched
 
 def config_post_hook(cfg: dict) -> dict:
     """Creates Room and other objects after config has been parsed."""
 
     # pylint: disable=too-many-locals
-
-    # Compile the pre/post schedules. and schedule snippets
-    cfg["schedule_prepend"] = build_schedule(cfg["schedule_prepend"])
-    cfg["schedule_append"] = build_schedule(cfg["schedule_append"])
-    for name, snippet in cfg["schedule_snippets"].items():
-        cfg["schedule_snippets"][name] = build_schedule(snippet)
 
     # Build room objects.
     rooms = []
@@ -65,10 +68,9 @@ def config_post_hook(cfg: dict) -> dict:
             wsensor_data = WINDOW_SENSOR_SCHEMA(wsensor_data)
             wsensors[wsensor_name] = wsensor_data
 
-        # Compile the room's schedule.
-        sched = build_schedule(room_data["schedule"])
-        sched.items.insert(0, cfg["schedule_prepend"])
-        sched.items.append(cfg["schedule_append"])
+        # complete the room's schedule.
+        sched = cfg["schedule_prepend"] + room_data["schedule"] + \
+                cfg["schedule_append"]
 
         del room_data["thermostats"]
         del room_data["window_sensors"]
@@ -97,6 +99,18 @@ def config_post_hook(cfg: dict) -> dict:
     cfg["_app"].zones = zones
 
     return cfg
+
+def validate_rule_paths(sched: schedule.Schedule) -> schedule.Schedule:
+    """A validator to be run after schedule creation to ensure
+    each path contains at least one rule with a temperature expression.
+    A ValueError is raised when this check fails."""
+
+    for path in sched.unfold():
+        if all([rule.temp_expr is None for rule in path]):
+            raise ValueError("No temperature specified for any rule "
+                             "along the path: {}"
+                             .format(path))
+    return sched
 
 
 ########## MISCELLANEOUS
@@ -208,6 +222,7 @@ WINDOW_SENSOR_SCHEMA = vol.Schema(vol.All(
 SCHEDULE_RULE_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
     {
+        "rules": lambda v: SCHEDULE_SCHEMA(v),  # type: ignore  # pylint: disable=unnecessary-lambda
         "temp": vol.Any(TEMP_SCHEMA, TEMP_EXPRESSION_SCHEMA),
         vol.Optional("start", default=None): vol.Any(TIME_SCHEMA, None),
         vol.Optional("end", default=None): vol.Any(TIME_SCHEMA, None),
@@ -225,11 +240,17 @@ SCHEDULE_RULE_SCHEMA = vol.Schema(vol.All(
 SCHEDULE_SCHEMA = vol.Schema(vol.All(
     lambda v: v or [],
     [SCHEDULE_RULE_SCHEMA],
+    build_schedule,
 ))
 
 SCHEDULE_SNIPPETS_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
-    {vol.Extra: SCHEDULE_SCHEMA},
+    {
+        vol.Extra: vol.All(
+            SCHEDULE_SCHEMA,
+            validate_rule_paths,
+        ),
+    },
 ))
 
 
@@ -244,8 +265,10 @@ ROOM_SCHEMA = vol.Schema(vol.All(
             vol.All(int, vol.Range(min=0)),
         vol.Optional("thermostats", default=dict): DICTS_IN_DICT_SCHEMA,
         vol.Optional("window_sensors", default=dict): DICTS_IN_DICT_SCHEMA,
-        vol.Optional("schedule", default=list):
+        vol.Optional("schedule", default=list): vol.All(
             SCHEDULE_SCHEMA,
+            validate_rule_paths,
+        ),
     },
 ))
 
@@ -254,9 +277,9 @@ ROOM_SCHEMA = vol.Schema(vol.All(
 
 ZONE_ROOM_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
-    vol.Schema({
+    {
         # More parameters may be added here in the future.
-    }, extra=False),
+    },
 ))
 
 ZONE_PARAM_THERMOSTAT_SETTINGS_ADDIN = {
@@ -285,13 +308,13 @@ ZONE_SCHEMA = vol.Schema(vol.All(
         ),
         vol.Optional("parameters", default=dict): vol.All(
             lambda v: v or {},
-            vol.Schema({
+            {
                 "temp_delta": vol.All(
                     lambda v: v or {},
-                    vol.Schema(util.mixin_dict({
-                    }, ZONE_PARAM_THERMOSTAT_SETTINGS_ADDIN), extra=False),
+                    util.mixin_dict({
+                    }, ZONE_PARAM_THERMOSTAT_SETTINGS_ADDIN),
                 ),
-            }, extra=False),
+            },
         ),
     },
 ))
@@ -313,10 +336,14 @@ CONFIG_SCHEMA = vol.Schema(vol.All(
             lambda v: v or {},
         vol.Optional("window_sensor_defaults", default=dict):
             lambda v: v or {},
-        vol.Optional("schedule_prepend", default=list):
+        vol.Optional("schedule_prepend", default=list): vol.All(
             SCHEDULE_SCHEMA,
-        vol.Optional("schedule_append", default=list):
+            validate_rule_paths,
+        ),
+        vol.Optional("schedule_append", default=list): vol.All(
             SCHEDULE_SCHEMA,
+            validate_rule_paths,
+        ),
         vol.Optional("schedule_snippets", default=dict):
             SCHEDULE_SNIPPETS_SCHEMA,
         vol.Optional("rooms", default=dict): vol.All(
