@@ -4,6 +4,7 @@ This module implements the Schedule and Rule classes.
 
 import typing as T  # pylint: disable=unused-import
 
+import collections
 import datetime
 
 from . import expr, util
@@ -61,6 +62,23 @@ class Rule:
             else:
                 self.temp_expr = temp
 
+    def __repr__(self) -> str:
+        return "<Rule {}>".format(
+            ", ".join(["{}={}".format(k, v)
+                       for k, v in self._get_repr_properties().items()])
+        )
+
+    def _get_repr_properties(self) -> T.Dict[str, T.Any]:
+        """Returns a OrderedDict with properties to be shown in repr()."""
+
+        props = collections.OrderedDict()  # type: T.Dict[str, T.Any]
+        props["start"] = self.start_time
+        props["end"] = self.end_time
+        if self.end_plus_days != 0:
+            props["end_plus_days"] = self.end_plus_days
+        if self.constraints:
+            props["constraints"] = list(self.constraints)
+        return props
 
     def check_constraints(self, date: datetime.date) -> bool:
         """Checks all constraints of this rule against the given date."""
@@ -99,6 +117,13 @@ class SubScheduleRule(Rule):
         super().__init__(*args, **kwargs)
 
         self.sub_schedule = sub_schedule
+
+    def _get_repr_properties(self) -> T.Dict[str, T.Any]:
+        """Adds the sub-schedule information to repr()."""
+
+        props = super()._get_repr_properties()
+        props["sub_schedule"] = "yes"
+        return props
 
 
 class Schedule:
