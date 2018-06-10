@@ -78,6 +78,7 @@ class Rule:
             props["end_plus_days"] = self.end_plus_days
         if self.constraints:
             props["constraints"] = list(self.constraints)
+        props["temp"] = self.temp_expr_raw
         return props
 
     def check_constraints(self, date: datetime.date) -> bool:
