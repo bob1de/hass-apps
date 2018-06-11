@@ -165,31 +165,19 @@ class Room:
                      .format(path),
                      level="DEBUG")
 
-            # has to be a final Rule, no SubScheduleRule
-            assert isinstance(path[-1], schedule.Rule)
+            rule = schedule.get_rule_path_temp(path)
+            # for mypy only
+            assert rule.temp_expr is not None
 
-            temp_expr = None
-            temp_expr_raw = None
-            for _rule in reversed(path):
-                if _rule.temp_expr is not None:
-                    temp_expr = _rule.temp_expr
-                    temp_expr_raw = _rule.temp_expr_raw
-                    break
-            if temp_expr is None:
-                self.log("Can't find a temperature expression in any "
-                         "parent rule, skipping this path.",
-                         level="ERROR")
-                continue
-
-            result = self.eval_temp_expr(temp_expr)
+            result = self.eval_temp_expr(rule.temp_expr)
             self.log("Evaluated temperature expression {} to {}."
-                     .format(repr(temp_expr_raw), result),
+                     .format(repr(rule.temp_expr_raw), result),
                      level="DEBUG")
 
             if result is None:
                 self.log("Skipping rule with faulty temperature "
                          "expression: {}"
-                         .format(temp_expr_raw))
+                         .format(rule.temp_expr_raw))
                 continue
 
             if isinstance(result, expr.Break):

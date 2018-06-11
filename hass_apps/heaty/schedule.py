@@ -238,3 +238,16 @@ class Schedule:
                     yield (_rule,) + path
             else:
                 yield (rule,)
+
+
+def get_rule_path_temp(path: RULE_PATH_TYPE) -> Rule:
+    """Returns the first rule containing a temperature expression,
+    searching the path from right to left. A ValueError is raised in
+    case there is no rule with a temperature expression in the path."""
+
+    for rule in reversed(path):
+        if rule.temp_expr is not None:
+            return rule
+
+    raise ValueError("No temperature specified for any rule along the path: {}"
+                     .format(path))
