@@ -1,4 +1,4 @@
-Writing schedules
+Writing Schedules
 =================
 
 A schedule controls the temperature in a room over time. It consists
@@ -16,7 +16,7 @@ degrees, nothing else. Of course, schedules wouldn't make a lot
 sense if they couldn't do more than that.
 
 
-Basic scheduling based on time of the day
+Basic Scheduling Based on Time of the Day
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Here is another one:
@@ -134,7 +134,7 @@ no decimal values.
 All constraints you define need to be fulfilled for the rule to match.
 
 
-Rules with sub-schedules
+Rules with Sub-Schedules
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Imagine you need to turn on heating three times a day for one hour,

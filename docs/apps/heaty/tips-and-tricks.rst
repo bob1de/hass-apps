@@ -6,7 +6,7 @@ and tips for configuring Heaty in various (maybe not so common) usage
 scenarios.
 
 
-Using Heaty without schedules
+Using Heaty without Schedules
 -----------------------------
 
 Schedules are not mandatory when using Heaty. It is perfectly valid to
@@ -17,7 +17,7 @@ To do so, just leave out everything that is related to schedules in
 your ``apps.yaml``.
 
 
-Using ordinary switches as thermostats
+Using Ordinary Switches as Thermostats
 --------------------------------------
 
 Sometimes users want to control ordinary on/off switches instead of
@@ -43,7 +43,7 @@ As always, the detailled description of each setting can be found in
 the sample configuration.
 
 
-Schedule rules with dynamic start and end times
+Schedule Rules with Dynamic Start and End Times
 -----------------------------------------------
 
 The start and end time of a schedule rule are always static. They can't be

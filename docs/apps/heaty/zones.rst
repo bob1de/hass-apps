@@ -19,7 +19,7 @@ This zone, named ``upstairs``, contains the rooms ``bathroom`` and
 customize our zone to be really useful.
 
 
-Statistical parameters
+Statistical Parameters
 ----------------------
 
 Heaty supports collecting different statistical parameters, which are

@@ -62,7 +62,7 @@ expressions:
   is ``"off"`` (case-insensitive)
 
 
-Using code from custom modules
+Using Code from Custom Modules
 ------------------------------
 
 You can easily make your own code available inside temperature
@@ -88,7 +88,7 @@ being overwritten.
 Examples
 --------
 
-Example: Use of an external module
+Example: Use of an External Module
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Imagine you have a module which makes some more complex decisions
@@ -151,7 +151,8 @@ to 19 degrees.
 You should be able to extend the ``get_temp`` function to include
 functionality for other rooms now as well.
 
-Example: Inlining temperature expressions into schedules
+
+Example: Inlining Temperature Expressions into Schedules
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The previous example demonstrated how custom modules can be used in
@@ -176,10 +177,11 @@ However, don't forget to add an automation to Home Assistant which
 emits a ``heaty_reschedule`` event whenever ``switch.take_a_bath``
 changes its state, just as shown in the previous example.
 
+
 Example: Use of ``Add()`` and ``Ignore()``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This is a rule I use in my own Heaty configuration at home:
+This is a rule I once used in my own Heaty configuration at home:
 
 ::
 
@@ -217,14 +219,21 @@ you and your home. Having such one set up, you could even implement
 dynamic throttling that slowly decreases as you near with almost zero
 configuration.
 
-Example: Including schedules dynamically with ``IncludeSchedule()``
+
+Example: Including Schedules Dynamically with ``IncludeSchedule()``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``IncludeSchedule()`` return type for temperature expressions can
 be used to insert a set of schedule rules right at the position of the
 current rule. This comes handy when a set of rules should be chosen
-based on some constraints you don't want to include in each rule
-redundantly.
+depending on the state of entities or other complex calculations.
+
+.. note::
+
+   If you only want to prevent yourself from repeating the same static
+   constraints for multiple rules, use the `sub-schedule feature
+   <writing-schedules.html#rules-with-sub-schedules>`_ of the normal
+   rule syntax instead.
 
 You can reference any schedule defined under ``schedule_snippets`` in
 the configuration, hence we create one to play with:
@@ -262,7 +271,8 @@ It has to be noted that splitting up schedules doesn't bring any extra
 power to Heaty's scheduling capabilities, but it can make configurations
 much more readable as they grow.
 
-Example: What to use ``Break()`` for
+
+Example: What to Use ``Break()`` for
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``Break`` return type is most useful for disabling Heaty's
@@ -275,7 +285,8 @@ implement a schedule on/off switch with it, like so:
     - temp: Break() if app.get_state("input_boolean.heating_schedule") == "off" else Ignore()
 
 
-Security considerations
+
+Security Considerations
 -----------------------
 
 It has to be noted that temperature expressions are evaluated using
