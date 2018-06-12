@@ -14,7 +14,7 @@ readthedocs.
 
 Some quick links:
 
-* `Getting started
+* `Getting Started
   <http://hass-apps.readthedocs.io/en/stable/getting-started.html>`_
 * `Available apps
   <http://hass-apps.readthedocs.io/en/stable/apps/index.html>`_
