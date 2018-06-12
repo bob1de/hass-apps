@@ -1,4 +1,4 @@
-Getting started
+Getting Started
 ===============
 
 In order to use one or more of the included apps, please install the
@@ -25,22 +25,27 @@ process.
 
        sudo apt install python3-venv
 
-2. Then, create and activate the virtualenv. We name it ``ad`` (which stands
-   for AppDaemon) in this example and place it in the user's home directory.
+2. Then, create the virtualenv. We name it ``ad`` (which stands for
+   AppDaemon) in this example and place it in the user's home directory.
 
    ::
 
        python3 -m venv ~/ad
+
+3. Activate the virtualenv.
+
+   ::
+
        cd ~/ad
        source bin/activate
 
-3. Now install some common packages.
+4. Now install some common packages.
 
    ::
 
        pip install --upgrade pip setuptools wheel
 
-4. And finally, install hass-apps.
+5. And finally, install hass-apps.
 
    a) Install from PyPi (preferred).
 
@@ -61,7 +66,7 @@ process.
           pip install . --upgrade
 
 
-A note for hass.io users
+A Note for Hass.io Users
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Currently, it's not possible to create a plug & play add-on for hass.io
