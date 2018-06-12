@@ -7,16 +7,18 @@ manual intervention at any time.
 
 These key features are implemented in Heaty. More are added continuously.
 
-* Schedules (based on time, days of week/month, month, year)
-* Separate schedule and settings for each room (multi-zone)
+* Schedules (based on time, days of week/month, month, year and more)
+* Separate schedule and settings for each room (multi-room)
 * Dynamic temperatures based on expressions written in Python
 * Configurable re-scheduling after manual temperature adjustments
 * Correction of inaccurate sensors by a per-thermostat delta
 * Open window detection
-* Re-sending until thermostat reports the change back (for unreliable networks)
+* Re-sending until thermostat reports the change back (for unreliable
+  networks)
 * Master switch to turn off everything
+* Statistical information about the heating system that can be used to
+  control the energy source
 * Logging
-* Custom widgets for AppDaemon dashboards (WIP)
 
 .. toctree::
    :caption: Contents:
@@ -74,9 +76,10 @@ Heaty actually are.
    that's a gas, oil, wood or solid fuel oven, solar energy or something
    fancy doesn't matter. This implies that Heaty won't control the energy
    source in any way. Especially, it won't turn the oven off when there
-   is no radiator needing energy. Although doing so wouldn't be to easy
-   depending on the energy source, I might implement such a feature in
-   the future.
+   is no radiator needing energy. Achieving this in a reliably and
+   universally working way is beyond Heaty's scope. However, the good news
+   is that Heaty assists you in controlling your energy source with the
+   `Zones feature <zones.html>`_.
 
 .. _`Generic Thermostat platform`: https://home-assistant.io/components/climate.generic_thermostat/
 
