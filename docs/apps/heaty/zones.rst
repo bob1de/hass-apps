@@ -38,9 +38,9 @@ adding the ``parameters`` section:
           other_parameter:
 
 For each of these parameters, a minimum, average and maximum value is
-calculated from all available values and three sensor entities are
-created in Home Assistant, holding these values. The name of these sensors
-is ``sensor.heaty_<heaty_id>_zone_<zone_name>_<min/avg/max>_<parameter>``.
+calculated from all available values and three sensor entities to hold
+the results are created in Home Assistant. The name of the sensors is
+``sensor.heaty_<heaty_id>_zone_<zone_name>_<min/avg/max>_<parameter>``.
 The maximum value for the ``temp_delta`` in our sample zone would end
 up in ``sensor.heaty_default_zone_upstairs_max_temp_delta``, for instance.
 
@@ -49,10 +49,12 @@ want with these values. A common use case would be to turn a boiler on
 or off when the maximum ``temp_delta`` goes beyond some threshold.
 
 
-``temp_delta``
-~~~~~~~~~~~~~~
+temp_delta
+~~~~~~~~~~
 
-The difference of target and current temperature per thermostat.
+The difference of target and current temperature per
+thermostat. Thermostats that are turned off are ignored as if their
+weight was set to ``0``.
 
 This parameter supports the following configuration options:
 
