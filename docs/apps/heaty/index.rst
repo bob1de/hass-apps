@@ -10,9 +10,9 @@ These key features are implemented in Heaty. More are added continuously.
 * Schedules (based on time, days of week/month, month, year and more)
 * Separate schedule and settings for each room (multi-room)
 * Dynamic temperatures based on expressions written in Python
+* Open window detection
 * Configurable re-scheduling after manual temperature adjustments
 * Correction of inaccurate sensors by a per-thermostat delta
-* Open window detection
 * Re-sending until thermostat reports the change back (for unreliable
   networks)
 * Master switch to turn off everything
