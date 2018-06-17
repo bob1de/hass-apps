@@ -15,8 +15,8 @@ Temperature expressions must evaluate to an object of type
 ``ResultBase``. However, you should always return one of its sub-types.
 
 Such an object can be created like ``Result(19)`` or ``Result(OFF)``.
-If your expression evaluates to an ``int``, ``float`` or ``str`` type,
-Heaty converts it to a ``Result`` automatically for convenience.
+If your expression evaluates to an ``int``, ``float``, ``str`` or ``Off``
+object, Heaty converts it to a ``Result`` automatically for convenience.
 
 An object of one of the following sub-types of ``ResultBase`` can be
 returned to influence the way your result is treated.
@@ -38,18 +38,17 @@ value available under the name ``OFF``. Just return that.
 
 There is an object available under the name ``app`` which represents
 the ``appdaemon.plugins.hass.hassapi.Hass`` object of Heaty. You could,
-for instance, retrieve values of input sliders via the normal
-AppDaemon API.
+for instance, retrieve values of input sliders via the normal AppDaemon
+API.
 
 Beside the return types like ``Add``, ``Break``, ``Ignore`` etc.
-the following global variables are available inside temperature
-expressions:
+the following globals are available for use in temperature expressions:
 
-* ``app``: the ``appdaemon.plugins.hass.hassapi.Hass`` object
+* ``app``: the ``appdaemon.plugins.hass.hassapi.Hass`` object of Heaty
 * ``room_name``: the name of the room the expression is evaluated for
   as configured in Heaty's configuration (not the friendly name)
 * ``schedule_snippets``: a dictionary containing all configured schedule
-  snippets, indexed by their name
+  snippets, indexed by their name for use with ``IncludeSchedule()``
 * ``now``: a ``datetime.datetime`` object containing the current date
   and time
 * ``date``: a shortcut for ``now.date()``
