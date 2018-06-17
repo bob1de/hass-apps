@@ -163,7 +163,7 @@ same effect, but without the use of any external Python module:
 ::
 
     schedule:
-    - temp: 22 if app.get_state("switch.take_a_bath") == "on" else Ignore()
+    - temp: 22 if is_on("switch.take_a_bath") else Ignore()
     - temp: 19
 
 Basically, we inlined the Python code we previously placed in
@@ -186,7 +186,7 @@ This is a rule I once used in my own Heaty configuration at home:
 ::
 
     schedule_prepend:
-    - temp: Add(-3) if app.get_state("input_boolean.absent") == "on" else Ignore()
+    - temp: Add(-3) if is_on("input_boolean.absent") else Ignore()
 
 What does this? Well, the first thing we see is that the rule is placed
 inside the ``schedule_prepend`` section. That means, it is valid for
@@ -282,7 +282,7 @@ implement a schedule on/off switch with it, like so:
 ::
 
     schedule_prepend:
-    - temp: Break() if app.get_state("input_boolean.heating_schedule") == "off" else Ignore()
+    - temp: Break() if is_off("input_boolean.heating_schedule") else Ignore()
 
 
 
