@@ -81,6 +81,11 @@ Heaty actually are.
    is that Heaty assists you in controlling your energy source with the
    `Zones feature <zones.html>`_.
 
+7. There is no graphical user interface for configuring Heaty. You'll
+   have to express your schedules in a YAML file. However, if you've ever
+   written an automation or script in Home Assistant, this is nothing
+   you should be worried about.
+
 .. _`Generic Thermostat platform`: https://home-assistant.io/components/climate.generic_thermostat/
 
 If you are happy with all these points and your setup fulfills them,
