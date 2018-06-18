@@ -273,7 +273,7 @@ class Room:
     ) -> None:
         """Evaluates the given temperature expression and sets the result.
         If the master switch is turned off, this won't do anything.
-        If force_resend is True, and the temperature didn't
+        If force_resend is True and the temperature didn't
         change, it is sent to the thermostats anyway.
         An existing re-schedule timer is cancelled and a new one is
         started if re-schedule timers are configured. reschedule_delay,
@@ -307,7 +307,8 @@ class Room:
         else:
             self.set_temp(temp, scheduled=False, force_resend=force_resend)
 
-        self.update_reschedule_timer(reschedule_delay=reschedule_delay)
+        self.start_reschedule_timer(reschedule_delay=reschedule_delay,
+                                    restart=True)
 
     def cancel_reschedule_timer(self) -> bool:
         """Cancels the reschedule timer for this room, if one
@@ -392,7 +393,7 @@ class Room:
             self.set_temp(temp, scheduled=False)
 
         if not no_reschedule:
-            self.update_reschedule_timer()
+            self.start_reschedule_timer(restart=True)
 
     def notify_window_action(self, sensor: WindowSensor, is_open: bool) -> None:  # pylint: disable=unused-argument
         """This method reacts on window opened/closed events.
@@ -425,34 +426,36 @@ class Room:
                          level="DEBUG")
                 self.set_temp(orig_temp, scheduled=False)
 
-    def update_reschedule_timer(
+    def start_reschedule_timer(
             self, reschedule_delay: T.Union[float, int, None] = None,
-            force: bool = False,
-    ) -> None:
-        """This method cancels an existing re-schedule timer first.
-        Then, it checks if either force is set or the wanted
-        temperature differs from the scheduled temperature. If
-        so, a new timer is created according to the room's
-        settings. reschedule_delay, if given, overwrites the value
-        configured for the room."""
+            restart: bool = False,
+    ) -> bool:
+        """This method registers a re-schedule timer according to the
+        room's settings. reschedule_delay, if given, overwrites the value
+        configured for the room. If there is a timer running already,
+        no new one is started unless restart is set. The return value
+        tells whether a timer has been started or not."""
 
-        self.cancel_reschedule_timer()
+        if self.reschedule_timer is not None:
+            if restart:
+                self.cancel_reschedule_timer()
+            else:
+                self.log("Re-schedule timer running already, starting no "
+                         "second one.",
+                         level="DEBUG")
+                return False
 
         if not self.app.master_switch_enabled():
-            return
+            return False
 
         if reschedule_delay is None:
             reschedule_delay = self.cfg["reschedule_delay"]
-
-        wanted = self.wanted_temp
-        result = self.get_scheduled_temp()
-        if not reschedule_delay or \
-           (not force and result and wanted == result[0]):
-            return
+        assert isinstance(reschedule_delay, (float, int))
 
         delta = datetime.timedelta(minutes=reschedule_delay)
         when = self.app.datetime() + delta
         self.log("Re-scheduling not before {} ({})."
                  .format(util.format_time(when.time()), delta))
-        timer = self.app.run_at(self._reschedule_timer_cb, when)
-        self.reschedule_timer = timer
+        self.reschedule_timer = self.app.run_at(self._reschedule_timer_cb, when)
+
+        return True

@@ -147,16 +147,17 @@ class HeatyApp(common.App):
             rooms = [room]
         else:
             rooms = self.rooms
+        restart = bool(data.get("cancel_running_timer", False))
 
-        self.log("Re-schedule event received for: {}"
-                 .format(", ".join([str(room) for room in rooms])),
+        self.log("Re-schedule event received for: {}{}"
+                 .format(", ".join([str(room) for room in rooms]),
+                         " [cancel running timer]" if restart else ""),
                  prefix=common.LOG_PREFIX_INCOMING)
 
         for room in rooms:
             # delay for 6 seconds to avoid re-scheduling multiple
             # times if multiple events come in shortly
-            room.update_reschedule_timer(reschedule_delay=0.1,
-                                         force=True)
+            room.start_reschedule_timer(reschedule_delay=0.1, restart=restart)
 
     def _set_temp_event_cb(
             self, event: str, data: dict, kwargs: dict

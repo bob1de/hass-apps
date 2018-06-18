@@ -48,6 +48,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   constraints together. The rule list goes into the ``rules`` parameter
   of the parent rule. The ``temp`` parameter has to be specified in the
   parent rule or in all child rules.
+* Added a ``cancel_running_timer`` parameter to the ``heaty_reschedule``
+  event. ([more information](events.html))
 
 ### Changed
 * If the ``end`` time of a schedule rule is equal or prior to its
@@ -65,6 +67,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Open window detection now sets the temperature to the value configured
   by the new ``window_open_temp`` option instead of using the value of
   ``master_off_temp`` (formerly ``off_temp``).
+* The ``heaty_reschedule`` event now only triggers a re-scheduling
+  when there is no re-schedule timer running already. In order to get
+  the previous behaviour, specify ``cancel_running_timer: true`` in the
+  event data explicitly. ([more information](events.html))
 
 ### Deprecated
 
