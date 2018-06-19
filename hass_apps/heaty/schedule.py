@@ -81,6 +81,22 @@ class Rule:
         props["temp"] = self.temp_expr_raw
         return props
 
+    def always_valid(self) -> bool:
+        """Returns whether this rule is universally valid (has no
+        constraints and >= 1 day duration)"""
+
+        if self.constraints:
+            return False
+
+        today = datetime.date.today()
+        start = datetime.datetime.combine(today, self.start_time)
+        end = datetime.datetime.combine(
+            today + datetime.timedelta(days=self.end_plus_days),
+            self.end_time
+        )
+        duration = end - start
+        return duration >= datetime.timedelta(days=1)
+
     def check_constraints(self, date: datetime.date) -> bool:
         """Checks all constraints of this rule against the given date
         and returns whether they are fulfilled"""
@@ -197,16 +213,17 @@ class Schedule:
         re-scheduling should be done. now should be a datetime object
         containing the current date and time.
         SubScheduleRule objects and their rules are considered as well.
-        None is returned in case there are no rules in the schedule."""
+        None is returned in case there are no rules in the schedule
+        which are not universally valid anyway."""
 
         times = set()
         for path in self.unfold():
             for rule in path:
-                times.add(rule.start_time)
-                times.add(rule.end_time)
-
+                if not rule.always_valid():
+                    times.add(rule.start_time)
+                    times.add(rule.end_time)
         if not times:
-            # no rules in schedule
+            # no constrained rules in schedule
             return None
 
         current_time = now.time()
