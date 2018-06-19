@@ -10,7 +10,7 @@ from . import expr, schedule, util
 from .room import Room
 from .thermostat import Thermostat
 from .window_sensor import WindowSensor
-from .zone import Zone
+from .stats import StatisticsZone
 
 
 def build_schedule_rule(rule: dict) -> schedule.Rule:
@@ -91,12 +91,12 @@ def config_post_hook(cfg: dict) -> dict:
     del cfg["rooms"], cfg["schedule_prepend"], cfg["schedule_append"]
     cfg["_app"].rooms = rooms
 
-    zones = []
-    for zone_name, zone_cfg in cfg["zones"].items():
-        zone = Zone(zone_name, zone_cfg, cfg["_app"])
-        zones.append(zone)
-    del cfg["zones"]
-    cfg["_app"].zones = zones
+    szones = []
+    for zone_name, zone_cfg in cfg["statistics"].items():
+        zone = StatisticsZone(zone_name, zone_cfg, cfg["_app"])
+        szones.append(zone)
+    del cfg["statistics"]
+    cfg["_app"].stats_zones = szones
 
     return cfg
 
@@ -271,16 +271,16 @@ ROOM_SCHEMA = vol.Schema(vol.All(
 ))
 
 
-########## ZONES
+########## STATISTICS
 
-ZONE_ROOM_SCHEMA = vol.Schema(vol.All(
+STATS_ZONE_ROOM_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
     {
         # More parameters may be added here in the future.
     },
 ))
 
-ZONE_PARAM_THERMOSTAT_SETTINGS_ADDIN = {
+STATS_ZONE_PARAM_THERMOSTAT_SETTINGS_ADDIN = {
     vol.Optional("thermostat_factors", default=dict): vol.All(
         lambda v: v or {},
         {
@@ -296,13 +296,13 @@ ZONE_PARAM_THERMOSTAT_SETTINGS_ADDIN = {
     ),
 }
 
-ZONE_SCHEMA = vol.Schema(vol.All(
+STATS_ZONE_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
     {
         "friendly_name": str,
         vol.Optional("rooms", default=dict): vol.All(
             lambda v: v or {},
-            {vol.Extra: ZONE_ROOM_SCHEMA},
+            {vol.Extra: STATS_ZONE_ROOM_SCHEMA},
         ),
         vol.Optional("parameters", default=dict): vol.All(
             lambda v: v or {},
@@ -310,7 +310,7 @@ ZONE_SCHEMA = vol.Schema(vol.All(
                 "temp_delta": vol.All(
                     lambda v: v or {},
                     util.mixin_dict({
-                    }, ZONE_PARAM_THERMOSTAT_SETTINGS_ADDIN),
+                    }, STATS_ZONE_PARAM_THERMOSTAT_SETTINGS_ADDIN),
                 ),
             },
         ),
@@ -348,9 +348,9 @@ CONFIG_SCHEMA = vol.Schema(vol.All(
             lambda v: v or {},
             {vol.Extra: ROOM_SCHEMA},
         ),
-        vol.Optional("zones", default=dict): vol.All(
+        vol.Optional("statistics", default=dict): vol.All(
             lambda v: v or {},
-            {vol.Extra: ZONE_SCHEMA},
+            {vol.Extra: STATS_ZONE_SCHEMA},
         ),
     }, extra=True),
     config_post_hook,

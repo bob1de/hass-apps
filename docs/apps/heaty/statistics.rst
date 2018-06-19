@@ -1,14 +1,17 @@
-Zones
-=====
+Statistics
+==========
 
-Zones are a concept introduced for collecting statistical data about
-the heating system at runtime. Each zone consists of one or more rooms.
+Heaty provides a concept for collecting statistical data about the
+heating system at runtime.
 
-A simple zone definition in your configuration might look as follows:
+Statistics are collected for so-called zones. Each zone consists of one
+or more rooms.
+
+A simple statistics configuration for a single zone might look as follows:
 
 ::
 
-    zones:
+    statistics:
       upstairs:
         rooms:
           bathroom:
@@ -30,7 +33,7 @@ adding the ``parameters`` section:
 
 ::
 
-    zones:
+    statistics:
       upstairs:
         [...]
         parameters:

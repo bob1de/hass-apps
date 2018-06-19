@@ -33,15 +33,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * A new configuration option ``window_open_temp`` has been added with a
   default of ``OFF`` to configure the temperature that should be set
   when a window is opened.
-* A new component implementing a concept called "Zones" has been
-  added. With zones, it is possible to get some statistical values
-  reported back to Home Assistant, where one could then react to changing
-  parameters of your heating system with simple automationss. See
-  [here](zones.html) for more information.
+* A new component for collecting statistics has been added. With so-called
+  statistical zones, it is possible to get some statistics reported
+  back to Home Assistant, where one could then react to changing
+  parameters of your heating system with simple automationss.
+  ([more information](statistics.html))
 * Thermostats now have a ``current_temp_state_attr`` setting which
   defaults to ``"current_temperature"``. This specifies a state attribute
   used to fetch the real temperature as measured by the thermostat's
-  temperature sensor. This data is used by the new zone component.
+  temperature sensor. This data is used by the new statistics component.
 * Schedule rules may now have a set of sub-rules. The sub-rules are only
   evaluated when the constraints of the parent rule passed before,
   so this can be used to group rules with equal or partially equal

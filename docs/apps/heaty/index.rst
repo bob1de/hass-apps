@@ -28,7 +28,7 @@ These key features are implemented in Heaty. More are added continuously.
    writing-schedules
    temperature-expressions
    events
-   zones
+   statistics
    tips-and-tricks
    CHANGELOG
 
@@ -79,7 +79,7 @@ Heaty actually are.
    is no radiator needing energy. Achieving this in a reliably and
    universally working way is beyond Heaty's scope. However, the good news
    is that Heaty assists you in controlling your energy source with the
-   `Zones feature <zones.html>`_.
+   `statistics feature <statistics.html>`_.
 
 7. There is no graphical user interface for configuring Heaty. You'll
    have to express your schedules in a YAML file. However, if you've ever

@@ -1,5 +1,5 @@
 """
-This module implements the Zone class.
+This module implements the StatisticsZone class for collecting statistics.
 """
 
 import typing as T
@@ -25,7 +25,7 @@ class _WeightedValue:
         return "<Value={}, weight={}>".format(self.value, self.weight)
 
 
-class Zone:
+class StatisticsZone:
     """A zone (group of rooms) used for collecting statistical data."""
 
     def __init__(self, name: str, cfg: dict, app: "HeatyApp") -> None:
@@ -36,10 +36,10 @@ class Zone:
         self._stats_timer = None  # type: T.Optional[uuid.UUID]
 
     def __repr__(self) -> str:
-        return "<Zone {}>".format(self.name)
+        return "<StatisticsZone {}>".format(self.name)
 
     def __str__(self) -> str:
-        return "Z:{}".format(self.cfg.get("friendly_name", self.name))
+        return "SZ:{}".format(self.cfg.get("friendly_name", self.name))
 
     def _collect_temp_delta(self) -> T.List[_WeightedValue]:
         values = []
@@ -47,7 +47,9 @@ class Zone:
             for therm in room.thermostats:
                 if therm.current_temp is None or \
                    therm.current_target_temp is None or \
+                   therm.current_temp.is_off() or \
                    therm.current_target_temp.is_off():
+                    # ignore when turned off
                     continue
                 param_cfg = self.cfg["parameters"]["temp_delta"]
                 weight = param_cfg["thermostat_weights"].get(therm.entity_id, 1)
@@ -85,7 +87,7 @@ class Zone:
             _avg = fmt(sum([v.value * v.weight for v in values]) /
                        sum([v.weight for v in values]) if values else 0)
             _max = fmt(max([v.value for v in values]) if values else 0)
-            self.log("{} (min / avg / max): {} / {} / {}"
+            self.log("{} (min/avg/max): {} / {} / {}"
                      .format(param, _min, _avg, _max),
                      level="DEBUG")
             self._set_sensor("min_{}".format(param), _min)
@@ -112,7 +114,8 @@ class Zone:
         for room_name in self.cfg["rooms"]:
             room = self.app.get_room(room_name)
             if room is None:
-                self.log("Room named '{}' not found, not adding it to zone."
+                self.log("Room named '{}' not found, not adding it to "
+                         "statistics zone."
                          .format(room_name),
                          level="ERROR")
                 continue

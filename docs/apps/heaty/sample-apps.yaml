@@ -275,16 +275,20 @@ heaty_full:
       schedule:
         # ...
 
-  # Configure zones here.
+  # Configure zones for collecting statistical data here.
   # A zone is a group of one or more rooms that generates statistics about
   # the heating in these rooms and sends them to Home Assistant as sensor
   # entities.
   # Please consult the docs for more information.
   # (default: {})
-  zones:
+  statistics:
 
     # Define such a block for each zone you want to create.
     upstairs:
+
+      # An alternative friendly name to display in logs.
+      # (optional)
+      #friendly_name: Upstairs zone
 
       # The names (not the friendly names) of the rooms in that zone go here.
       # (default: {})

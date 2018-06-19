@@ -9,7 +9,7 @@ import types  # pylint: disable=unused-import
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     from .room import Room
-    from .zone import Zone
+    from .stats import StatisticsZone
 
 import importlib
 
@@ -33,7 +33,7 @@ class HeatyApp(common.App):
         self.app = self
         self.cfg = None
         self.rooms = []  # type: T.List[Room]
-        self.zones = []  # type: T.List[Zone]
+        self.stats_zones = []  # type: T.List[StatisticsZone]
         self.temp_expression_modules = {}  # type: T.Dict[str, types.ModuleType]
         super().__init__(*args, **kwargs)
 
@@ -93,7 +93,7 @@ class HeatyApp(common.App):
             self.log("Master switch is off, not setting temperatures "
                      "initially.")
 
-        for zone in self.zones:
+        for zone in self.stats_zones:
             zone.initialize()
 
     def _master_switch_cb(
