@@ -204,7 +204,9 @@ class Thermostat:
                 self._state_cb(self.entity_id, "all", state, state, {},
                                no_reschedule=True)
 
-        self.log("Registering thermostat state listener.", level="DEBUG")
+        self.log("Listening for state changes of {}."
+                 .format(self.entity_id),
+                 level="DEBUG")
         self.app.listen_state(self._state_cb, self.entity_id, attribute="all")
 
     def log(self, msg: str, *args: T.Any, **kwargs: T.Any) -> None:

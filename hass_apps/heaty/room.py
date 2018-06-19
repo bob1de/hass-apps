@@ -77,18 +77,19 @@ class Room:
             wsensor.events.on("open_close", self.notify_window_action)
 
         if self.schedule:
-            self.log("Creating schedule timers.", level="DEBUG")
+            self.log("Registering schedule timers.", level="DEBUG")
             # We collect the times in a set first to avoid registering
             # multiple timers for the same time.
             times = set()  # type: T.Set[datetime.time]
             for path in self.schedule.unfold():
                 for rule in path:
-                    times.update((rule.start_time, rule.end_time))
+                    times.update((rule.start_time, rule.end_time),)
 
             # Now register a timer for each time a rule starts or ends.
+            self.log("Registering timers at: {}"
+                     .format(", ".join([str(_time) for _time in times])),
+                     level="DEBUG")
             for _time in times:
-                self.log("Registering timer at {}.".format(_time),
-                         level="DEBUG")
                 self.app.run_daily(self._schedule_timer_cb, _time)
 
     def log(self, msg: str, *args: T.Any, **kwargs: T.Any) -> None:

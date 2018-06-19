@@ -48,8 +48,8 @@ class WindowSensor:
         """Should be called in order to register state listeners and
         timers."""
 
-        self.log("Registering window sensor state listener, delay = {}."
-                 .format(self.cfg["delay"]),
+        self.log("Listening for state changes of {}, delay={}."
+                 .format(self.entity_id, self.cfg["delay"]),
                  level="DEBUG")
         self.app.listen_state(self._state_cb, self.entity_id,
                               duration=self.cfg["delay"])
