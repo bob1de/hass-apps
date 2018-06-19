@@ -82,7 +82,8 @@ class Rule:
         return props
 
     def check_constraints(self, date: datetime.date) -> bool:
-        """Checks all constraints of this rule against the given date."""
+        """Checks all constraints of this rule against the given date
+        and returns whether they are fulfilled"""
 
         # pylint: disable=too-many-return-statements
 
