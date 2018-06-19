@@ -55,9 +55,8 @@ or off when the maximum ``temp_delta`` goes beyond some threshold.
 temp_delta
 ~~~~~~~~~~
 
-The difference of target and current temperature per
-thermostat. Thermostats that are turned off are ignored as if their
-weight was set to ``0``.
+The difference of target and current temperature per thermostat. The
+delta of thermostats that are turned off is counted as ``0``.
 
 This parameter supports the following configuration options:
 

@@ -46,20 +46,21 @@ class StatisticsZone:
         values = []
         for room in self.rooms:
             for therm in room.thermostats:
-                if therm.current_temp is None or \
-                   therm.current_target_temp is None or \
-                   therm.current_temp.is_off() or \
-                   therm.current_target_temp.is_off():
-                    # ignore when turned off
-                    continue
                 param_cfg = self.cfg["parameters"]["temp_delta"]
                 weight = param_cfg["thermostat_weights"].get(therm.entity_id, 1)
                 if weight == 0:
                     # ignore this thermostat
                     continue
 
-                temp_delta = float(therm.current_target_temp -
-                                   therm.current_temp)
+                if therm.current_temp is None or \
+                   therm.current_target_temp is None or \
+                   therm.current_temp.is_off() or \
+                   therm.current_target_temp.is_off():
+                    # count as 0 when thermostat is turned off
+                    temp_delta = 0.0
+                else:
+                    temp_delta = float(therm.current_target_temp -
+                                       therm.current_temp)
                 factor = param_cfg["thermostat_factors"].get(therm.entity_id, 1)
                 value = _WeightedValue(factor * temp_delta, weight)
                 self.log("Value for {} in {} is {}".format(therm, room, value),
