@@ -69,7 +69,7 @@ class Rule:
         )
 
     def _get_repr_properties(self) -> T.Dict[str, T.Any]:
-        """Returns a OrderedDict with properties to be shown in repr()."""
+        """Returns an OrderedDict with properties to be shown in repr()."""
 
         props = collections.OrderedDict()  # type: T.Dict[str, T.Any]
         props["start"] = self.start_time
