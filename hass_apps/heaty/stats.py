@@ -62,7 +62,7 @@ class StatisticsZone:
                                    therm.current_temp)
                 factor = param_cfg["thermostat_factors"].get(therm.entity_id, 1)
                 value = _WeightedValue(factor * temp_delta, weight)
-                self.log("Value for {} is {}".format(therm, value),
+                self.log("Value for {} in {} is {}".format(therm, room, value),
                          level="DEBUG")
                 values.append(value)
         return values
