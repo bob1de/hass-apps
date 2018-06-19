@@ -22,7 +22,8 @@ class _WeightedValue:
         self.weight = weight
 
     def __repr__(self) -> str:
-        return "<Value={}, weight={}>".format(self.value, self.weight)
+        return "{}(weight={})" \
+               .format(util.format_sensor_value(self.value), self.weight)
 
 
 class StatisticsZone:
@@ -60,7 +61,10 @@ class StatisticsZone:
                 temp_delta = float(therm.current_target_temp -
                                    therm.current_temp)
                 factor = param_cfg["thermostat_factors"].get(therm.entity_id, 1)
-                values.append(_WeightedValue(factor * temp_delta, weight))
+                value = _WeightedValue(factor * temp_delta, weight)
+                self.log("Value for {} is {}".format(therm, value),
+                         level="DEBUG")
+                values.append(value)
         return values
 
     def _do_update_stats(self) -> None:
@@ -73,12 +77,10 @@ class StatisticsZone:
                      level="DEBUG")
             return
 
-        self.log("Updating statistics for: {}"
-                 .format(", ".join(self.cfg["parameters"])),
-                 level="DEBUG")
-
         params = {}  # type: T.Dict[str, T.List[_WeightedValue]]
         for param in self.cfg["parameters"]:
+            self.log("Collecting {}".format(param),
+                     level="DEBUG")
             params[param] = getattr(self, "_collect_{}".format(param))()
 
         fmt = util.format_sensor_value
