@@ -60,6 +60,12 @@ delta of thermostats that are turned off is counted as ``0``.
 
 This parameter supports the following configuration options:
 
+* ``off_value``: Specify how to handle thermostats which are turned
+  off. Specify either the number to assume as the delta or ``null``, which
+  causes the thermostat to be excluded from statistics collection. The
+  configured per-thermostat factor is not applied to this value. The
+  default value is ``0``.
+
 * ``thermostat_factors``: Specify a factor which the value from an
   individual thermostat should be multiplied with before adding it to
   the list of values. Note that this doesn't change the weighting of a
@@ -83,9 +89,3 @@ This parameter supports the following configuration options:
       thermostat_weights:
         climate.bathroom: 0.5
         climate.hall: 0
-
-* ``off_value``: Specify how to handle thermostats which are turned
-  off. Specify either the number to assume as the delta or ``null``, which
-  causes the thermostat to be excluded from statistics collection. The
-  configured per-thermostat factor is not applied to this value. The
-  default value is ``0``.
