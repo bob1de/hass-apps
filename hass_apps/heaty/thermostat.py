@@ -221,7 +221,6 @@ class Thermostat:
         timer = self.resend_timer
         if timer is None:
             return False
-
         self.app.cancel_timer(timer)
         self.resend_timer = None
         self.log("Cancelled resend timer.", level="DEBUG")
