@@ -155,6 +155,9 @@ class Schedule:
                              .format(type(other), self))
         return Schedule(self.rules + other.rules)
 
+    def __repr__(self) -> str:
+        return "<Schedule with {} rules>".format(len(self.rules))
+
     def matching_rules(
             self, when: datetime.datetime
         ) -> T.Iterator[RULE_PATH_TYPE]:
