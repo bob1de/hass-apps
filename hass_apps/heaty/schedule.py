@@ -210,12 +210,11 @@ class Schedule:
         None is returned in case there are no rules in the schedule
         which are not universally valid anyway."""
 
-        times = set()
+        times = set()  # type: T.Set[datetime.time]
         for path in self.unfold():
             for rule in path:
                 if not rule.is_always_valid():
-                    times.add(rule.start_time)
-                    times.add(rule.end_time)
+                    times.update((rule.start_time, rule.end_time),)
         if not times:
             # no constrained rules in schedule
             return None

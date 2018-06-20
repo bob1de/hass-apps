@@ -52,14 +52,14 @@ class Room:
         self.current_schedule_temp = None
         self.current_schedule_rule = None
 
-        self.set_scheduled_temp()
+        self.apply_schedule()
 
     def _schedule_timer_cb(self, kwargs: dict) -> None:
         """Is called whenever a schedule timer fires."""
 
         self.log("Schedule timer fired.",
                  level="DEBUG")
-        self.set_scheduled_temp()
+        self.apply_schedule()
 
     def initialize(self) -> None:
         """Should be called after all schedules, thermostats and window
@@ -85,7 +85,6 @@ class Room:
                     if not rule.is_always_valid():
                         times.update((rule.start_time, rule.end_time),)
 
-            # Now register a timer for each time a rule starts or ends.
             self.log("Registering scheduling timers at: {}"
                      .format(", ".join([str(_time) for _time in times])),
                      level="DEBUG")
@@ -127,11 +126,10 @@ class Room:
     def eval_temp_expr(
             self, temp_expr: expr.EXPR_TYPE
     ) -> T.Optional[expr.ResultBase]:
-        """This is a wrapper around expr.eval_temp_expr that adds the
-        app object, the room name  and some helpers to the evaluation
-        environment, as well as all configured
-        temp_expression_modules. It also catches and logs any
-        exception which is raised during evaluation. In this case,
+        """This is a wrapper around expr.eval_temp_expr that adds
+        the room_name to the evaluation environment, as well as all
+        configured temp_expression_modules. It also catches and logs
+        any exception which is raised during evaluation. In this case,
         None is returned."""
 
         extra_env = {
@@ -155,6 +153,9 @@ class Room:
         If no temperature could be found in the schedule (e.g. all
         rules evaluate to Ignore()), None is returned."""
 
+        self.log("Evaluating schedule: {}".format(sched),
+                 level="DEBUG")
+
         result_sum = expr.Add(0)
         paths = list(sched.matching_rules(when))
         path_idx = 0
@@ -162,8 +163,7 @@ class Room:
             path = paths[path_idx]
             path_idx += 1
 
-            self.log("Processing rule path: {}"
-                     .format(path),
+            self.log("Processing rule path: {}".format(path),
                      level="DEBUG")
 
             rule = schedule.get_rule_path_temp(path)
@@ -221,7 +221,7 @@ class Room:
             return None
         return self.eval_schedule(self.schedule, self.app.datetime())
 
-    def set_scheduled_temp(self, force_resend: bool = False) -> None:
+    def apply_schedule(self, force_resend: bool = False) -> None:
         """Sets the temperature that is configured for the current
         date and time. If the master switch is turned off, this won't
         do anything.
@@ -229,7 +229,7 @@ class Room:
         It will also detect when neither the rule nor the result
         of its temperature expression changed compared to the last run
         and prevent re-setting the temperature in that case.
-        If force_resend is True, and the temperature didn't
+        If force_resend is True and the temperature didn't
         change, it is sent to the thermostats anyway.
         In case of an open window, temperature is cached and not sent."""
 
@@ -242,6 +242,9 @@ class Room:
                      "timer.",
                      level="DEBUG")
             return
+
+        self.log("Applying room's schedule.",
+                 level="DEBUG")
 
         result = self.get_scheduled_temp()
         if result is None:
@@ -256,6 +259,8 @@ class Room:
             # temp and rule didn't change, what means that the
             # re-scheduling wasn't necessary and was e.g. caused
             # by a daily timer which doesn't count for today
+            self.log("Neither rule nor temperature changed, not re-setting it.",
+                     level="DEBUG")
             return
 
         self.current_schedule_temp = temp
@@ -268,7 +273,7 @@ class Room:
         else:
             self.set_temp(temp, scheduled=True, force_resend=force_resend)
 
-    def set_manual_temp(
+    def set_temp_manually(
             self, temp_expr: expr.EXPR_TYPE, force_resend: bool = False,
             reschedule_delay: T.Union[float, int, None] = None
     ) -> None:
@@ -360,8 +365,8 @@ class Room:
 
         self.log("heaty_set_temp event received, temperature: {}"
                  .format(repr(temp_expr)))
-        self.set_manual_temp(temp_expr, force_resend=force_resend,
-                             reschedule_delay=reschedule_delay)
+        self.set_temp_manually(temp_expr, force_resend=force_resend,
+                               reschedule_delay=reschedule_delay)
 
     def notify_target_temp_changed(
             self, therm: "Thermostat", temp: expr.Temp,
@@ -423,7 +428,7 @@ class Room:
             if orig_temp is None:
                 self.log("Restoring temperature from schedule.",
                          level="DEBUG")
-                self.set_scheduled_temp()
+                self.apply_schedule()
             else:
                 self.log("Restoring temperature to {}.".format(orig_temp),
                          level="DEBUG")

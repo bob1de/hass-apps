@@ -88,7 +88,7 @@ class HeatyApp(common.App):
         if self.master_switch_enabled():
             for room in self.rooms:
                 if not room.check_for_open_window():
-                    room.set_scheduled_temp()
+                    room.apply_schedule()
         else:
             self.log("Master switch is off, not setting temperatures "
                      "initially.")
@@ -108,7 +108,7 @@ class HeatyApp(common.App):
                  prefix=common.LOG_PREFIX_INCOMING)
         for room in self.rooms:
             if new == "on":
-                room.set_scheduled_temp()
+                room.apply_schedule()
             else:
                 room.cancel_reschedule_timer()
                 room.set_temp(self.cfg["master_off_temp"], scheduled=False)
