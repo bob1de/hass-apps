@@ -72,24 +72,17 @@ class Rule:
         """Returns an OrderedDict with properties to be shown in repr()."""
 
         props = collections.OrderedDict()  # type: T.Dict[str, T.Any]
-        props["start"] = self.start_time
-        props["end"] = self.end_time
-        if self.end_plus_days != 0:
-            props["end_plus_days"] = self.end_plus_days
-        if self.constraints:
-            props["constraints"] = list(self.constraints)
+        if self.is_always_valid():
+            props["always_valid"] = "yes"
+        else:
+            props["start"] = self.start_time
+            props["end"] = self.end_time
+            if self.end_plus_days != 0:
+                props["end_plus_days"] = self.end_plus_days
+            if self.constraints:
+                props["constraints"] = list(self.constraints)
         props["temp"] = self.temp_expr_raw
         return props
-
-    def is_always_valid(self) -> bool:
-        """Returns whether this rule is universally valid (has no
-        constraints and duration >= 1 day)."""
-
-        if self.constraints:
-            return False
-        if self.end_time < self.start_time:
-            return self.end_plus_days > 1
-        return self.end_plus_days >= 1
 
     def check_constraints(self, date: datetime.date) -> bool:
         """Checks all constraints of this rule against the given date
@@ -116,6 +109,16 @@ class Rule:
                date > util.build_date_from_constraint(allowed, date, -1):
                 return False
         return True
+
+    def is_always_valid(self) -> bool:
+        """Returns whether this rule is universally valid (has no
+        constraints and duration >= 1 day)."""
+
+        if self.constraints:
+            return False
+        if self.end_time < self.start_time:
+            return self.end_plus_days > 1
+        return self.end_plus_days >= 1
 
 
 class SubScheduleRule(Rule):
