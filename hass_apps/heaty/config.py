@@ -310,6 +310,9 @@ STATS_ZONE_SCHEMA = vol.Schema(vol.All(
                 "temp_delta": vol.All(
                     lambda v: v or {},
                     util.mixin_dict({
+                        vol.Optional("off_value", default=0): vol.Any(
+                            float, int, None
+                        ),
                     }, STATS_ZONE_PARAM_THERMOSTAT_SETTINGS_ADDIN),
                 ),
             },
