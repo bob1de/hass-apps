@@ -393,7 +393,9 @@ class Room:
                      prefix=common.LOG_PREFIX_OUTGOING)
             self.set_temp(temp, scheduled=False)
 
-        if not no_reschedule:
+        if temp == self.wanted_temp:
+            self.cancel_reschedule_timer()
+        elif not no_reschedule:
             self.start_reschedule_timer(restart=True)
 
     def notify_window_action(self, sensor: WindowSensor, is_open: bool) -> None:  # pylint: disable=unused-argument
