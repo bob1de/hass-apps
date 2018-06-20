@@ -82,7 +82,7 @@ class Room:
             times = set()  # type: T.Set[datetime.time]
             for path in self.schedule.unfold():
                 for rule in path:
-                    if not rule.always_valid():
+                    if not rule.is_always_valid():
                         times.update((rule.start_time, rule.end_time),)
 
             # Now register a timer for each time a rule starts or ends.

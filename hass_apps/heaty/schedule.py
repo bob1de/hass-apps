@@ -81,7 +81,7 @@ class Rule:
         props["temp"] = self.temp_expr_raw
         return props
 
-    def always_valid(self) -> bool:
+    def is_always_valid(self) -> bool:
         """Returns whether this rule is universally valid (has no
         constraints and >= 1 day duration)"""
 
@@ -219,7 +219,7 @@ class Schedule:
         times = set()
         for path in self.unfold():
             for rule in path:
-                if not rule.always_valid():
+                if not rule.is_always_valid():
                     times.add(rule.start_time)
                     times.add(rule.end_time)
         if not times:
