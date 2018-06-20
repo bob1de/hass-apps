@@ -39,7 +39,7 @@ class Result(ResultBase, AddibleMixin):
     """Final result of a temperature expression."""
 
     def __repr__(self) -> str:
-        return "{}".format(self.temp)
+        return "Result({})".format(self.temp)
 
 class Add(ResultBase, AddibleMixin):
     """Result of a temperature expression that is intended to be added
