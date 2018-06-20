@@ -83,19 +83,13 @@ class Rule:
 
     def is_always_valid(self) -> bool:
         """Returns whether this rule is universally valid (has no
-        constraints and >= 1 day duration)"""
+        constraints and duration >= 1 day)."""
 
         if self.constraints:
             return False
-
-        today = datetime.date.today()
-        start = datetime.datetime.combine(today, self.start_time)
-        end = datetime.datetime.combine(
-            today + datetime.timedelta(days=self.end_plus_days),
-            self.end_time
-        )
-        duration = end - start
-        return duration >= datetime.timedelta(days=1)
+        if self.end_time < self.start_time:
+            return self.end_plus_days > 1
+        return self.end_plus_days > 0
 
     def check_constraints(self, date: datetime.date) -> bool:
         """Checks all constraints of this rule against the given date
