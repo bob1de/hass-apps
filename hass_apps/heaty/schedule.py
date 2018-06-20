@@ -89,7 +89,7 @@ class Rule:
             return False
         if self.end_time < self.start_time:
             return self.end_plus_days > 1
-        return self.end_plus_days > 0
+        return self.end_plus_days >= 1
 
     def check_constraints(self, date: datetime.date) -> bool:
         """Checks all constraints of this rule against the given date
