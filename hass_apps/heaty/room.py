@@ -6,7 +6,7 @@ import typing as T
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     import uuid
-    from . import app as _app
+    from .app import HeatyApp
     from .thermostat import Thermostat
 
 import datetime
@@ -21,7 +21,7 @@ class Room:
 
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, name: str, cfg: dict, app: "_app.HeatyApp") -> None:
+    def __init__(self, name: str, cfg: dict, app: "HeatyApp") -> None:
         self.name = name
         self.cfg = cfg
         self.app = app
@@ -106,8 +106,7 @@ class Room:
         Temperatures won't be send to thermostats redundantly unless
         force_resend is True."""
 
-        if scheduled and \
-           not self.app.master_switch_enabled():
+        if scheduled and not self.app.require_master_on():
             return
 
         self.wanted_temp = target_temp
@@ -233,7 +232,7 @@ class Room:
         change, it is sent to the thermostats anyway.
         In case of an open window, temperature is cached and not sent."""
 
-        if not self.app.master_switch_enabled():
+        if not self.app.require_master_on():
             return
 
         if self.reschedule_timer:
@@ -286,7 +285,7 @@ class Room:
         if given, overwrites the value configured for the room.
         In case of an open window, temperature is cached and not sent."""
 
-        if not self.app.master_switch_enabled():
+        if not self.app.require_master_on():
             return
 
         result = self.eval_temp_expr(temp_expr)
@@ -389,7 +388,7 @@ class Room:
 
         self.wanted_temp = temp
 
-        if not self.app.master_switch_enabled():
+        if not self.app.master_is_on():
             return
 
         if self.cfg["replicate_changes"] and len(self.thermostats) > 1:
@@ -412,8 +411,7 @@ class Room:
         self.log("Window has been {}.".format(action),
                  prefix=common.LOG_PREFIX_INCOMING)
 
-        if not self.app.master_switch_enabled():
-            self.log("Master switch is off, ignoring window event.")
+        if not self.app.require_master_on():
             return
 
         if is_open:
@@ -444,6 +442,9 @@ class Room:
         no new one is started unless restart is set. The return value
         tells whether a timer has been started or not."""
 
+        if not self.app.require_master_on():
+            return False
+
         if self.reschedule_timer is not None:
             if restart:
                 self.cancel_reschedule_timer()
@@ -452,9 +453,6 @@ class Room:
                          "second one.",
                          level="DEBUG")
                 return False
-
-        if not self.app.master_switch_enabled():
-            return False
 
         if reschedule_delay is None:
             reschedule_delay = self.cfg["reschedule_delay"]

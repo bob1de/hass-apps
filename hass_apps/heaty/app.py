@@ -12,6 +12,7 @@ if T.TYPE_CHECKING:
     from .stats import StatisticsZone
 
 import importlib
+import inspect
 
 from .. import common
 from . import __version__, config, expr, util
@@ -68,24 +69,24 @@ class HeatyApp(common.App):
         for room in self.rooms:
             room.initialize()
 
-        self.log("Registering event listener for heaty_reschedule.",
+        self.log("Listening for heaty_reschedule event.",
                  level="DEBUG")
         self.listen_event(self._reschedule_event_cb, "heaty_reschedule",
                           **heaty_id_kwargs)
 
-        self.log("Registering event listener for heaty_set_temp.",
+        self.log("Listening for heaty_set_temp event.",
                  level="DEBUG")
         self.listen_event(self._set_temp_event_cb, "heaty_set_temp",
                           **heaty_id_kwargs)
 
-        master_switch = self.cfg["master_switch"]
-        if master_switch:
-            self.log("Registering state listener for master switch {}."
-                     .format(master_switch),
+        master = self.cfg["master_switch"]
+        if master:
+            self.log("Listening for state changes of master switch: {}"
+                     .format(master),
                      level="DEBUG")
-            self.listen_state(self._master_switch_cb, master_switch)
+            self.listen_state(self._master_switch_cb, master)
 
-        if self.master_switch_enabled():
+        if self.master_is_on():
             for room in self.rooms:
                 if not room.check_for_open_window():
                     room.apply_schedule()
@@ -124,15 +125,9 @@ class HeatyApp(common.App):
         to the given room."""
 
         if data.get("heaty_id", self.cfg["heaty_id"]) != self.cfg["heaty_id"]:
-            self.log("Ignoring reschedule event for heaty_id '{}', "
+            self.log("Ignoring re-schedule event for heaty_id '{}', "
                      "ours is '{}'."
                      .format(data.get("heaty_id"), self.cfg["heaty_id"]),
-                     level="DEBUG")
-            return
-
-        if not self.master_switch_enabled():
-            self.log("Ignoring re-schedule event because master "
-                     "switch is off.",
                      level="DEBUG")
             return
 
@@ -153,6 +148,9 @@ class HeatyApp(common.App):
                  .format(", ".join([str(room) for room in rooms]),
                          " [cancel running timer]" if restart else ""),
                  prefix=common.LOG_PREFIX_INCOMING)
+
+        if not self.require_master_on():
+            return
 
         for room in rooms:
             # delay for 6 seconds to avoid re-scheduling multiple
@@ -220,10 +218,24 @@ class HeatyApp(common.App):
                 return room
         return None
 
-    def master_switch_enabled(self) -> bool:
-        """Returns the state of the master switch or True if no master
-        switch is configured."""
-        master_switch = self.cfg["master_switch"]
-        if master_switch:
-            return self.get_state(master_switch) == "on"  # type: ignore
+    def master_is_on(self) -> bool:
+        """Returns whether the master switch is "on". If no master switch
+        is configured, this returns True."""
+
+        master = self.cfg["master_switch"]
+        if master:
+            return self.get_state(master) == "on"  # type: ignore
+        return True
+
+    def require_master_on(self) -> bool:
+        """Returns whether the master switch is on. If not, a debug
+        message is logged."""
+
+        if not self.master_is_on():
+            stack = inspect.stack()
+            caller_name = stack[1].function
+            self.log("Master switch is off, aborting {}."
+                     .format(repr(caller_name)),
+                     level="DEBUG")
+            return False
         return True
