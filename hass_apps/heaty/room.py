@@ -106,7 +106,7 @@ class Room:
         Temperatures won't be send to thermostats redundantly unless
         force_resend is True."""
 
-        if scheduled and not self.app.require_master_on():
+        if scheduled and not self.app.require_master_is_on():
             return
 
         self.wanted_temp = target_temp
@@ -232,7 +232,7 @@ class Room:
         change, it is sent to the thermostats anyway.
         In case of an open window, temperature is cached and not sent."""
 
-        if not self.app.require_master_on():
+        if not self.app.require_master_is_on():
             return
 
         if self.reschedule_timer:
@@ -285,7 +285,7 @@ class Room:
         if given, overwrites the value configured for the room.
         In case of an open window, temperature is cached and not sent."""
 
-        if not self.app.require_master_on():
+        if not self.app.require_master_is_on():
             return
 
         result = self.eval_temp_expr(temp_expr)
@@ -411,7 +411,7 @@ class Room:
         self.log("Window has been {}.".format(action),
                  prefix=common.LOG_PREFIX_INCOMING)
 
-        if not self.app.require_master_on():
+        if not self.app.require_master_is_on():
             return
 
         if is_open:
@@ -442,7 +442,7 @@ class Room:
         no new one is started unless restart is set. The return value
         tells whether a timer has been started or not."""
 
-        if not self.app.require_master_on():
+        if not self.app.require_master_is_on():
             return False
 
         if self.reschedule_timer is not None:

@@ -149,7 +149,7 @@ class HeatyApp(common.App):
                          " [cancel running timer]" if restart else ""),
                  prefix=common.LOG_PREFIX_INCOMING)
 
-        if not self.require_master_on():
+        if not self.require_master_is_on():
             return
 
         for room in rooms:
@@ -227,7 +227,7 @@ class HeatyApp(common.App):
             return self.get_state(master) == "on"  # type: ignore
         return True
 
-    def require_master_on(self) -> bool:
+    def require_master_is_on(self) -> bool:
         """Returns whether the master switch is on. If not, a debug
         message is logged."""
 
