@@ -75,7 +75,7 @@ class App(AppBase):
 
         # pylint: disable=attribute-defined-outside-init
 
-        self.log("{} v{} initialization started"
+        self.log("Initialization of {} v{} started."
                  .format(self.Meta.name, self.Meta.version))
 
         if callable(self.Meta.config_schema):
@@ -87,7 +87,7 @@ class App(AppBase):
 
         self.initialize_inner()
 
-        self.log("Initialization done")
+        self.log("Initialization done.")
 
     def initialize_inner(self) -> None:
         """Overwrite this stub to do the real initialization of the
