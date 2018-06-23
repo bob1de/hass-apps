@@ -116,6 +116,10 @@ class StatisticsZone:
         """Fetches the Room objects and sets up internal data structures
         before triggering an initial statistics update."""
 
+        self.log("Initializing statistics zone (name={})."
+                 .format(repr(self.name)),
+                 level="DEBUG")
+
         if not self.cfg["parameters"]:
             self.log("No parameters configured.", level="WARNING")
 
@@ -129,7 +133,7 @@ class StatisticsZone:
                 continue
             self.rooms.append(room)
             for therm in room.thermostats:
-                self.log("Listening for changes of {} in {}."
+                self.log("Listening for temperature changes of {} in {}."
                          .format(therm, room),
                          level="DEBUG")
                 therm.events.on("current_temp_changed",

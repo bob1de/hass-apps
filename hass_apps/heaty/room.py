@@ -66,6 +66,10 @@ class Room:
         sensors have been added in order to register state listeners
         and timers."""
 
+        self.log("Initializing room (name={})."
+                 .format(repr(self.name)),
+                 level="DEBUG")
+
         for therm in self.thermostats:
             therm.initialize()
             therm.events.on(

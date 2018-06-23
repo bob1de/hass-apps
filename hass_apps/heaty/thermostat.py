@@ -187,11 +187,15 @@ class Thermostat:
         """Should be called in order to register state listeners and
         timers."""
 
+        self.log("Initializing thermostat (entity_id={})."
+                 .format(repr(self.entity_id)),
+                 level="DEBUG")
+
         self._check_config_plausibility()
 
         # only consider one thermostat per room
         if self.room.wanted_temp is None:
-            self.log("Getting current temperature from thermostat.",
+            self.log("Getting current state from thermostat.",
                      level="DEBUG")
             state = self.app.get_state(self.entity_id, attribute="all")
             if state is None:
@@ -199,13 +203,12 @@ class Thermostat:
                 self.log("State for thermostat is None, ignoring it.",
                          level="WARNING")
             else:
-                # populate self.current_target_temp by simulating a
+                # populate self.current_target_temp etc. by simulating a
                 # state change
                 self._state_cb(self.entity_id, "all", state, state, {},
                                no_reschedule=True)
 
-        self.log("Listening for state changes of {}."
-                 .format(self.entity_id),
+        self.log("Listening for state changes.",
                  level="DEBUG")
         self.app.listen_state(self._state_cb, self.entity_id, attribute="all")
 

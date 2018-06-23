@@ -81,8 +81,9 @@ class HeatyApp(common.App):
 
         master = self.cfg["master_switch"]
         if master:
-            self.log("Listening for state changes of master switch: {}"
-                     .format(master),
+            self.log("Listening for state changes of master switch "
+                     "(entity_id={})."
+                     .format(repr(master)),
                      level="DEBUG")
             self.listen_state(self._master_switch_cb, master)
 
