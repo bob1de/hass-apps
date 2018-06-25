@@ -198,9 +198,9 @@ class Temp:
             return None
 
 
-def build_time_expression_env(app: "HeatyApp") -> T.Dict[str, T.Any]:
+def build_expr_env(app: "HeatyApp") -> T.Dict[str, T.Any]:
     """This function builds and returns an environment usable as globals
-    for the evaluation of a time expression. It will add all members
+    for the evaluation of an expression. It will add all members
     of this module's __all__ to the environment. Additionally, some
     helpers will be constructed based on the HeatyApp object"""
 
@@ -244,7 +244,7 @@ def eval_temp_expr(
     if isinstance(temp_expr, Temp):
         return Result(temp_expr)
 
-    env = build_time_expression_env(app)
+    env = build_expr_env(app)
     if extra_env:
         env.update(extra_env)
 
