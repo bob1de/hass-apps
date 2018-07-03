@@ -19,6 +19,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   AppDaemon 3.0.0+ should now work and blacklisting has been removed.
 
 ### Deprecated
+* AppDaemon 2.x support will be dropped in a late August 2018
+  release. Please switch to AppDaemon 3.x.
 
 ### Removed
 
