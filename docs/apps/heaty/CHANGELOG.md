@@ -9,10 +9,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
-* Fixed a bug that caused unnecessary re-sending of commands to ordinary
-  switches that don't support setting a target temperature.
 
 ### Security
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+
+## 0.14.0 - 2018-07-07
+
+### Fixed
+* Fixed a bug that caused unnecessary re-sending of commands to ordinary
+  switches that don't support setting a target temperature.
 
 ### Added
 * The ``heaty_id`` of the target instance can now be passed when emitting
@@ -71,8 +84,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   when there is no re-schedule timer running already. In order to get
   the previous behaviour, specify ``cancel_running_timer: true`` in the
   event data explicitly. ([more information](events.html))
-
-### Deprecated
 
 ### Removed
 * Removed experimental state publishing to AppDaemon because the
