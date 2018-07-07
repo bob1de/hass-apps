@@ -147,10 +147,10 @@ heaty_full:
 
     # These two settings can be used to tweak the names of the
     # operation modes.
-    # (default: Heat)
-    #opmode_heat: Heat
-    # (default: "Off")
-    #opmode_off: "Off"
+    # (default: heat)
+    #opmode_heat: heat
+    # (default: "off")
+    #opmode_off: "off"
 
     # You might want to use an alternative service that receives
     # the operation mode name.

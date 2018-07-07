@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 ### Changed
+* Changed the default values of ``opmode_heat`` and ``opmode_off``
+  to lower-case ``"heat"`` and ``"off"``, respectively, since Home
+  Assistant 0.73 seems to have unified them.
 
 ### Deprecated
 
