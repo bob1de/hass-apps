@@ -29,7 +29,7 @@ class _WeightedValue:
 class StatisticsZone:
     """A zone (group of rooms) used for collecting statistical data."""
 
-    def __init__(self, name: str, cfg: dict, app: "HeatyApp") -> None:
+    def __init__(self, name: str, cfg: T.Dict, app: "HeatyApp") -> None:
         self.name = name
         self.cfg = cfg
         self.app = app
@@ -42,13 +42,12 @@ class StatisticsZone:
     def __str__(self) -> str:
         return "SZ:{}".format(self.cfg.get("friendly_name", self.name))
 
-    def _collect_temp_delta(self) -> T.List[_WeightedValue]:
-        param_cfg = self.cfg["parameters"]["temp_delta"]
-        off_value = param_cfg["off_value"]
+    def _collect_temp_delta(self, cfg: dict) -> T.List[_WeightedValue]:
+        off_value = cfg["off_value"]
         values = []
         for room in self.rooms:
             for therm in room.thermostats:
-                weight = param_cfg["thermostat_weights"].get(therm.entity_id, 1)
+                weight = cfg["thermostat_weights"].get(therm.entity_id, 1)
                 if weight == 0:
                     # ignore this thermostat
                     continue
@@ -64,8 +63,7 @@ class StatisticsZone:
                 else:
                     temp_delta = float(therm.current_target_temp -
                                        therm.current_temp)
-                    factor = param_cfg["thermostat_factors"] \
-                             .get(therm.entity_id, 1)
+                    factor = cfg["thermostat_factors"].get(therm.entity_id, 1)
                     temp_delta *= factor
                 value = _WeightedValue(temp_delta, weight)
                 self.log("Value for {} in {} is {}".format(therm, room, value),
@@ -87,7 +85,8 @@ class StatisticsZone:
         for param in self.cfg["parameters"]:
             self.log("Collecting {}".format(param),
                      level="DEBUG")
-            params[param] = getattr(self, "_collect_{}".format(param))()
+            cfg = self.cfg["parameters"][param]
+            params[param] = getattr(self, "_collect_{}".format(param))(cfg)
 
         fmt = util.format_sensor_value
         for param, values in params.items():
