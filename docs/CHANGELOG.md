@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/efficiosoft/hass-apps/compare/v0.20180405.0...HEAD
+[Unreleased]: https://github.com/efficiosoft/hass-apps/compare/v0.20180707.0...HEAD
 
 ### Fixed
 
@@ -15,14 +15,23 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 
 ### Changed
+
+### Deprecated
+
+### Removed
+
+
+## [0.20180707.0] - 2018-07-07
+[0.20180707.0]: https://github.com/efficiosoft/hass-apps/compare/v0.20180405.0...v0.20180707.0
+
+### Changed
+* heaty v0.14.0
 * No longer using broken ``set_app_state()`` feature of AppDaemon, hence
   AppDaemon 3.0.0+ should now work and blacklisting has been removed.
 
 ### Deprecated
 * AppDaemon 2.x support will be dropped in a late August 2018
   release. Please switch to AppDaemon 3.x.
-
-### Removed
 
 
 ## [0.20180405.0] - 2018-04-05
