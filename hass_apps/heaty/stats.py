@@ -54,8 +54,8 @@ class StatisticsZone:
 
                 if therm.current_temp is None or \
                    therm.current_target_temp is None or \
-                   therm.current_temp.is_off() or \
-                   therm.current_target_temp.is_off():
+                   therm.current_temp.is_off or \
+                   therm.current_target_temp.is_off:
                     if off_value is None:
                         # thermostats that are off should be excluded
                         continue

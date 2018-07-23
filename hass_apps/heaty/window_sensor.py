@@ -25,7 +25,7 @@ class WindowSensor:
 
     def __repr__(self) -> str:
         return "<WindowSensor {}, {}>".format(
-            str(self), "open" if self.is_open() else "closed"
+            str(self), "open" if self.is_open else "closed"
         )
 
     def __str__(self) -> str:
@@ -42,7 +42,7 @@ class WindowSensor:
         self.log("State is now {}.".format(new),
                  level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
 
-        self.events.trigger("open_close", self, self.is_open())
+        self.events.trigger("open_close", self, self.is_open)
 
     def initialize(self) -> None:
         """Should be called in order to register state listeners and
@@ -58,8 +58,9 @@ class WindowSensor:
         self.app.listen_state(self._state_cb, self.entity_id,
                               duration=self.cfg["delay"])
 
+    @property
     def is_open(self) -> bool:
-        """Returns whether the sensor reports open or not."""
+        """Tells whether the sensor reports open or not."""
 
         open_state = self.cfg["open_state"]
         states = []

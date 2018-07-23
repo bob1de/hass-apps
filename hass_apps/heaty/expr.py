@@ -18,7 +18,9 @@ __all__ = ["Add", "Break", "Ignore", "IncludeSchedule", "Off", "OFF",
 
 
 # type of an evaluable expression
-EXPR_TYPE = T.Union[str, types.CodeType, "Temp"]
+ExprType = T.Union[str, types.CodeType, "Temp"]
+# allowed types of values to initialize Temp() with
+TempValueType = T.Union[float, int, str, "Off", "Temp"]
 
 
 class AddibleMixin:
@@ -134,7 +136,7 @@ class Temp:
                             .format(repr(type(self)), repr(type(other))))
 
         # OFF + something is OFF
-        if self.is_off() or other.is_off():
+        if self.is_off or other.is_off:
             return Temp(Off())
 
         return Temp(self.value + other.value)
@@ -155,9 +157,9 @@ class Temp:
             raise TypeError("can't compare {} and {}"
                             .format(repr(type(self)), repr(type(other))))
 
-        if not self.is_off() and other.is_off():
+        if not self.is_off and other.is_off:
             return False
-        if self.is_off() and not other.is_off() or \
+        if self.is_off and not other.is_off or \
            self.value < other.value:
             return True
         return False
@@ -173,8 +175,9 @@ class Temp:
     def __sub__(self, other: T.Any) -> "Temp":
         return self.__add__(-other)
 
+    @property
     def is_off(self) -> bool:
-        """Returns whether this temperature means OFF."""
+        """Tells whether this temperature means OFF."""
         return isinstance(self.value, Off)
 
     @staticmethod
@@ -229,7 +232,7 @@ def build_expr_env(app: "HeatyApp") -> T.Dict[str, T.Any]:
     return env
 
 def eval_temp_expr(
-        temp_expr: EXPR_TYPE,
+        temp_expr: ExprType,
         app: "HeatyApp",
         extra_env: T.Optional[T.Dict[str, T.Any]] = None
 ) -> ResultBase:

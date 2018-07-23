@@ -12,7 +12,7 @@ from . import expr, util
 
 # Type of a rule path, a tuple of Rule objects representing  the hirarchy
 # of SubScheduleRules that lead to a Rule.
-RULE_PATH_TYPE = T.Tuple["Rule", ...]
+RulePathType = T.Tuple["Rule", ...]
 
 
 class Rule:
@@ -26,7 +26,7 @@ class Rule:
             self,
             start_time: datetime.time = None, end_time: datetime.time = None,
             end_plus_days: int = 0, constraints: T.Dict[str, T.Any] = None,
-            temp_expr: expr.EXPR_TYPE = None
+            temp_expr: expr.ExprType = None
         ) -> None:
 
         if start_time is None:
@@ -48,8 +48,8 @@ class Rule:
             constraints = {}
         self.constraints = constraints
 
-        self.temp_expr = None  # type: T.Optional[expr.EXPR_TYPE]
-        self.temp_expr_raw = None  # type: T.Optional[expr.EXPR_TYPE]
+        self.temp_expr = None  # type: T.Optional[expr.ExprType]
+        self.temp_expr_raw = None  # type: T.Optional[expr.ExprType]
         if temp_expr is not None:
             if isinstance(temp_expr, str):
                 temp_expr = temp_expr.strip()
@@ -58,7 +58,7 @@ class Rule:
                 temp = expr.Temp(temp_expr)
             except ValueError:
                 # this is a temperature expression, precompile it
-                self.temp_expr = compile(temp_expr, "temp_expr", "eval")  # type: expr.EXPR_TYPE
+                self.temp_expr = compile(temp_expr, "temp_expr", "eval")  # type: expr.ExprType
             else:
                 self.temp_expr = temp
 
@@ -72,7 +72,7 @@ class Rule:
         """Returns an OrderedDict with properties to be shown in repr()."""
 
         props = collections.OrderedDict()  # type: T.Dict[str, T.Any]
-        if self.is_always_valid():
+        if self.is_always_valid:
             props["always_valid"] = "yes"
         else:
             props["start"] = self.start_time
@@ -110,8 +110,9 @@ class Rule:
                 return False
         return True
 
+    @property
     def is_always_valid(self) -> bool:
-        """Returns whether this rule is universally valid (has no
+        """Tells whether this rule is universally valid (has no
         constraints and duration >= 1 day)."""
 
         if self.constraints:
@@ -160,7 +161,7 @@ class Schedule:
 
     def matching_rules(
             self, when: datetime.datetime
-        ) -> T.Iterator[RULE_PATH_TYPE]:
+        ) -> T.Iterator[RulePathType]:
         """Returns an iterator over paths of all rules that are
         valid at the time represented by the given datetime object,
         keeping the order from the rules list. SubScheduleRule objects
@@ -219,7 +220,7 @@ class Schedule:
         times = set()  # type: T.Set[datetime.time]
         for path in self.unfold():
             for rule in path:
-                if not rule.is_always_valid():
+                if not rule.is_always_valid:
                     times.update((rule.start_time, rule.end_time),)
         if not times:
             # no constrained rules in schedule
@@ -242,7 +243,7 @@ class Schedule:
 
         return min(map(map_func, times))
 
-    def unfold(self) -> T.Iterator[RULE_PATH_TYPE]:
+    def unfold(self) -> T.Iterator[RulePathType]:
         """Returns an iterator over rule paths (tuples of Rule objects).
         The last element of each tuple is a Rule object, the elements
         before - if any - represent the chain of SubScheduleRule objects
@@ -257,7 +258,7 @@ class Schedule:
                 yield (rule,)
 
 
-def get_rule_path_temp(path: RULE_PATH_TYPE) -> Rule:
+def get_rule_path_temp(path: RulePathType) -> Rule:
     """Returns the first rule containing a temperature expression,
     searching the path from right to left. A ValueError is raised in
     case there is no rule with a temperature expression in the path."""

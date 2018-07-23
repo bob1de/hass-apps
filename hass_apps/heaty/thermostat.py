@@ -118,7 +118,7 @@ class Thermostat:
         attrs = copy.deepcopy((new or {}).get("attributes", {}))
         attrs.update(copy.deepcopy(new or {}))
 
-        _target_temp = None  # type: T.Union[None, expr.Off, float, int]
+        _target_temp = None  # type: T.Optional[expr.TempValueType]
         if self.cfg["supports_opmodes"]:
             opmode = attrs.get(self.cfg["opmode_state_attr"])
             self.log("Attribute {} is {}."
@@ -127,7 +127,7 @@ class Thermostat:
             if opmode is None:
                 # don't consider this thermostat
                 return
-            elif opmode == self.cfg["opmode_off"]:
+            if opmode == self.cfg["opmode_off"]:
                 _target_temp = expr.Off()
         else:
             opmode = None
@@ -175,7 +175,7 @@ class Thermostat:
                 target_temp -= self.cfg["delta"]
             else:
                 self.log("Received state of {}."
-                         .format("OFF" if target_temp.is_off() else "ON"),
+                         .format("OFF" if target_temp.is_off else "ON"),
                          prefix=common.LOG_PREFIX_INCOMING)
 
             self.events.trigger(
@@ -229,8 +229,9 @@ class Thermostat:
         self.log("Cancelled resend timer.", level="DEBUG")
         return True
 
+    @property
     def is_synced(self) -> bool:
-        """Returns whether the thermostat's target temperature is the
+        """Tells whether the thermostat's target temperature is the
         wanted temperature and no re-sending is in progress."""
 
         return self.resend_timer is None and \
@@ -250,7 +251,7 @@ class Thermostat:
         The return value is either the actually set temperature or
         None, if nothing has been sent."""
 
-        if target_temp.is_off():
+        if target_temp.is_off:
             temp = None
             opmode = self.cfg["opmode_off"]
         else:
@@ -296,7 +297,7 @@ class Thermostat:
             wanted_temp = expr.Temp(0)
         self.wanted_temp = wanted_temp
 
-        if not force_resend and self.is_synced():
+        if not force_resend and self.is_synced:
             self.log("Not sending temperature redundantly.",
                      level="DEBUG")
             return None

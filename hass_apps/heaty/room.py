@@ -86,7 +86,7 @@ class Room:
             times = set()  # type: T.Set[datetime.time]
             for path in self.schedule.unfold():
                 for rule in path:
-                    if not rule.is_always_valid():
+                    if not rule.is_always_valid:
                         times.update((rule.start_time, rule.end_time),)
 
             self.log("Registering scheduling timers at: {}"
@@ -127,7 +127,7 @@ class Room:
                      prefix=common.LOG_PREFIX_OUTGOING)
 
     def eval_temp_expr(
-            self, temp_expr: expr.EXPR_TYPE
+            self, temp_expr: expr.ExprType
     ) -> T.Optional[expr.ResultBase]:
         """This is a wrapper around expr.eval_temp_expr that adds
         the room_name to the evaluation environment, as well as all
@@ -277,7 +277,7 @@ class Room:
             self.set_temp(temp, scheduled=True, force_resend=force_resend)
 
     def set_temp_manually(
-            self, temp_expr: expr.EXPR_TYPE, force_resend: bool = False,
+            self, temp_expr: expr.ExprType, force_resend: bool = False,
             reschedule_delay: T.Union[float, int, None] = None
     ) -> None:
         """Evaluates the given temperature expression and sets the result.
@@ -336,9 +336,7 @@ class Room:
         """Returns a list of window sensors in this room which
         currently report to be open,"""
 
-        _open = filter(lambda sensor: sensor.is_open(),
-                       self.window_sensors)
-        return list(_open)
+        return list(filter(lambda sensor: sensor.is_open, self.window_sensors))
 
     def check_for_open_window(self) -> bool:
         """Checks whether a window is open in this room and,
@@ -361,7 +359,7 @@ class Room:
         return False
 
     def notify_set_temp_event(
-            self, temp_expr: expr.EXPR_TYPE, force_resend: bool = False,
+            self, temp_expr: expr.ExprType, force_resend: bool = False,
             reschedule_delay: T.Union[float, int, None] = None
     ) -> None:
         """Handles a heaty_set_temp event for this room."""
