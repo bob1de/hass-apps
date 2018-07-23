@@ -13,8 +13,8 @@ import datetime
 import functools
 
 
-__all__ = ["Add", "Break", "Ignore", "IncludeSchedule", "Off", "OFF",
-           "Result", "Temp"]
+__all__ = ["Add", "Break", "Continue", "Ignore", "IncludeSchedule", "Off",
+           "Off", "Result", "Temp"]
 
 
 # type of an evaluable expression
@@ -68,7 +68,7 @@ class Break(ResultBase):
     def __repr__(self) -> str:
         return "Break()"
 
-class Ignore(ResultBase):
+class Continue(ResultBase):
     """Result of a temperature expression which should be ignored."""
 
     def __init__(self) -> None:
@@ -76,7 +76,11 @@ class Ignore(ResultBase):
         self.temp = None
 
     def __repr__(self) -> str:
-        return "Ignore()"
+        return "Continue()"
+
+# Provide the old name as a fallback
+Ignore = Continue
+
 
 class IncludeSchedule(ResultBase):
     """Result that includes a schedule for processing."""

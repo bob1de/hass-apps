@@ -154,7 +154,7 @@ class Room:
         the given datetime object represents. The temperature and the
         matching rule are returned.
         If no temperature could be found in the schedule (e.g. all
-        rules evaluate to Ignore()), None is returned."""
+        rules evaluate to Continue()), None is returned."""
 
         self.log("Evaluating schedule: {}".format(sched),
                  level="DEBUG")
@@ -190,7 +190,7 @@ class Room:
                          level="DEBUG")
                 return None
 
-            if isinstance(result, expr.Ignore):
+            if isinstance(result, expr.Continue):
                 self.log("Skipping this rule.",
                          level="DEBUG")
                 continue
@@ -218,7 +218,7 @@ class Room:
         the current date and time. The second return value is the rule
         which generated the result.
         If no temperature could be found in the schedule (e.g. all
-        rules evaluate to Ignore()), None is returned."""
+        rules evaluate to Continue()), None is returned."""
 
         if self.schedule is None:
             return None
