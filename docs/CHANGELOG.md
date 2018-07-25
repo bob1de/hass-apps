@@ -17,6 +17,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 ### Deprecated
+* AppDaemon 2.x support will be dropped in a late August 2018
+  release. Please switch to AppDaemon 3.x.
 
 ### Removed
 
