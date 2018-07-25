@@ -9,10 +9,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
+* Added documentation for the ``current_temp_state_attr`` option to the
+  sample configuration file.
 
 ### Security
 
 ### Added
+* The ``current_temp_state_attr`` option can now be set to ``null``
+  in order to disable fetching of current temperature completely.
 
 ### Changed
 * Changed the default values of ``opmode_heat`` and ``opmode_off``

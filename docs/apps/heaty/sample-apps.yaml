@@ -181,6 +181,14 @@ heaty_full:
     # (default: temperature)
     #target_temp_state_attr: temperature
 
+    # Entity attribute that holds the current temperature as measured
+    # by the thermostat's temperature sensor.
+    # This is used for calculating the statistical temp_delta value. If
+    # your thermostat doesn't support this feature, set the value to null
+    # in order to disable it.
+    # (default: current_temperature)
+    #current_temp_state_attr: current_temperature
+
   # In the following config block, you may define settings that affect
   # all window sensors in your setup. These can be overwritten on a per
   # sensor basis.

@@ -196,7 +196,7 @@ THERMOSTAT_SCHEMA = vol.Schema(vol.All(
         vol.Optional("target_temp_state_attr", default="temperature"): str,
         vol.Optional(
             "current_temp_state_attr", default="current_temperature"
-        ): str,
+        ): vol.Any(str, None),
     },
 ))
 

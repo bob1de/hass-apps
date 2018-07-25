@@ -124,11 +124,12 @@ class Thermostat:
             self.log("Attribute {} is {}."
                      .format(self.cfg["opmode_state_attr"], opmode),
                      level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
-            if opmode is None:
-                # don't consider this thermostat
-                return
             if opmode == self.cfg["opmode_off"]:
                 _target_temp = expr.Off()
+            elif opmode != self.cfg["opmode_heat"]:
+                self.log("Unknown operation mode, ignoring thermostat.",
+                         level="ERROR")
+                return
         else:
             opmode = None
 
@@ -145,20 +146,27 @@ class Thermostat:
         try:
             target_temp = expr.Temp(_target_temp)
         except ValueError:
-            # no valid temperature, don't consider this thermostat
+            self.log("Invalid target temperature, ignoring thermostat.",
+                     level="ERROR")
             return
 
-        _current_temp = attrs.get(self.cfg["current_temp_state_attr"])
-        self.log("Attribute {} is {}."
-                 .format(self.cfg["current_temp_state_attr"], _current_temp),
-                 level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
-        try:
-            current_temp = expr.Temp(_current_temp)  # type: T.Optional[expr.Temp]
-        except ValueError:
-            current_temp = None
-        if current_temp != self.current_temp:
-            self.current_temp = current_temp
-            self.events.trigger("current_temp_changed", self, current_temp)
+        current_temp_attr = self.cfg["current_temp_state_attr"]
+        if current_temp_attr:
+            _current_temp = attrs.get(current_temp_attr)
+            self.log("Attribute {} is {}."
+                     .format(current_temp_attr, _current_temp),
+                     level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
+            try:
+                current_temp = expr.Temp(_current_temp)  # type: T.Optional[expr.Temp]
+            except ValueError:
+                self.log("Invalid current temperature, not updating it.",
+                         level="ERROR")
+            else:
+                if current_temp != self.current_temp:
+                    self.current_temp = current_temp
+                    self.events.trigger(
+                        "current_temp_changed", self, current_temp
+                    )
 
         if target_temp == self.wanted_temp:
             # thermostat adapted to the temperature we want,
