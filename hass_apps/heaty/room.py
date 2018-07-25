@@ -371,11 +371,9 @@ class Room:
 
     def notify_target_temp_changed(
             self, therm: "Thermostat", temp: expr.Temp,
-            no_reschedule: bool = False,
     ) -> None:
         """Should be called when the temperature has been changed
-        externally by manual adjustment at a thermostat.
-        Setting no_reschedule prevents re-scheduling."""
+        externally by manual adjustment at a thermostat."""
 
         if self.get_open_windows():
             # After window has been opened and heating turned off,
@@ -388,20 +386,20 @@ class Room:
             # dumb switches don't trigger change replication
             return
 
-        self.wanted_temp = temp
-
         if not self.app.master_is_on():
             return
+
+        neutral_temp = temp - therm.cfg["delta"]
 
         if self.cfg["replicate_changes"] and len(self.thermostats) > 1:
             self.log("Propagating the change to all thermostats "
                      "in the room.",
                      prefix=common.LOG_PREFIX_OUTGOING)
-            self.set_temp(temp, scheduled=False)
+            self.set_temp(neutral_temp, scheduled=False)
 
-        if temp == self.wanted_temp:
+        if neutral_temp == self.wanted_temp:
             self.cancel_reschedule_timer()
-        elif not no_reschedule:
+        else:
             self.start_reschedule_timer(restart=True)
 
     def notify_window_action(self, sensor: WindowSensor, is_open: bool) -> None:  # pylint: disable=unused-argument

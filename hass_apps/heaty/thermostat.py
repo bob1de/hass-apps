@@ -109,7 +109,7 @@ class Thermostat:
     def _state_cb(
             self, entity: str, attr: str,
             old: T.Optional[dict], new: T.Optional[dict],
-            kwargs: dict, no_reschedule: bool = False
+            kwargs: dict,
     ) -> None:
         """Is called when the thermostat's state changes.
         This method fetches both the current and target temperature from
@@ -174,21 +174,18 @@ class Thermostat:
             self.cancel_resend_timer()
 
         if target_temp != self.current_target_temp:
-            self.current_target_temp = target_temp
-
             if self.cfg["supports_temps"]:
                 self.log("Received target temperature of {}."
                          .format(str(target_temp)),
                          prefix=common.LOG_PREFIX_INCOMING)
-                target_temp -= self.cfg["delta"]
             else:
                 self.log("Received state of {}."
                          .format("OFF" if target_temp.is_off else "ON"),
                          prefix=common.LOG_PREFIX_INCOMING)
 
+            self.current_target_temp = target_temp
             self.events.trigger(
-                "target_temp_changed", self, target_temp,
-                no_reschedule=no_reschedule
+                "target_temp_changed", self, target_temp
             )
 
     def initialize(self) -> None:
@@ -213,8 +210,7 @@ class Thermostat:
             else:
                 # populate self.current_target_temp etc. by simulating a
                 # state change
-                self._state_cb(self.entity_id, "all", state, state, {},
-                               no_reschedule=True)
+                self._state_cb(self.entity_id, "all", state, state, {})
 
         self.log("Listening for state changes.",
                  level="DEBUG")
