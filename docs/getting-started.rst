@@ -1,25 +1,41 @@
 Getting Started
 ===============
 
-In order to use one or more of the included apps, please install the
-whole ``hass-apps`` package. Don't worry, only the apps you configure
-will be loaded.
+Requirements
+------------
 
-The minimum required Python version is 3.5. If you are unsure what you
-have installed, run ``python3 --version``. If your version of Python is
-recent enough, you may continue with installing.
+Hass-apps is developed under GNU/Linux, but since there are no
+platform-specific Python modules used it should run everywhere Python
+and AppDaemon are available. However, we'll assume an installation under
+GNU/Linux for the rest of this guide. Feel free to apply it to your own
+operating system.
+
+The minimum required Python version is 3.5. To find out what you have
+installed, run ``python3 --version``. If your version of Python is recent
+enough, you may continue with installing.
 
 
 Installation
 ------------
 
-It is strongly recommended to install hass-apps into a virtualenv, separated
-even from Home Assistant in order to avoid conflicts with different versions
-of dependency packages. These steps will guide you through the installation
+In order to use one or more of the included apps, please install the
+whole ``hass-apps`` package. Don't worry, only the apps you configure
+will be loaded.
+
+It is strongly recommended to install hass-apps into a virtualenv,
+separated even from Home Assistant in order to avoid conflicts with
+different versions of dependency packages.
+
+Other huge benefits of the virtualenv installation are that you neither
+need root privileges nor do you pollute your system.with numerous tiny
+packages that are complicated to remove if you sometime wish to do so.
+
+The following simple steps will guide you through the installation
 process.
 
 1. If you use a distribution like Debian or Ubuntu which doesn't ship
-   ``venv`` with Python by default, install it first:
+   ``venv`` with Python by default, install it first. Of course you do
+   need root privileges for this particular step.
 
    ::
 
