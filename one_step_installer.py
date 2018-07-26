@@ -45,7 +45,9 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
     logging.info("Welcome to the automated hass-apps installer!")
     logging.info("")
     logging.info("This installer will install the latest stable version "
-                 "of hass-apps into a directory of your choice.")
+                 "of hass-apps into a directory of your choice. It won't "
+                 "touch anything outside that directory or pollute your "
+                 "system otherwise.")
     logging.info("")
 
     # check python version
