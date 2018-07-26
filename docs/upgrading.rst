@@ -1,6 +1,20 @@
 Upgrading
 =========
 
+As with every software, hass-apps and its dependencies need to be upgraded
+regularly in order to get the latest fixes, security updates, feature
+additions and enhancements that are incorporated every now and then.
+
+
+Upgrade Using the One-Step Installer
+------------------------------------
+
+If you used the `One-Step Installer <getting-started.html#one-step-installer>`_ for setting hass-apps up, you can simply re-run it and specify the same location as you did when installing. It'll then remove the old directory and install a fresh up-to-date copy of hass-apps. But make sure you didn't place your configuration files inside the installation directory to not loose them when re-installing.
+
+
+Upgrade Manually
+----------------
+
 1. First, ``cd`` into and activate your virtualenv.
 
    ::

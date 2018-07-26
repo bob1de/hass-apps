@@ -1,6 +1,7 @@
 Getting Started
 ===============
 
+
 Requirements
 ------------
 
@@ -15,8 +16,24 @@ installed, run ``python3 --version``. If your version of Python is recent
 enough, you may continue with installing.
 
 
-Installation
-------------
+One-Step Installer
+------------------
+
+If you are lucky enough to use GNU/Linux, there is a script available to
+make things really simple. Just open a console, terminal, SSH session or
+whatever and execute the following command. Execute it as the user that
+should run AppDaemon later, doing this as root is strictly dissuaded from.
+
+::
+
+    wget -O- https://raw.githubusercontent.com/efficiosoft/hass-apps/master/one_step_installer.py > /tmp/one_step_installer.py && python3 /tmp/one_step_installer.py
+
+Once the script has been downloaded, it'll be run automatically. Follow
+the instructions on screen.
+
+
+Manual Installation
+-------------------
 
 In order to use one or more of the included apps, please install the
 whole ``hass-apps`` package. Don't worry, only the apps you configure
