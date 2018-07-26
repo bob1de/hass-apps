@@ -28,7 +28,8 @@ different versions of dependency packages.
 
 Other huge benefits of the virtualenv installation are that you neither
 need root privileges nor do you pollute your system.with numerous tiny
-packages that are complicated to remove if you sometime wish to do so.
+packages that are complicated to remove, should you sometime wish to
+do so.
 
 The following simple steps will guide you through the installation
 process.
