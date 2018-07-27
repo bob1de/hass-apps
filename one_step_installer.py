@@ -257,6 +257,8 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
     logging.info("If you experience any difficulties, have a look at the "
                  "quite comprehensive documentation at %s", DOCS_URL)
     logging.info("")
+    logging.info("You may re-run this installer from time to time in order to keep hass-apps up-to-date.")
+    logging.info("")
     logging.info("Have fun!")
     logging.info("")
 
