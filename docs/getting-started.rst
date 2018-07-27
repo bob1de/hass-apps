@@ -29,7 +29,7 @@ should run AppDaemon later, doing this as root is strictly dissuaded from.
 
 ::
 
-    wget -O- https://raw.githubusercontent.com/efficiosoft/hass-apps/master/one_step_installer.py > /tmp/one_step_installer.py && python3 /tmp/one_step_installer.py
+    wget -qO- https://raw.githubusercontent.com/efficiosoft/hass-apps/master/one_step_installer.py > /tmp/one_step_installer.py && python3 /tmp/one_step_installer.py
 
 Once the script has been downloaded, it'll be run automatically. Follow
 the instructions on screen.
