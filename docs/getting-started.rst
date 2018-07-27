@@ -1,11 +1,14 @@
 Getting Started
 ===============
 
-
 Requirements
 ------------
 
-Hass-apps is developed under GNU/Linux, but since there are no
+Hass-apps is a collection of apps for `AppDaemon
+<https://appdaemon.readthedocs.io/en/stable/>`_, hence AppDaemon is a
+dependency of hass-apps and will automatically be installed alongside.
+
+The project itself is developed under GNU/Linux, but since there are no
 platform-specific Python modules used it should run everywhere Python
 and AppDaemon are available. However, we'll assume an installation under
 GNU/Linux for the rest of this guide. Feel free to apply it to your own
@@ -32,16 +35,12 @@ Once the script has been downloaded, it'll be run automatically. Follow
 the instructions on screen.
 
 
-Manual Installation
--------------------
+Manual Installation on GNU/LINUX
+--------------------------------
 
-In order to use one or more of the included apps, please install the
-whole ``hass-apps`` package. Don't worry, only the apps you configure
-will be loaded.
-
-It is strongly recommended to install hass-apps into a virtualenv,
-separated even from Home Assistant in order to avoid conflicts with
-different versions of dependency packages.
+It is strongly recommended to install hass-apps (+ it's dependencies
+like AppDaemon) into a virtualenv, separated even from Home Assistant in
+order to avoid conflicts with different versions of dependency packages.
 
 Other huge benefits of the virtualenv installation are that you neither
 need root privileges nor do you pollute your system.with numerous tiny
@@ -52,8 +51,10 @@ The following simple steps will guide you through the installation
 process.
 
 1. If you use a distribution like Debian or Ubuntu which doesn't ship
-   ``venv`` with Python by default, install it first. Of course you do
-   need root privileges for this particular step.
+   ``venv`` with Python by default, install it first. Whithout installing
+   ``python3-venv``, you'd end up with a crippled virtualenv with pip,
+   the Python package manager, not available. Of course you do need root
+   privileges for this particular step.
 
    ::
 
@@ -119,6 +120,14 @@ The only actions needed in order to install under hass.io are:
 
 Configuration
 -------------
+
+When you followed the above steps for installing hass-apps,
+you automatically installed AppDaemon as well. Configuring
+AppDaemon is out of the scope of this tutorial, but there
+is a `Configuration Section in the AppDaemon Documentation
+<https://appdaemon.readthedocs.io/en/stable/INSTALL.html#configuration>`_
+which describes what to do. We assume that you've got a working AppDaemon
+3.x for now.
 
 1. Get yourself a nice cup of coffee or tea. You'll surely need it.
 2. Copy the file ``hass_apps/data/hass_apps_loader.py`` into your
