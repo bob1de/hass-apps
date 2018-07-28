@@ -17,6 +17,7 @@ APPS = (
 )
 BASE_URL = "https://raw.githubusercontent.com/efficiosoft/hass-apps/master/"
 DOCS_URL = "https://hass-apps.readthedocs.io/en/stable/"
+OSI_FILENAME = "one_step_installer.py"
 MIN_PYVERSION = StrictVersion("3.5")
 SUPPORTED_PLATFORMS = ("linux",)
 
@@ -158,13 +159,14 @@ def configure(dest_dir):
     logging.info("I'm now fetching sample configuration files for the "
                  "apps you'd like to use.")
     files = [
-        ("hass_apps/data/hass_apps_loader.py", "apps/hass_apps_loader.py"),
+        ("hass_apps/data/hass_apps_loader.py",
+         os.path.join("apps", "hass_apps_loader.py")),
     ]
     for app in APPS:
         if read("Do you want to use the app {}? (y/n)".format(app), "n") == "y":
             files.append(
                 ("docs/apps/{}/sample-apps.yaml".format(app),
-                 "apps/{}.yaml".format(app)),
+                 os.path.join("apps", "{}.yaml".format(app))),
             )
 
     logging.info("Downloading configuration files.")
@@ -233,6 +235,25 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
 
     conf_dir = configure(dest_dir)
 
+    import urllib.request
+    osi_url = urllib.request.urljoin(BASE_URL, OSI_FILENAME)
+    osi_filename = os.path.join(dest_dir, OSI_FILENAME)
+    new_osi_filename = "{}.new".format(osi_filename)
+    while True:
+        logging.info("Downloading a copy of the One-Step Installer.")
+        try:
+            urllib.request.urlretrieve(osi_url, filename=new_osi_filename)
+            os.chmod(new_osi_filename, 0o755)
+            os.rename(new_osi_filename, osi_filename)
+        except OSError as err:
+            logging.error(err)
+            if read("Retry? (y/n)", "y") != "y":
+                osi_filename = None
+                break
+        else:
+            break
+
+    logging.info("")
     logging.info("Congratulations, you made your way through the installer!")
     logging.info("")
     import shlex
@@ -254,10 +275,15 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
     logging.info("")
     logging.info("    %s", ad_cmd)
     logging.info("")
+    logging.info("You may re-run this installer from time to time in "
+                 "order to keep hass-apps up-to-date.")
+    if osi_filename:
+        logging.info("Use the following command for upgrading:")
+        logging.info("")
+        logging.info("    %s", shlex.quote(osi_filename))
+    logging.info("")
     logging.info("If you experience any difficulties, have a look at the "
                  "quite comprehensive documentation at %s", DOCS_URL)
-    logging.info("")
-    logging.info("You may re-run this installer from time to time in order to keep hass-apps up-to-date.")
     logging.info("")
     logging.info("Have fun!")
     logging.info("")
