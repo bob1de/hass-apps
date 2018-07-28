@@ -22,16 +22,17 @@ enough, you may continue with installing.
 One-Step Installer
 ------------------
 
-If you are lucky enough to use GNU/Linux, there is a script available to
-make things really simple. Just open a console, terminal, SSH session or
-whatever and execute the following command. Execute it as the user that
-should run AppDaemon later, doing this as root is strictly dissuaded from.
+If you are lucky enough to use GNU/Linux, there is a script available
+to guide you through the installation and configuration. Just open a
+console, terminal, SSH session or whatever and execute the following
+command. Execute it as the user that should run AppDaemon later, doing
+this as root is strictly dissuaded from.
 
 ::
 
     wget -qO- https://raw.githubusercontent.com/efficiosoft/hass-apps/master/one_step_installer.py > /tmp/one_step_installer.py && python3 /tmp/one_step_installer.py
 
-Once the script has been downloaded, it'll be run automatically. Follow
+Once the script has been downloaded, it'll run automatically. Follow
 the instructions on screen.
 
 
