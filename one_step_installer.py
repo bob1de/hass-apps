@@ -48,9 +48,15 @@ def read(prompt, default=None):
 def install():  # pylint: disable=too-many-statements
     """Install hass-apps."""
 
+    # try to detect whether this could be an upgrade
+    path = os.path.dirname(os.path.abspath(__file__))
+    if os.path.exists(os.path.join(path, "venv")):
+        default_dest_dir = path
+    else:
+        default_dest_dir = os.path.abspath("appdaemon")
+
     while True:
-        dest_dir = os.path.abspath("ad")
-        dest_dir = read("Destination directory", dest_dir)
+        dest_dir = read("Destination directory", default_dest_dir)
         dest_dir = os.path.abspath(dest_dir)
         logging.info("Installing to %s.", repr(dest_dir))
         if read("Is this correct? (y/n)") != "y":
@@ -290,14 +296,16 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
 
     conf_dir = configure(dest_dir)
 
-    logging.info("Copying the One-Step Installer.")
+    our_filename = os.path.abspath(__file__)
     osi_filename = os.path.join(dest_dir, OSI_FILENAME)
-    try:
-        shutil.copy(__file__, osi_filename)
-        os.chmod(osi_filename, 0o755)
-    except OSError as err:
-        logging.error(err)
-        osi_filename = None
+    if our_filename != osi_filename:
+        logging.info("Copying the One-Step Installer.")
+        try:
+            shutil.copy(our_filename, osi_filename)
+            os.chmod(osi_filename, 0o755)
+        except OSError as err:
+            logging.error(err)
+            osi_filename = None
 
     import shlex
     logging.info("")
@@ -327,7 +335,7 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
         logging.info("    %s", shlex.quote(osi_filename))
     logging.info("")
     logging.info("If you experience any difficulties, have a look at the "
-            "documentation at:")
+                 "documentation at:")
     logging.info("    %s", DOCS_URL)
     logging.info("")
     logging.info("Have fun!")
