@@ -84,7 +84,7 @@ process.
 
 5. And finally, install hass-apps.
 
-   a) Install from PyPi (preferred).
+   a) Install the latest stable version from PyPi (preferred).
 
       ::
 
