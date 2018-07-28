@@ -296,12 +296,13 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
 
     conf_dir = configure(dest_dir)
 
-    our_filename = os.path.abspath(__file__)
     osi_filename = os.path.join(dest_dir, OSI_FILENAME)
-    if our_filename != osi_filename:
+    try:
+        assert os.path.samefile(__file__, osi_filename)
+    except (AssertionError, OSError):
         logging.info("Copying the One-Step Installer.")
         try:
-            shutil.copy(our_filename, osi_filename)
+            shutil.copy(__file__, osi_filename)
             os.chmod(osi_filename, 0o755)
         except OSError as err:
             logging.error(err)
