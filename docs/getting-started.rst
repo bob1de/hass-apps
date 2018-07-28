@@ -61,20 +61,19 @@ process.
 
        sudo apt install python3-venv
 
-2. Then, create the virtualenv. We do this in a directory named ``ad``
-   (which stands for AppDaemon) in this example inside the user's home
-   directory.
+2. Then, create the virtualenv. We do this in a directory named
+   ``appdaemon`` in this example inside the user's home directory.
 
    ::
 
-        mkdir ~/ad
-       python3 -m venv ~/ad/venv
+        mkdir ~/appdaemon
+       python3 -m venv ~/appdaemon/venv
 
 3. Activate the virtualenv.
 
    ::
 
-       cd ~/ad
+       cd ~/appdaemon
        source venv/bin/activate
 
 4. Now install some common packages.

@@ -20,11 +20,11 @@ up-to-date copy of hass-apps for you. All configuration data in the
 Upgrade Manually
 ----------------
 
-1. First, ``cd`` into ``~/ad`` and activate your virtualenv.
+1. First, ``cd`` into ``~/appdaemon`` and activate your virtualenv.
 
    ::
 
-       cd ~/ad
+       cd ~/appdaemon
        source venv/bin/activate
 
 2. Upgrade common packages.
@@ -62,7 +62,7 @@ manual installation from the git repository.
 
 To go from a git-based installation to the latest stable release from
 PyPi, remove the ``hass_apps`` directory that contains your working
-copy of the git repository with a simple ``rm -rf ~/ad/hass-apps``
+copy of the git repository with a simple ``rm -rf ~/appdaemon/hass-apps``
 and follow the `Installation Guide`_ from step 3 onwards.
 
 For switching from PyPi to git, just follow the `Installation Guide`_
