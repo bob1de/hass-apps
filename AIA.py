@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pylint: disable=invalid-name
 
 """Automated installer script for hass-apps."""
 
@@ -18,7 +19,7 @@ APPS = (
 )
 BASE_URL = "https://raw.githubusercontent.com/efficiosoft/hass-apps/master/"
 DOCS_URL = "https://hass-apps.readthedocs.io/en/stable/"
-OSI_FILENAME = "one_step_installer.py"
+AIA_FILENAME = "AIA.py"
 MIN_PYVERSION = StrictVersion("3.5")
 SUPPORTED_PLATFORMS = ("linux",)
 
@@ -202,7 +203,7 @@ def configure(dest_dir):
 def upgrade_installer():
     """Upgrades the installer to the latest version and restart if necessary."""
 
-    logging.info("Checking for a newer One-Step Installer.")
+    logging.info("Checking for a newer Auto-Install Assistant.")
 
     try:
         with open(__file__, "rb") as file:
@@ -213,10 +214,10 @@ def upgrade_installer():
         return
 
     import urllib.request
-    osi_url = urllib.request.urljoin(BASE_URL, OSI_FILENAME)
+    aia_url = urllib.request.urljoin(BASE_URL, AIA_FILENAME)
     while True:
         try:
-            filename = urllib.request.urlretrieve(osi_url)[0]
+            filename = urllib.request.urlretrieve(aia_url)[0]
             with open(filename, "rb") as file:
                 latest_hash = hashlib.md5(file.read()).hexdigest()
         except OSError as err:
@@ -297,17 +298,17 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
 
     conf_dir = configure(dest_dir)
 
-    osi_filename = os.path.join(dest_dir, OSI_FILENAME)
+    aia_filename = os.path.join(dest_dir, AIA_FILENAME)
     try:
-        assert os.path.samefile(__file__, osi_filename)
+        assert os.path.samefile(__file__, aia_filename)
     except (AssertionError, OSError):
-        logging.info("Copying the One-Step Installer.")
+        logging.info("Copying the Auto-Install Assistant.")
         try:
-            shutil.copy(__file__, osi_filename)
-            os.chmod(osi_filename, 0o755)
+            shutil.copy(__file__, aia_filename)
+            os.chmod(aia_filename, 0o755)
         except OSError as err:
             logging.error(err)
-            osi_filename = None
+            aia_filename = None
 
     import shlex
     logging.info("")
@@ -331,10 +332,10 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
     logging.info("")
     logging.info("You may re-run this installer from time to time in "
                  "order to keep hass-apps up-to-date.")
-    if osi_filename:
+    if aia_filename:
         logging.info("Use the following command for upgrading:")
         logging.info("")
-        logging.info("    %s", shlex.quote(osi_filename))
+        logging.info("    %s", shlex.quote(aia_filename))
     logging.info("")
     logging.info("If you experience any difficulties, have a look at the "
                  "documentation at:")

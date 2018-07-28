@@ -6,15 +6,17 @@ regularly in order to get the latest fixes, security updates, feature
 additions and enhancements that are incorporated every now and then.
 
 
-Upgrade Using the One-Step Installer
-------------------------------------
+Upgrade Using the Auto-Install Assistant
+----------------------------------------
 
-If you used the `One-Step Installer
-<getting-started.html#one-step-installer>`_ for setting hass-apps up,
-you can simply re-run it and specify the same location as you did when
-installing. It'll then remove the old version and install a fresh
+If you used the `Auto-Install Assistant
+<getting-started.html#auto-install-assistant>`_ for setting hass-apps
+up, you can simply re-run it and specify the same location as you did
+when installing. It'll then remove the old version and install a fresh
 up-to-date copy of hass-apps for you. All configuration data in the
-``conf`` sub-directory will of course be retained.
+``conf`` sub-directory will of course be retained. The assistant will
+have created a copy of itself called ``AIA.py`` in the installation
+directory. Just run it.
 
 
 Upgrade Manually

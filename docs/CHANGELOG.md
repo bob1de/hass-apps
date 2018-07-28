@@ -15,7 +15,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 * Added a script that automates the installation process and can be run
   with just one single command. See
-  [here](getting-started.html#one-step-installer) for more information.
+  [here](getting-started.html#auto-install-assistant) for more
+  information.
 
 ### Changed
 

@@ -19,8 +19,8 @@ installed, run ``python3 --version``. If your version of Python is recent
 enough, you may continue with installing.
 
 
-One-Step Installer
-------------------
+Auto-Install Assistant
+----------------------
 
 If you are lucky enough to use GNU/Linux, there is a script available
 to guide you through the installation and configuration. Just open a
@@ -30,7 +30,7 @@ this as root is strictly dissuaded from.
 
 ::
 
-    wget -qO- https://raw.githubusercontent.com/efficiosoft/hass-apps/master/one_step_installer.py > /tmp/one_step_installer.py && python3 /tmp/one_step_installer.py
+    wget -qO- https://raw.githubusercontent.com/efficiosoft/hass-apps/master/AIA.py > /tmp/AIA.py && python3 /tmp/AIA.py
 
 Once the script has been downloaded, it'll run automatically. Follow
 the instructions on screen.
