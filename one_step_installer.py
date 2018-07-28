@@ -196,21 +196,27 @@ def configure(dest_dir):
 def upgrade_installer():
     """Upgrades the installer to the latest version and restart if necessary."""
 
+    logging.info("Checking for a newer One-Step Installer.")
+
+    try:
+        with open(__file__, "rb") as file:
+            our_hash = hashlib.md5(file.read()).hexdigest()
+    except OSError as err:
+        logging.error(err)
+        logging.warning("Ok, not upgrading the installer.")
+        return
+
     import urllib.request
     osi_url = urllib.request.urljoin(BASE_URL, OSI_FILENAME)
-    our_filename = os.path.abspath(__file__)
     while True:
-        logging.info("Downloading the latest One-Step Installer.")
         try:
             filename = urllib.request.urlretrieve(osi_url)[0]
             with open(filename, "rb") as file:
                 latest_hash = hashlib.md5(file.read()).hexdigest()
-            with open(our_filename, "rb") as file:
-                our_hash = hashlib.md5(file.read()).hexdigest()
         except OSError as err:
             logging.error(err)
             if read("Retry? (y/n)", "y") != "y":
-                logging.info("Ok, not upgrading the installer.")
+                logging.warning("Ok, not upgrading the installer.")
                 return
         else:
             break
@@ -219,9 +225,12 @@ def upgrade_installer():
         logging.info("This is the latest version of the installer.")
         result = None
     else:
-        logging.info("There is a new installer available, running it instead.")
+        logging.info("A new installer is available, running that instead.")
         cmd = ["python3", filename, "--no-upgrade"]
-        result = subprocess.call(cmd)
+        try:
+            result = subprocess.call(cmd)
+        except KeyboardInterrupt:
+            result = 1
 
     try:
         os.remove(filename)
