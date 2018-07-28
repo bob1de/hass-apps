@@ -327,7 +327,8 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
         logging.info("    %s", shlex.quote(osi_filename))
     logging.info("")
     logging.info("If you experience any difficulties, have a look at the "
-                 "quite comprehensive documentation at %s", DOCS_URL)
+            "documentation at:")
+    logging.info("    %s", DOCS_URL)
     logging.info("")
     logging.info("Have fun!")
     logging.info("")
