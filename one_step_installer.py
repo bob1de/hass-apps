@@ -287,9 +287,10 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
     logging.info("Welcome to the automated hass-apps installer!")
     logging.info("")
     logging.info("This installer will install the latest stable version "
-                 "of hass-apps into a directory of your choice. It won't "
-                 "touch anything outside that directory or pollute your "
-                 "system otherwise.")
+                 "of AppDaemon, bundled with hass-apps, to a directory "
+                 "of your choice.")
+    logging.info("It won't touch anything outside that directory or "
+                 "pollute your system otherwise.")
     logging.info("")
 
     dest_dir, venv_dir = install()
