@@ -2,6 +2,7 @@
 
 """Automated installer script for hass-apps."""
 
+import hashlib
 import logging
 import os
 import shutil
@@ -48,7 +49,7 @@ def install():  # pylint: disable=too-many-statements
     """Install hass-apps."""
 
     while True:
-        dest_dir = os.path.abspath(os.path.join(".", "ad"))
+        dest_dir = os.path.abspath("ad")
         dest_dir = read("Destination directory", dest_dir)
         dest_dir = os.path.abspath(dest_dir)
         logging.info("Installing to %s.", repr(dest_dir))
@@ -192,19 +193,51 @@ def configure(dest_dir):
     return conf_dir
 
 
+def upgrade_installer():
+    """Upgrades the installer to the latest version and restart if necessary."""
+
+    import urllib.request
+    osi_url = urllib.request.urljoin(BASE_URL, OSI_FILENAME)
+    our_filename = os.path.abspath(__file__)
+    while True:
+        logging.info("Downloading the latest One-Step Installer.")
+        try:
+            filename = urllib.request.urlretrieve(osi_url)[0]
+            with open(filename, "rb") as file:
+                latest_hash = hashlib.md5(file.read()).hexdigest()
+            with open(our_filename, "rb") as file:
+                our_hash = hashlib.md5(file.read()).hexdigest()
+        except OSError as err:
+            logging.error(err)
+            if read("Retry? (y/n)", "y") != "y":
+                logging.info("Ok, not upgrading the installer.")
+                return
+        else:
+            break
+
+    if our_hash == latest_hash:
+        logging.info("This is the latest version of the installer.")
+        result = None
+    else:
+        logging.info("There is a new installer available, running it instead.")
+        cmd = ["python3", filename, "--no-upgrade"]
+        result = subprocess.call(cmd)
+
+    try:
+        os.remove(filename)
+    except OSError:
+        pass
+
+    if result is None:
+        return
+    sys.exit(result)
+
+
 def main():  # pylint: disable=too-many-branches,too-many-statements
     """Main process."""
 
     logging.basicConfig(format="[{levelname:^7s}]  {message}",
                         style="{", level=logging.INFO)
-
-    logging.info("Welcome to the automated hass-apps installer!")
-    logging.info("")
-    logging.info("This installer will install the latest stable version "
-                 "of hass-apps into a directory of your choice. It won't "
-                 "touch anything outside that directory or pollute your "
-                 "system otherwise.")
-    logging.info("")
 
     # check python version
     version = StrictVersion("{}.{}.{}".format(sys.version_info.major,
@@ -231,49 +264,51 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
         if read("Are you sure you want to continue? (y/n)", "n") != "y":
             fatal("Aborting.")
 
+    if len(sys.argv) != 2 or sys.argv[1] != "--no-upgrade":
+        upgrade_installer()
+
+    logging.info("")
+    logging.info("")
+    logging.info("Welcome to the automated hass-apps installer!")
+    logging.info("")
+    logging.info("This installer will install the latest stable version "
+                 "of hass-apps into a directory of your choice. It won't "
+                 "touch anything outside that directory or pollute your "
+                 "system otherwise.")
+    logging.info("")
+
     dest_dir, venv_dir = install()
 
     conf_dir = configure(dest_dir)
 
-    import urllib.request
-    osi_url = urllib.request.urljoin(BASE_URL, OSI_FILENAME)
+    logging.info("Copying the One-Step Installer.")
     osi_filename = os.path.join(dest_dir, OSI_FILENAME)
-    new_osi_filename = "{}.new".format(osi_filename)
-    while True:
-        logging.info("Downloading a copy of the One-Step Installer.")
-        try:
-            urllib.request.urlretrieve(osi_url, filename=new_osi_filename)
-            os.chmod(new_osi_filename, 0o755)
-            os.rename(new_osi_filename, osi_filename)
-        except OSError as err:
-            logging.error(err)
-            if read("Retry? (y/n)", "y") != "y":
-                osi_filename = None
-                break
-        else:
-            break
+    try:
+        shutil.copy(__file__, osi_filename)
+        os.chmod(osi_filename, 0o755)
+    except OSError as err:
+        logging.error(err)
+        osi_filename = None
 
+    import shlex
     logging.info("")
     logging.info("Congratulations, you made your way through the installer!")
     logging.info("")
-    import shlex
+    ad_cmd = [os.path.join(venv_dir, "bin", "appdaemon"), "-c"]
     if conf_dir:
         logging.info("The configuration assistant has placed a number of "
                      "sample configuration files in %s.", conf_dir)
         logging.info("Please have a look and adapt them to your needs.")
-        ad_cmd = "{} -c {}".format(
-            shlex.quote(os.path.join(venv_dir, "bin", "appdaemon")),
-            shlex.quote(conf_dir)
-        )
+        ad_cmd.append(conf_dir)
     else:
         logging.info("You decided not to complete the configuration assistant.")
         logging.info("Please create the configuration files for AppDaemon "
                      "and your desired apps manually.")
-        ad_cmd = shlex.quote(os.path.join(venv_dir, "bin", "appdaemon"))
+        ad_cmd.append("path_to_config_directory")
     logging.info("")
     logging.info("You can run AppDaemon with the following command:")
     logging.info("")
-    logging.info("    %s", ad_cmd)
+    logging.info("    %s", " ".join([shlex.quote(part) for part in ad_cmd]))
     logging.info("")
     logging.info("You may re-run this installer from time to time in "
                  "order to keep hass-apps up-to-date.")
