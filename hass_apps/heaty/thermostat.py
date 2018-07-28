@@ -151,7 +151,7 @@ class Thermostat:
             return
 
         current_temp_attr = self.cfg["current_temp_state_attr"]
-        if current_temp_attr:
+        if current_temp_attr and self.cfg["supports_temps"]:
             _current_temp = attrs.get(current_temp_attr)
             self.log("Attribute {} is {}."
                      .format(current_temp_attr, _current_temp),
