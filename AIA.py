@@ -46,7 +46,7 @@ def read(prompt, default=None):
             return default
 
 
-def install():  # pylint: disable=too-many-statements
+def install():  # pylint: disable=too-many-branches,too-many-statements
     """Install hass-apps."""
 
     # try to detect whether this could be an upgrade
@@ -75,20 +75,32 @@ def install():  # pylint: disable=too-many-statements
             if os.path.exists(venv_dir):
                 logging.info("The sub-directory for the virtualenv %s "
                              "already exists.", repr(venv_dir))
-                logging.info("It normally only contains the installed "
-                             "software and no user data.")
                 logging.info("This usually means that hass-apps is already "
                              "installed there.")
-                if read("Remove it and re-install the latest version? (y/n)") != "y":
-                    logging.info("Ok, not re-installing.")
+                logging.info("You may either upgrade the existing "
+                             "installation, remove it and re-install from "
+                             "scratch or keep the current state.")
+                logging.info("Even when re-installing, only the `venv` "
+                             "sub-directory is going to be wiped. Your "
+                             "configuration is always safe.")
+                choice = None
+                while choice not in ("u", "r", "k"):
+                    choice = read("[u]pgrade, [r]e-install or [k]eep?", "u")
+                if choice == "u":
+                    break
+                elif choice == "r":
+                    logging.info("Removing the 'venv' sub-directory.")
+                    shutil.rmtree(venv_dir)
+                elif choice == "k":
+                    logging.info("Ok, not upgrading.")
                     logging.info("Maybe you just want to run the "
                                  "configuration assistant?")
                     if read("Just run the config assistant (y/n)") == "y":
                         return dest_dir, venv_dir
                     logging.info("Then choose another location please.")
                     continue
-                logging.info("Removing the 'venv' sub-directory.")
-                shutil.rmtree(venv_dir)
+                else:
+                    continue
 
             logging.info("Creating virtualenv at %s.", repr(venv_dir))
             import venv
@@ -123,6 +135,43 @@ def install():  # pylint: disable=too-many-statements
             continue
         break
 
+    logging.info("I could install additional packages from the Python "
+                 "Package Index (PyPi) for you.")
+    logging.info("This is only needed when you write own AppDaemon apps "
+                 "that require third-party modules.")
+    logging.info("Leave the default if you are unsure.")
+    modules_filename = os.path.join(dest_dir, "requirements.txt")
+    try:
+        with open(modules_filename) as file:
+            modules = file.read().split()
+    except OSError:
+        modules = []
+    while True:
+        default = " ".join(modules) if modules else "none"
+        choice = read("Additional packages (space-separated) or 'none'",
+                      default)
+        modules = [] if choice == "none" else choice.split()
+        try:
+            if not modules:
+                os.remove(modules_filename)
+                break
+            logging.info("Installing these additional packages:")
+            logging.info("    %s", ", ".join(modules))
+            if read("Is this correct? (y/n)") != "y":
+                continue
+            cmd = ["sh", "-c", ". {}; pip install --upgrade {}"
+                   .format(activate,
+                           " ".join(shlex.quote(mod) for mod in modules))]
+            if subprocess.call(cmd) != 0:
+                logging.error("The pip call seems to have failed.")
+                if read("Retry? (y/n)", "y") == "y":
+                    continue
+            with open(modules_filename, "w") as file:
+                file.write("\n".join(modules))
+        except OSError:
+            pass
+        break
+
     logging.info("")
     logging.info("The installation has finished.")
     logging.info("")
@@ -138,8 +187,9 @@ def configure(dest_dir):
         if os.path.exists(conf_dir):
             logging.info("The configuration directory %s already exists.",
                          repr(conf_dir))
-            logging.info("I could back it up and create a fresh one.")
-            if read("Create a fresh sample configuration? (y/n)") != "y":
+            logging.info("I could back it up and create a fresh one, "
+                         "or you keep the existing.")
+            if read("Create a fresh sample configuration? (y/n)", "n") != "y":
                 return None
             backup_dir = "{}.backup_{}" \
                          .format(conf_dir, time.strftime("%Y-%m-%d_%H-%M-%S"))
