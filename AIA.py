@@ -60,7 +60,7 @@ def install():  # pylint: disable=too-many-branches,too-many-statements
         dest_dir = read("Destination directory", default_dest_dir)
         dest_dir = os.path.abspath(dest_dir)
         logging.info("Installing to %s.", repr(dest_dir))
-        if read("Is this correct? (y/n)") != "y":
+        if read("Is this correct? (y/n)", "y") != "y":
             continue
 
         try:
@@ -157,7 +157,7 @@ def install():  # pylint: disable=too-many-branches,too-many-statements
                 break
             logging.info("Installing these additional packages:")
             logging.info("    %s", ", ".join(modules))
-            if read("Is this correct? (y/n)") != "y":
+            if read("Is this correct? (y/n)", "y") != "y":
                 continue
             cmd = ["sh", "-c", ". {}; pip install --upgrade {}"
                    .format(activate,
