@@ -292,11 +292,11 @@ deciding whether to include a whole block of rules or not dynamically,
 e.g. based on the state of entities.
 
 To work around this limitation, you could include a schedule snippet as
-shown in the previous example, but this moves the rule declaration away
-from the location they are actually included at and thus can make your
-schedules difficult to understand. Schedule snippets are primarily
+shown in the previous example, but this moves the declaration of rules
+away from the location they are actually included at and thus can make
+your schedules difficult to understand. Schedule snippets are primarily
 meant for situations in which you want to re-use the same set of rules
-in different locations.
+at different locations.
 
 This is the point at which the ``SkipSubSchedule()`` result type comes
 into play. Return it from the temperature expression of a rule with a
