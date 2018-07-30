@@ -355,6 +355,9 @@ implement a schedule on/off switch with it, like so:
     schedule_prepend:
     - temp: Break() if is_off("input_boolean.heating_schedule") else Skip()
 
+As soon as ``Break()`` is returned, schedule evaluation is aborted and
+the temperature stays unchanged.
+
 
 Security Considerations
 -----------------------
