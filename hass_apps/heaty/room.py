@@ -160,7 +160,8 @@ class Room:
                  level="DEBUG")
 
         result_sum = expr.Add(0)
-        paths = list(sched.matching_rules(when))
+        temp_expr_cache = {}  # type: T.Dict[expr.ExprType, T.Optional[expr.ResultBase]]
+        paths = list(sched.matching_rule_paths(when))
         path_idx = 0
         while path_idx < len(paths):
             path = paths[path_idx]
@@ -169,14 +170,21 @@ class Room:
             self.log("Processing rule path: {}".format(path),
                      level="DEBUG")
 
-            rule = schedule.get_rule_path_temp(path)
+            rule = schedule.get_rule_path_temp_rule(path)
             # for mypy only
-            assert rule.temp_expr is not None
+            assert rule.temp_expr is not None and rule.temp_expr_raw is not None
 
-            result = self.eval_temp_expr(rule.temp_expr)
-            self.log("Evaluated temperature expression {} to {}."
-                     .format(repr(rule.temp_expr_raw), result),
-                     level="DEBUG")
+            if rule.temp_expr_raw in temp_expr_cache:
+                result = temp_expr_cache[rule.temp_expr_raw]
+                self.log("Using cached result {} for temperature expression {}."
+                         .format(result, repr(rule.temp_expr_raw)),
+                         level="DEBUG")
+            else:
+                result = self.eval_temp_expr(rule.temp_expr)
+                temp_expr_cache[rule.temp_expr_raw] = result
+                self.log("Evaluated {} from temperature expression {}."
+                         .format(result, repr(rule.temp_expr_raw)),
+                         level="DEBUG")
 
             if result is None:
                 self.log("Skipping rule with faulty temperature "
@@ -198,7 +206,7 @@ class Room:
             if isinstance(result, expr.IncludeSchedule):
                 self.log("Inserting sub-schedule.",
                          level="DEBUG")
-                _paths = result.schedule.matching_rules(when)
+                _paths = result.schedule.matching_rule_paths(when)
                 for _path_idx, _path in enumerate(_paths):
                     paths.insert(path_idx + _path_idx, _path)
                 continue

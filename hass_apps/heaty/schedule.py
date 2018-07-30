@@ -159,7 +159,7 @@ class Schedule:
     def __repr__(self) -> str:
         return "<Schedule with {} rules>".format(len(self.rules))
 
-    def matching_rules(
+    def matching_rule_paths(
             self, when: datetime.datetime
         ) -> T.Iterator[RulePathType]:
         """Returns an iterator over paths of all rules that are
@@ -258,7 +258,7 @@ class Schedule:
                 yield (rule,)
 
 
-def get_rule_path_temp(path: RulePathType) -> Rule:
+def get_rule_path_temp_rule(path: RulePathType) -> Rule:
     """Returns the first rule containing a temperature expression,
     searching the path from right to left. A ValueError is raised in
     case there is no rule with a temperature expression in the path."""

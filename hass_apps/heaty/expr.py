@@ -103,6 +103,9 @@ class Off:
     def __eq__(self, other: T.Any) -> bool:
         return isinstance(other, Off)
 
+    def __hash__(self) -> int:
+        return hash(str(self))
+
     def __neg__(self) -> "Off":
         return self
 
@@ -145,13 +148,16 @@ class Temp:
 
         return Temp(self.value + other.value)
 
+    def __eq__(self, other: T.Any) -> bool:
+        return isinstance(other, Temp) and self.value == other.value
+
     def __float__(self) -> float:
         if isinstance(self.value, float):
             return self.value
         raise ValueError("{} has no numeric value.".format(repr(self)))
 
-    def __eq__(self, other: T.Any) -> bool:
-        return isinstance(other, Temp) and self.value == other.value
+    def __hash__(self) -> int:
+        return hash(str(self))
 
     def __lt__(self, other: T.Any) -> bool:
         if isinstance(other, (float, int)):
