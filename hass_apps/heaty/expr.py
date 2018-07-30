@@ -13,8 +13,8 @@ import datetime
 import functools
 
 
-__all__ = ["Add", "Break", "Continue", "Ignore", "IncludeSchedule", "Off",
-           "Off", "Result", "SkipSubSchedule", "Temp"]
+__all__ = ["Add", "Break", "Ignore", "IncludeSchedule", "OFF", "Off",
+           "Result", "Skip", "SkipSubSchedule", "Temp"]
 
 
 # type of an evaluable expression
@@ -68,19 +68,6 @@ class Break(ResultBase):
     def __repr__(self) -> str:
         return "Break()"
 
-class Continue(ResultBase):
-    """Result of a temperature expression which should be ignored."""
-
-    def __init__(self) -> None:
-        # pylint: disable=super-init-not-called
-        self.temp = None
-
-    def __repr__(self) -> str:
-        return "Continue()"
-
-# Provide the old name as a fallback
-Ignore = Continue
-
 
 class IncludeSchedule(ResultBase):
     """Result that includes a schedule for processing."""
@@ -116,6 +103,20 @@ class Off:
         return self
 
 OFF = Off()
+
+
+class Skip(ResultBase):
+    """Result of a temperature expression which should be ignored."""
+
+    def __init__(self) -> None:
+        # pylint: disable=super-init-not-called
+        self.temp = None
+
+    def __repr__(self) -> str:
+        return "Skip()"
+
+# Provide the old name as a fallback
+Ignore = Skip
 
 
 class SkipSubSchedule(ResultBase):

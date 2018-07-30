@@ -154,7 +154,7 @@ class Room:
         the given datetime object represents. The temperature and the
         matching rule are returned.
         If no temperature could be found in the schedule (e.g. all
-        rules evaluate to Continue()), None is returned."""
+        rules evaluate to Skip()), None is returned."""
 
         def insert_paths(
                 paths: T.List[schedule.RulePathType], first_index: int,
@@ -230,7 +230,7 @@ class Room:
                          level="DEBUG")
                 return None
 
-            if isinstance(result, expr.Continue):
+            if isinstance(result, expr.Skip):
                 self.log("Skipping this rule.",
                          level="DEBUG")
                 continue
@@ -257,7 +257,7 @@ class Room:
         the current date and time. The second return value is the rule
         which generated the result.
         If no temperature could be found in the schedule (e.g. all
-        rules evaluate to Continue()), None is returned."""
+        rules evaluate to Skip()), None is returned."""
 
         if self.schedule is None:
             return None

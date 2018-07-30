@@ -26,8 +26,8 @@ returned to influence the way your result is treated.
   final ``Result``.
 * ``Break()``, which causes schedule lookup to be aborted immediately.
   The temperature will not be changed in this case.
-* ``Continue()``, which causes the rule to be treated as if it doesn't
-  exist at all. If one exists, the next rule is evaluated in this case.
+* ``Skip()``, which causes the rule to be treated as if it didn't exist
+  at all. If one exists, the next rule is evaluated in this case.
 * ``IncludeSchedule(schedule)``, which evaluates the given schedule
   object. See below for an example on how to use this.
 * ``Result(value)``: just the final result which will be used as the
@@ -43,8 +43,8 @@ the ``appdaemon.plugins.hass.hassapi.Hass`` object of Heaty. You could,
 for instance, retrieve values of input sliders via the normal AppDaemon
 API.
 
-Beside the return types like ``Add``, ``Break``, ``Continue`` etc.
-the following globals are available for use in temperature expressions:
+Beside the return types like ``Add``, ``Break``, ``Skip`` etc. the
+following globals are available for use in temperature expressions:
 
 * ``app``: the ``appdaemon.plugins.hass.hassapi.Hass`` object of Heaty
 * ``room_name``: the name of the room the expression is evaluated for
@@ -107,7 +107,7 @@ as follows:
 
 ::
 
-    # This module gives us access to Continue as well as all other
+    # This module gives us access to Skip as well as all other
     # ResultBase sub-types and OFF.
     from hass_apps.heaty import expr
 
@@ -115,7 +115,7 @@ as follows:
         if room_name == "bath":
             if app.get_state("switch.take_a_bath") == "on":
                 return 22
-        return expr.Continue()
+        return expr.Skip()
 
 Save the code as ``my_mod.py`` somewhere Python can find it.
 The easiest way is to store it inside AppDaemon's ``apps`` directory.
@@ -173,7 +173,7 @@ same effect, but without the use of any external Python module:
 ::
 
     schedule:
-    - temp: 22 if is_on("switch.take_a_bath") else Continue()
+    - temp: 22 if is_on("switch.take_a_bath") else Skip()
     - temp: 19
 
 Basically, we inlined the Python code we previously placed in
@@ -188,15 +188,15 @@ emits a ``heaty_reschedule`` event whenever ``switch.take_a_bath``
 changes its state, just as shown in the previous example.
 
 
-Example: Use of ``Add()`` and ``Continue()``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Example: Use of ``Add()`` and ``Skip()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is a rule I once used in my own Heaty configuration at home:
 
 ::
 
     schedule_prepend:
-    - temp: Add(-3) if is_on("input_boolean.absent") else Continue()
+    - temp: Add(-3) if is_on("input_boolean.absent") else Skip()
 
 What does this? Well, the first thing we see is that the rule is placed
 inside the ``schedule_prepend`` section. That means, it is valid for
@@ -210,7 +210,7 @@ How that can be done has already been shown above.
 
 Now let's get back to the schedule rule. When it evaluates, it checks the
 state of ``input_boolean.absent``. If the switch is turned on, it
-evaluates to ``Add(-3)``, otherwise to ``Continue()``.
+evaluates to ``Add(-3)``, otherwise to ``Skip()``.
 
 ``Add(-3)`` is no final temperature yet. Think of it as a temporary
 value that is remembered and used later.
@@ -306,11 +306,11 @@ about sub-schedules and add a simple condition to it.
 ::
 
     schedule:
-    - temp: 20 if float(state("sensor.outside_temp")) < 20 else Continue()
+    - temp: 20 if float(state("sensor.outside_temp")) < 20 else Skip()
       months: 1-4
       weekdays: 1-6
       rules:
-      - temp: 23 if float(state("sensor.outside_temp")) < 20 else Continue()
+      - temp: 23 if float(state("sensor.outside_temp")) < 20 else Skip()
         start: "06:00"
         end: "07:00"
       - { start: "11:30", end: "12:30" }
@@ -338,7 +338,7 @@ the morning into account. This isn't very nice, so let's utilize
       - { start: "18:00", end: "19:00" }
     - temp: "OFF"
 
-We no longer need to return a ``Continue()`` when the sensor's value is
+We no longer need to return a ``Skip()`` when the sensor's value is
 too high. Instead, we return ``SkipSubSchedule()`` from the first rule,
 which prevents the whole sub-schedule from being evaluated.
 
@@ -353,7 +353,7 @@ implement a schedule on/off switch with it, like so:
 ::
 
     schedule_prepend:
-    - temp: Break() if is_off("input_boolean.heating_schedule") else Continue()
+    - temp: Break() if is_off("input_boolean.heating_schedule") else Skip()
 
 
 Security Considerations

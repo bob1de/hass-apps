@@ -26,11 +26,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   to lower-case ``"heat"`` and ``"off"``, respectively, since Home
   Assistant 0.73 seems to have unified them.
 * Changed the name of the ``Ignore`` result type for temperature
-  expressions to ``Continue`` to be more meaningful. Its behaviour
+  expressions to ``Skip`` to be more meaningful. Its behaviour
   stays unchanged. The old name will continue to work for now.
 
 ### Deprecated
-* 0.16.0: The former name ``Ignore`` of the ``Continue`` result type,
+* 0.16.0: The former name ``Ignore`` for the ``Skip`` result type,
   which is still provided as a fallback, will be removed.
 
 ### Removed
