@@ -17,9 +17,10 @@ else:
     _IS_AD3 = True
 
 
-# types of log messages, used for determining the prefix
+# prefixes for log messages
 LOG_PREFIX_NONE = ""
 LOG_PREFIX_STATUS = "---"
+LOG_PREFIX_ALERT = "***"
 LOG_PREFIX_WARNING = "!!!"
 LOG_PREFIX_INCOMING = "-->"
 LOG_PREFIX_OUTGOING = "<--"
