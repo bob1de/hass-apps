@@ -76,8 +76,22 @@ class App(AppBase):
 
         # pylint: disable=attribute-defined-outside-init
 
-        self.log("Initialization of {} v{} started."
-                 .format(self.Meta.name, self.Meta.version))
+        def alert(*args: T.Any, **kwargs: T.Any) -> None:
+            kwargs["prefix"] = LOG_PREFIX_ALERT
+            self.log(*args, **kwargs)
+
+        alert("Welcome to {} (version {})!"
+              .format(self.Meta.name, self.Meta.version))
+        alert("")
+        alert("This is an app from the hass-apps package.")
+        alert("  DOCS: https://hass-apps.readthedocs.io/en/stable/")
+        alert("")
+        alert("If you like this app and want to honor the effort put "
+              "into it,")
+        alert("please consider a donation.")
+        alert("  DONATE: https://hass-apps.readthedocs.io/en/stable/#donations")
+        alert("Thank you very much and enjoy {}!".format(self.Meta.name))
+        alert("")
 
         if callable(self.Meta.config_schema):
             self.log("Validating the app's configuration.", level="DEBUG")
@@ -88,7 +102,7 @@ class App(AppBase):
 
         self.initialize_inner()
 
-        self.log("Initialization done.")
+        alert("Initialization done.")
 
     def initialize_inner(self) -> None:
         """Overwrite this stub to do the real initialization of the
