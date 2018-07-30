@@ -159,53 +159,45 @@ class Schedule:
     def __repr__(self) -> str:
         return "<Schedule with {} rules>".format(len(self.rules))
 
-    def matching_rule_paths(
+    def matching_rules(
             self, when: datetime.datetime
-        ) -> T.Iterator[RulePathType]:
-        """Returns an iterator over paths of all rules that are
+        ) -> T.Iterator[Rule]:
+        """Returns an iterator over all rules of this schedule that are
         valid at the time represented by the given datetime object,
-        keeping the order from the rules list. SubScheduleRule objects
-        are expanded and their matching rules are included."""
+        keeping the order from the rules list. SubScheduleRule objects are
+        not expanded and yielded like normal rules."""
 
         _time = when.time()
-        for path in self.unfold():
-            for path_idx, rule in enumerate(path):
-                break_path = False
-                days_back = -1
-                found_start_day = False
-                while days_back < rule.end_plus_days:
-                    days_back += 1
-                    # starts with days=0 (meaning the current date)
-                    _date = when.date() - datetime.timedelta(days=days_back)
+        for rule in self.rules:
+            days_back = -1
+            found_start_day = False
+            while days_back < rule.end_plus_days:
+                days_back += 1
+                # starts with days=0 (meaning the current date)
+                _date = when.date() - datetime.timedelta(days=days_back)
 
-                    found_start_day = found_start_day or \
-                                      rule.check_constraints(_date)
-                    if not found_start_day:
-                        # try next day
-                        continue
+                found_start_day = found_start_day or \
+                                  rule.check_constraints(_date)
+                if not found_start_day:
+                    # try next day
+                    continue
 
-                    # in first loop run, rule has to start today and not
-                    # later than now (rule start <= when.time())
-                    if days_back == 0 and rule.start_time > _time:
-                        # maybe there is a next day to try out
-                        continue
+                # in first loop run, rule has to start today and not
+                # later than now (rule start <= when.time())
+                if days_back == 0 and rule.start_time > _time:
+                    # maybe there is a next day to try out
+                    continue
 
-                    # in last loop run, rule is going to end today and that
-                    # has to be later than now (rule end > when.time())
-                    if days_back == rule.end_plus_days and \
-                       rule.end_time <= _time:
-                        # rule finally disqualified, continue with next path
-                        break_path = True
-                        break
-
-                    # rule matches!
-                    if isinstance(rule, Rule):
-                        yield path[:path_idx + 1]
+                # in last loop run, rule is going to end today and that
+                # has to be later than now (rule end > when.time())
+                if days_back == rule.end_plus_days and \
+                   rule.end_time <= _time:
+                    # rule finally disqualified, continue with next rule
                     break
 
-                if break_path:
-                    # continue with next path
-                    break
+                # rule matches!
+                yield rule
+                break
 
     def next_schedule_datetime(
             self, now: datetime.datetime
@@ -245,17 +237,18 @@ class Schedule:
 
     def unfold(self) -> T.Iterator[RulePathType]:
         """Returns an iterator over rule paths (tuples of Rule objects).
-        The last element of each tuple is a Rule object, the elements
-        before - if any - represent the chain of SubScheduleRule objects
-        that led to the final Rule."""
+        The elements in the tuple represent the chain of SubScheduleRule
+        objects leading to a rule. The last element may either be a
+        SubScheduleRule (meaning the path leads to a node) or a Rule
+        (meaning the path leads to a leaf). A node is returned first,
+        followed by it's successors (like in depth-first search)."""
 
         for rule in self.rules:
+            yield (rule,)
             if isinstance(rule, SubScheduleRule):
                 _rule = rule  # type: Rule
                 for path in rule.sub_schedule.unfold():
                     yield (_rule,) + path
-            else:
-                yield (rule,)
 
 
 def get_rule_path_temp_rule(path: RulePathType) -> Rule:

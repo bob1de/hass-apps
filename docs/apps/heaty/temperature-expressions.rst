@@ -32,6 +32,8 @@ returned to influence the way your result is treated.
   object. See below for an example on how to use this.
 * ``Result(value)``: just the final result which will be used as the
   temperature. Schedule lookup is aborted at this point.
+* ``SkipSubSchedule()``, which prevents a sub-schedule attached to the
+  rule from being evaluated. See below for an example on how to use this.
 
 If you want to turn the thermostats in a room off, there is a special
 value available under the name ``OFF``. Just return that.
@@ -280,6 +282,67 @@ power to Heaty's scheduling capabilities, but it can make configurations
 much more readable as they grow.
 
 
+Example: Skip Sub-Schedules Dynamically
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The `sub-schedule feature
+<writing-schedules.html#rules-with-sub-schedules>`_ is handy for
+combining rules with similar constraints, but it lacks a syntax for
+deciding whether to include a whole block of rules or not dynamically,
+e.g. based on the state of entities.
+
+To work around this limitation, you could include a schedule snippet as
+shown in the previous example, but this moves the rule declaration away
+from the location they are actually included at and thus can make your
+schedules difficult to understand. Schedule snippets are primarily
+meant for situations in which you want to re-use the same set of rules
+in different locations.
+
+This is the point at which the ``SkipSubSchedule()`` result type comes
+into play. Return it from the temperature expression of a rule with a
+sub-schedule attached to it. We start with the example from the section
+about sub-schedules and add a simple condition to it.
+
+::
+
+    schedule:
+    - temp: 20 if float(state("sensor.outside_temp")) < 20 else Continue()
+      months: 1-4
+      weekdays: 1-6
+      rules:
+      - temp: 23 if float(state("sensor.outside_temp")) < 20 else Continue()
+        start: "06:00"
+        end: "07:00"
+      - { start: "11:30", end: "12:30" }
+      - { start: "18:00", end: "19:00" }
+    - temp: "OFF"
+
+This schedule now only applies the 20 degrees (respectively 23 degrees in
+the morning) when the sensor named ``sensor.outside_temp`` reports a value
+less than ``20``. Otherwise, the last rule will turn the thermostats off.
+
+However, you see that we have to repeat the temperature expression
+enforcing the condition twice in order to take the 23 degrees in
+the morning into account. This isn't very nice, so let's utilize
+``SkipSubSchedule()`` in order to prevent the repetition.
+
+::
+
+    schedule:
+    - temp: 20 if float(state("sensor.outside_temp")) < 20 else SkipSubSchedule()
+      months: 1-4
+      weekdays: 1-6
+      rules:
+      - { start: "06:00", end: "07:00", temp: 23 }
+      - { start: "11:30", end: "12:30" }
+      - { start: "18:00", end: "19:00" }
+    - temp: "OFF"
+
+We no longer need to return a ``Continue()`` when the sensor's value is
+too high. Instead, we return ``SkipSubSchedule()`` from the first rule,
+which prevents the whole sub-schedule from being evaluated.
+
+
 Example: What to Use ``Break()`` for
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -291,7 +354,6 @@ implement a schedule on/off switch with it, like so:
 
     schedule_prepend:
     - temp: Break() if is_off("input_boolean.heating_schedule") else Continue()
-
 
 
 Security Considerations

@@ -144,7 +144,7 @@ this is to define four rules:
 ::
 
     schedule:
-    - { temp: 20, start: "06:00", end: "07:00", months: "1-4", weekdays: "1-5" }
+    - { temp: 23, start: "06:00", end: "07:00", months: "1-4", weekdays: "1-5" }
     - { temp: 20, start: "11:30", end: "12:30", months: "1-4", weekdays: "1-5" }
     - { temp: 20, start: "18:00", end: "19:00", months: "1-4", weekdays: "1-5" }
     - { temp: "OFF" }
@@ -160,14 +160,13 @@ The more elegant way involves so-called sub-schedule rules. Look at this:
     - months: 1-4
       weekdays: 1-6
       rules:
-      - { temp: 20, start: "06:00", end: "07:00" }
+      - { temp: 23, start: "06:00", end: "07:00" }
       - { temp: 20, start: "11:30", end: "12:30" }
       - { temp: 20, start: "18:00", end: "19:00" }
     - temp: "OFF"
 
-We can go even further and move the ``temp`` parameter one level up,
-so that it counts for all child rules that don't have their own ``temp``
-defined.
+We can go even further and move the ``temp: 20`` one level up, so that
+it counts for all child rules which don't have their own ``temp`` defined.
 
 ::
 
@@ -176,7 +175,7 @@ defined.
       months: 1-4
       weekdays: 1-6
       rules:
-      - { start: "06:00", end: "07:00" }
+      - { start: "06:00", end: "07:00", temp: 23 }
       - { start: "11:30", end: "12:30" }
       - { start: "18:00", end: "19:00" }
     - temp: "OFF"

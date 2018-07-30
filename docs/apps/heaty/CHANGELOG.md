@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 * The ``current_temp_state_attr`` option can now be set to ``null``
   in order to disable fetching of current temperature completely.
+* Added a new special result type called ``SkipSubSchedule`` for
+  temperature expressions of rules that have sub-schedules attached
+  to them.
 
 ### Changed
 * Changed the default values of ``opmode_heat`` and ``opmode_off``

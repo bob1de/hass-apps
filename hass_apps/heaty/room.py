@@ -156,21 +156,44 @@ class Room:
         If no temperature could be found in the schedule (e.g. all
         rules evaluate to Continue()), None is returned."""
 
+        def insert_paths(
+                paths: T.List[schedule.RulePathType], first_index: int,
+                path_prefix: schedule.RulePathType,
+                rules: T.Iterable[schedule.Rule],
+        ) -> None:
+            """Helper to form paths from a sequence of rules and insert
+            these paths into a list."""
+
+            for rule in rules:
+                paths.insert(first_index, path_prefix + (rule,))
+                first_index += 1
+
         self.log("Evaluating schedule: {}".format(sched),
                  level="DEBUG")
 
         result_sum = expr.Add(0)
         temp_expr_cache = {}  # type: T.Dict[expr.ExprType, T.Optional[expr.ResultBase]]
-        paths = list(sched.matching_rule_paths(when))
+        paths = []  # type: T.List[schedule.RulePathType]
+        insert_paths(paths, 0, (), sched.matching_rules(when))
         path_idx = 0
         while path_idx < len(paths):
             path = paths[path_idx]
             path_idx += 1
 
-            self.log("Processing rule path: {}".format(path),
-                     level="DEBUG")
-
             rule = schedule.get_rule_path_temp_rule(path)
+            if isinstance(path[-1], schedule.SubScheduleRule):
+                self.log("Processing sub-schedule rule path: {}".format(path),
+                         level="DEBUG")
+                if rule.temp_expr is None:
+                    self.log("Descending into sub-schedule.",
+                             level="DEBUG")
+                    insert_paths(paths, path_idx, path,
+                                 path[-1].sub_schedule.matching_rules(when))
+                    continue
+            else:
+                self.log("Processing rule path: {}".format(path),
+                         level="DEBUG")
+
             # for mypy only
             assert rule.temp_expr is not None and rule.temp_expr_raw is not None
 
@@ -186,6 +209,16 @@ class Room:
                          .format(result, repr(rule.temp_expr_raw)),
                          level="DEBUG")
 
+            if isinstance(result, expr.SkipSubSchedule):
+                continue
+
+            if isinstance(path[-1], schedule.SubScheduleRule):
+                self.log("Descending into sub-schedule.",
+                         level="DEBUG")
+                insert_paths(paths, path_idx, path,
+                             path[-1].sub_schedule.matching_rules(when))
+                continue
+
             if result is None:
                 self.log("Skipping rule with faulty temperature "
                          "expression: {}"
@@ -193,7 +226,6 @@ class Room:
                 continue
 
             if isinstance(result, expr.Break):
-                # abort, don't change temperature
                 self.log("Aborting scheduling due to Break().",
                          level="DEBUG")
                 return None
@@ -206,9 +238,8 @@ class Room:
             if isinstance(result, expr.IncludeSchedule):
                 self.log("Inserting sub-schedule.",
                          level="DEBUG")
-                _paths = result.schedule.matching_rule_paths(when)
-                for _path_idx, _path in enumerate(_paths):
-                    paths.insert(path_idx + _path_idx, _path)
+                insert_paths(paths, path_idx, (),
+                             result.schedule.matching_rules(when))
                 continue
 
             if isinstance(result, expr.AddibleMixin):

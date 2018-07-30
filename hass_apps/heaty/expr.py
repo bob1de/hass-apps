@@ -14,7 +14,7 @@ import functools
 
 
 __all__ = ["Add", "Break", "Continue", "Ignore", "IncludeSchedule", "Off",
-           "Off", "Result", "Temp"]
+           "Off", "Result", "SkipSubSchedule", "Temp"]
 
 
 # type of an evaluable expression
@@ -116,6 +116,18 @@ class Off:
         return self
 
 OFF = Off()
+
+
+class SkipSubSchedule(ResultBase):
+    """Result of a temperature expression which causes a sub-schedule of "
+    the holding rule to be skipped.."""
+
+    def __init__(self) -> None:
+        # pylint: disable=super-init-not-called
+        self.temp = None
+
+    def __repr__(self) -> str:
+        return "SkipSubSchedule()"
 
 
 @functools.total_ordering
