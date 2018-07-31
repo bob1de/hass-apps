@@ -179,6 +179,13 @@ class RulePath:
             return False
         return not isinstance(self.rules[-1], SubScheduleRule)
 
+    @property
+    def rules_with_temp(self) -> T.Iterable[Rule]:
+        """An iterable over rules of the path containing a temperature
+        expression, sorted from right to left."""
+
+        return filter(lambda r: r.temp_expr is not None, reversed(self.rules))
+
 
 class SubScheduleRule(Rule):
     """A schedule rule with a sub-schedule attached."""
@@ -314,16 +321,3 @@ class Schedule:
                     path.root_schedule = self
                     path.rules.insert(0, rule)
                     yield path
-
-
-def get_rule_path_temp_rule(path: RulePath) -> Rule:
-    """Returns the first rule containing a temperature expression,
-    searching the path from right to left. A ValueError is raised in
-    case there is no rule with a temperature expression in the path."""
-
-    for rule in reversed(path.rules):
-        if rule.temp_expr is not None:
-            return rule
-
-    raise ValueError("No temperature specified for any rule along the path: {}"
-                     .format(path))

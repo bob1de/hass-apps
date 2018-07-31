@@ -111,8 +111,11 @@ def validate_rule_paths(sched: schedule.Schedule) -> schedule.Schedule:
     A ValueError is raised when this check fails."""
 
     for path in sched.unfold():
-        if path.is_final:
-            schedule.get_rule_path_temp_rule(path)
+        if path.is_final and not list(path.rules_with_temp):
+            raise ValueError(
+                "No temperature specified for any rule along the path {}."
+                .format(path)
+            )
 
     return sched
 

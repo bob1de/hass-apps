@@ -173,14 +173,15 @@ class Room:
                 paths.insert(first_index, path)
                 first_index += 1
 
-        self.log("Evaluating schedule: {}".format(sched),
+        rules = list(sched.matching_rules(when))
+        self.log("Evaluating {}, of which {} rules are currently valid."
+                 .format(sched, len(rules)),
                  level="DEBUG")
 
         result_sum = expr.Add(0)
         temp_expr_cache = {}  # type: T.Dict[expr.ExprType, T.Optional[expr.ResultBase]]
         paths = []  # type: T.List[schedule.RulePath]
-        insert_paths(paths, 0, schedule.RulePath(sched),
-                     sched.matching_rules(when))
+        insert_paths(paths, 0, schedule.RulePath(sched), rules)
         path_idx = 0
         while path_idx < len(paths):
             path = paths[path_idx]
@@ -190,42 +191,35 @@ class Room:
                      level="DEBUG")
 
             last_rule = path.rules[-1]
-            if isinstance(last_rule, schedule.SubScheduleRule):
-                if last_rule.temp_expr is None:
-                    self.log("Descending into {}."
-                             .format(last_rule.sub_schedule),
+            rules_with_temp = list(path.rules_with_temp)
+            result = None
+            if rules_with_temp:
+                rule = rules_with_temp[0]
+                # for mypy only
+                assert rule.temp_expr is not None and \
+                       rule.temp_expr_raw is not None
+                if rule.temp_expr_raw in temp_expr_cache:
+                    result = temp_expr_cache[rule.temp_expr_raw]
+                    self.log("Using cached result {} for temperature "
+                             "expression {}."
+                             .format(result, repr(rule.temp_expr_raw)),
                              level="DEBUG")
-                    insert_paths(paths, path_idx, path,
-                                 last_rule.sub_schedule.matching_rules(when))
-                    continue
-                rule = last_rule  # type: schedule.Rule
-            else:
-                rule = schedule.get_rule_path_temp_rule(path)
-
-            # for mypy only
-            assert rule.temp_expr is not None and rule.temp_expr_raw is not None
-
-            if rule.temp_expr_raw in temp_expr_cache:
-                result = temp_expr_cache[rule.temp_expr_raw]
-                self.log("Using cached result {} for temperature expression {}."
-                         .format(result, repr(rule.temp_expr_raw)),
-                         level="DEBUG")
-            else:
-                result = self.eval_temp_expr(rule.temp_expr)
-                temp_expr_cache[rule.temp_expr_raw] = result
-                self.log("Evaluated {} from temperature expression {}."
-                         .format(result, repr(rule.temp_expr_raw)),
-                         level="DEBUG")
-
-            if isinstance(result, expr.SkipSubSchedule):
-                continue
+                else:
+                    result = self.eval_temp_expr(rule.temp_expr)
+                    temp_expr_cache[rule.temp_expr_raw] = result
+                    self.log("Evaluated {} from temperature expression {}."
+                             .format(result, repr(rule.temp_expr_raw)),
+                             level="DEBUG")
 
             if isinstance(last_rule, schedule.SubScheduleRule):
-                self.log("Descending into {}."
-                         .format(last_rule.sub_schedule),
+                if isinstance(result, expr.SkipSubSchedule):
+                    continue
+                _rules = list(last_rule.sub_schedule.matching_rules(when))
+                self.log("Descending into {}, of which {} rules are "
+                         "currently valid."
+                         .format(last_rule.sub_schedule, len(_rules)),
                          level="DEBUG")
-                insert_paths(paths, path_idx, path,
-                             last_rule.sub_schedule.matching_rules(when))
+                insert_paths(paths, path_idx, path, _rules)
                 continue
 
             if result is None:

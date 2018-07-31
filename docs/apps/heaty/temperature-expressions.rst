@@ -342,6 +342,15 @@ We no longer need to return a ``Skip()`` when the sensor's value is
 too high. Instead, we return ``SkipSubSchedule()`` from the first rule,
 which prevents the whole sub-schedule from being evaluated.
 
+.. note::
+
+   The temperature expression returning ``SkipSubSchedule()`` influences
+   the lookup of ``temp`` values. Rules inside a sub-schedule guarded
+   by such an expression will use that expression as a default for their
+   ``temp`` parameter, because it's always the first available ``temp``
+   (searched from right to left) which is used for a rule. There is no
+   way around this actually wanted behaviour, just keep it in mind.
+
 
 Example: What to Use ``Break()`` for
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
