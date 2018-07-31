@@ -168,6 +168,11 @@ The more elegant way involves so-called sub-schedule rules. Look at this:
       - { temp: 20, start: "18:00", end: "19:00" }
     - temp: "OFF"
 
+The first, outer rule containing the ``rules`` parameter isn't considered
+for evaluation itself. Instead, it's child rules - those defined under
+``rules:`` - are considered, but only when the constraints of the parent
+rule (``months`` and ``weekdays`` in this case) are fulfilled.
+
 We can go even further and move the ``temp: 20`` one level up, so that
 it counts for all child rules which don't have their own ``temp`` defined.
 
