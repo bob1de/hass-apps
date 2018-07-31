@@ -6,3 +6,4 @@ disable =
 max-args = 8
 max-branches = 20
 max-locals = 20
+max-statements = 75
