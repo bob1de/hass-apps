@@ -18,11 +18,13 @@ class Rule:
                    "start_date", "end_date")
 
     def __init__(
-            self,
+            self, name: str = None,
             start_time: datetime.time = None, end_time: datetime.time = None,
             end_plus_days: int = 0, constraints: T.Dict[str, T.Any] = None,
-            temp_expr: expr.ExprType = None
+            temp_expr: expr.ExprType = None,
         ) -> None:
+
+        self.name = name
 
         if start_time is None:
             # make it midnight
@@ -58,7 +60,8 @@ class Rule:
                 self.temp_expr = temp
 
     def __repr__(self) -> str:
-        return "<Rule {}>".format(
+        return "<Rule {}{}>".format(
+            "{} ".format(repr(self.name)) if self.name is not None else "",
             ", ".join(["{}={}".format(k, v)
                        for k, v in self._get_repr_properties().items()])
         )
@@ -202,7 +205,10 @@ class SubScheduleRule(Rule):
 class Schedule:
     """Holds the schedule for a room with all its rules."""
 
-    def __init__(self, rules: T.Iterable[Rule] = None) -> None:
+    def __init__(
+            self, name: str = None, rules: T.Iterable[Rule] = None,
+    ) -> None:
+        self.name = name
         self.rules = []  # type: T.List[Rule]
         if rules is not None:
             self.rules.extend(rules)
@@ -211,10 +217,13 @@ class Schedule:
         if not isinstance(other, type(self)):
             raise ValueError("{} objects may not be added to {}."
                              .format(type(other), self))
-        return Schedule(self.rules + other.rules)
+        return Schedule(name=self.name, rules=self.rules + other.rules)
 
     def __repr__(self) -> str:
-        return "<Schedule with {} rules>".format(len(self.rules))
+        return "<Schedule {}with {} rules>".format(
+            "{} ".format(repr(self.name)) if self.name is not None else "",
+            len(self.rules)
+        )
 
     def matching_rules(
             self, when: datetime.datetime

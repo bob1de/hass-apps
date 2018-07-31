@@ -50,6 +50,10 @@ def config_post_hook(cfg: dict) -> dict:
 
     # pylint: disable=too-many-locals
 
+    # name schedule snippets
+    for name, sched in cfg["schedule_snippets"].items():
+        sched.name = name
+
     # Build room objects.
     rooms = []
     for room_name, room_data in cfg["rooms"].items():
@@ -71,6 +75,7 @@ def config_post_hook(cfg: dict) -> dict:
         # complete the room's schedule.
         sched = cfg["schedule_prepend"] + room_data["schedule"] + \
                 cfg["schedule_append"]
+        sched.name = room_name
 
         del room_data["thermostats"]
         del room_data["window_sensors"]
