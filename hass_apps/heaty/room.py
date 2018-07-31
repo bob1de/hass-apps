@@ -183,20 +183,21 @@ class Room:
             path = paths[path_idx]
             path_idx += 1
 
-            rule = schedule.get_rule_path_temp_rule(path)
+            self.log("Processing {}.".format(path),
+                     level="DEBUG")
+
             last_rule = path.rules[-1]
             if isinstance(last_rule, schedule.SubScheduleRule):
-                self.log("Processing sub-schedule rule path: {}".format(path),
-                         level="DEBUG")
-                if rule.temp_expr is None:
-                    self.log("Descending into sub-schedule.",
+                if last_rule.temp_expr is None:
+                    self.log("Descending into {}."
+                             .format(last_rule.sub_schedule),
                              level="DEBUG")
                     insert_paths(paths, path_idx, path,
                                  last_rule.sub_schedule.matching_rules(when))
                     continue
+                rule = last_rule  # type: schedule.Rule
             else:
-                self.log("Processing rule path: {}".format(path),
-                         level="DEBUG")
+                rule = schedule.get_rule_path_temp_rule(path)
 
             # for mypy only
             assert rule.temp_expr is not None and rule.temp_expr_raw is not None
@@ -217,26 +218,24 @@ class Room:
                 continue
 
             if isinstance(last_rule, schedule.SubScheduleRule):
-                self.log("Descending into sub-schedule.",
+                self.log("Descending into {}."
+                         .format(last_rule.sub_schedule),
                          level="DEBUG")
                 insert_paths(paths, path_idx, path,
                              last_rule.sub_schedule.matching_rules(when))
                 continue
 
             if result is None:
-                self.log("Skipping rule with faulty temperature "
+                self.log("Skipping rule due to faulty temperature "
                          "expression: {}"
-                         .format(rule.temp_expr_raw))
+                         .format(rule.temp_expr_raw),
+                         level="ERROR")
                 continue
 
             if isinstance(result, expr.Break):
-                self.log("Aborting scheduling due to Break().",
-                         level="DEBUG")
                 return None
 
             if isinstance(result, expr.Skip):
-                self.log("Skipping this rule.",
-                         level="DEBUG")
                 continue
 
             if isinstance(result, expr.IncludeSchedule):
