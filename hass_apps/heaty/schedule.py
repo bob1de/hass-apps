@@ -70,9 +70,7 @@ class Rule:
         """Returns an OrderedDict with properties to be shown in repr()."""
 
         props = collections.OrderedDict()  # type: T.Dict[str, T.Any]
-        if self.is_always_valid:
-            props["always_valid"] = "yes"
-        else:
+        if not self.is_always_valid:
             props["start"] = self.start_time
             props["end"] = self.end_time
             if self.end_plus_days != 0:
@@ -220,10 +218,9 @@ class Schedule:
         return Schedule(name=self.name, rules=self.rules + other.rules)
 
     def __repr__(self) -> str:
-        return "<Schedule {}with {} rules>".format(
-            "{} ".format(repr(self.name)) if self.name is not None else "",
-            len(self.rules)
-        )
+        if self.name is None:
+            return "<Schedule with {} rules>".format(len(self.rules))
+        return "<Schedule {}>".format(repr(self.name))
 
     def matching_rules(
             self, when: datetime.datetime
