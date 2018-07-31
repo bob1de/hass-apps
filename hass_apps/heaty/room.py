@@ -162,7 +162,7 @@ class Room:
         def insert_paths(
                 paths: T.List[schedule.RulePath], first_index: int,
                 path_prefix: schedule.RulePath,
-                rules: T.Iterable[schedule.Rule],
+                rules: T.Iterable[schedule.Rule]
         ) -> None:
             """Helper to append each single of a set of rules to a commmon
             path prefix and insert the resulting paths into a list."""
@@ -172,6 +172,21 @@ class Room:
                 path.add(rule)
                 paths.insert(first_index, path)
                 first_index += 1
+
+        def log(
+                msg: str, path: schedule.RulePath,
+                *args: T.Any, **kwargs: T.Any
+        ) -> None:
+            """Wrapper around self.log that prefixes spaces to the
+            message based on the length of the rule path."""
+
+            prefix = " "
+            if path.rules:
+                prefix += " " * 3 * (len(path.rules) - 1)
+            prefix += "\u251c" + "\u2500"
+
+            msg = "{} {}".format(prefix, msg)
+            self.log(msg, *args, **kwargs)
 
         rules = list(sched.matching_rules(when))
         self.log("Evaluating {}, of which {} rules are currently valid."
@@ -187,12 +202,10 @@ class Room:
             path = paths[path_idx]
             path_idx += 1
 
-            self.log("Processing {}.".format(path),
-                     level="DEBUG")
+            log("{}".format(path), path, level="DEBUG")
 
-            last_rule = path.rules[-1]
-            rules_with_temp = list(path.rules_with_temp)
             result = None
+            rules_with_temp = list(path.rules_with_temp)
             if rules_with_temp:
                 rule = rules_with_temp[0]
                 # for mypy only
@@ -200,55 +213,55 @@ class Room:
                        rule.temp_expr_raw is not None
                 if rule.temp_expr_raw in temp_expr_cache:
                     result = temp_expr_cache[rule.temp_expr_raw]
-                    self.log("Using cached result {} for temperature "
-                             "expression {}."
-                             .format(result, repr(rule.temp_expr_raw)),
-                             level="DEBUG")
+                    log("=> {}  [cache-hit]".format(result),
+                        path, level="DEBUG")
                 else:
                     result = self.eval_temp_expr(rule.temp_expr)
                     temp_expr_cache[rule.temp_expr_raw] = result
-                    self.log("Evaluated {} from temperature expression {}."
-                             .format(result, repr(rule.temp_expr_raw)),
-                             level="DEBUG")
+                    log("=> {}".format(result),
+                        path, level="DEBUG")
 
+            last_rule = path.rules[-1]
             if isinstance(last_rule, schedule.SubScheduleRule):
                 if isinstance(result, expr.SkipSubSchedule):
                     continue
                 _rules = list(last_rule.sub_schedule.matching_rules(when))
-                self.log("Descending into {}, of which {} rules are "
-                         "currently valid."
-                         .format(last_rule.sub_schedule, len(_rules)),
-                         level="DEBUG")
+                log("Descending into {}, of which {} rules are currently valid."
+                    .format(last_rule.sub_schedule, len(_rules)),
+                    path, level="DEBUG")
                 insert_paths(paths, path_idx, path, _rules)
                 continue
 
             if result is None:
-                self.log("Skipping rule due to faulty temperature "
-                         "expression: {}"
-                         .format(rule.temp_expr_raw),
-                         level="ERROR")
+                log("Skipping rule due to faulty temperature expression.",
+                    path, level="ERROR")
                 continue
 
             if isinstance(result, expr.Break):
-                return None
+                break
 
             if isinstance(result, expr.Skip):
                 continue
 
             if isinstance(result, expr.IncludeSchedule):
-                self.log("Inserting sub-schedule.",
-                         level="DEBUG")
+                _rules = list(result.schedule.matching_rules(when))
+                log("Inserting sub-schedule {}, of which {} rules are "
+                    "currently valid.."
+                    .format(result.schedule, len(_rules)),
+                    path, level="DEBUG")
                 insert_paths(paths, path_idx,
-                             schedule.RulePath(result.schedule),
-                             result.schedule.matching_rules(when))
+                             schedule.RulePath(result.schedule), _rules)
                 continue
 
             if isinstance(result, expr.AddibleMixin):
                 result_sum += result
 
             if isinstance(result_sum, expr.Result):
+                self.log("Final result: {}".format(result_sum.temp),
+                         level="DEBUG")
                 return result_sum.temp, last_rule
 
+        self.log("Found no result.", level="DEBUG")
         return None
 
     def get_scheduled_temp(
