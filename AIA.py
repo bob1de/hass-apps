@@ -17,7 +17,10 @@ APPS = (
     "heaty",
     "motion_light",
 )
-BASE_URL = "https://raw.githubusercontent.com/efficiosoft/hass-apps/master/"
+GH_OWNER = "efficiosoft"
+GH_REPO = "hass-apps"
+RAW_URL = "https://raw.githubusercontent.com/{}/{}/{}/" \
+          .format(GH_OWNER, GH_REPO, "{}")
 DOCS_URL = "https://hass-apps.readthedocs.io/en/stable/"
 AIA_FILENAME = "AIA.py"
 MIN_PYVERSION = StrictVersion("3.5")
@@ -178,7 +181,7 @@ def install():  # pylint: disable=too-many-branches,too-many-statements
     return dest_dir, venv_dir
 
 
-def configure(dest_dir):
+def configure(dest_dir, release_tag):
     """Create configuration."""
 
     conf_dir = os.path.join(dest_dir, "conf")
@@ -232,7 +235,7 @@ def configure(dest_dir):
     for url, filename in files:
         while True:
             try:
-                url = urllib.request.urljoin(BASE_URL, url)
+                url = urllib.request.urljoin(RAW_URL.format(release_tag), url)
                 filename = os.path.join(conf_dir, filename)
                 urllib.request.urlretrieve(url, filename=filename)
             except OSError as err:
@@ -250,7 +253,35 @@ def configure(dest_dir):
     return conf_dir
 
 
-def upgrade_installer():
+def fetch_latest_release_tag():
+    """Returns the git tag of the latest stable release."""
+
+    logging.info("Fetching the list of releases.")
+
+    import urllib.request
+    url = "https://api.github.com/repos/{}/{}/tags".format(GH_OWNER, GH_REPO)
+    try:
+        with urllib.request.urlopen(url) as res:
+            json_data = res.read().decode(res.headers.get_content_charset())
+    except OSError as err:
+        logging.error(err)
+        fatal("Couldn't fetch the release list.")
+
+    import json
+    try:
+        data = json.loads(json_data)
+        assert isinstance(data, list)
+        assert data
+        assert "name" in data[0]
+        release_tag = data[0]["name"]
+    except AssertionError:
+        fatal("The tag list is mis-formatted.")
+
+    logging.info("The latest release is %s.", release_tag)
+    return release_tag
+
+
+def upgrade_installer(release_tag):
     """Upgrades the installer to the latest version and restart if necessary."""
 
     logging.info("Checking for a newer Auto-Install Assistant.")
@@ -264,7 +295,7 @@ def upgrade_installer():
         return
 
     import urllib.request
-    aia_url = urllib.request.urljoin(BASE_URL, AIA_FILENAME)
+    aia_url = urllib.request.urljoin(RAW_URL.format(release_tag), AIA_FILENAME)
     while True:
         try:
             filename = urllib.request.urlretrieve(aia_url)[0]
@@ -283,7 +314,8 @@ def upgrade_installer():
         result = None
     else:
         logging.info("A new installer is available, running that instead.")
-        cmd = ["python3", filename, "--no-upgrade"]
+        cmd = ["python3", filename, "--no-upgrade",
+               "--release-tag={}".format(release_tag)]
         try:
             result = subprocess.call(cmd)
         except KeyboardInterrupt:
@@ -330,8 +362,15 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
         if read("Are you sure you want to continue? (y/n)", "n") != "y":
             fatal("Aborting.")
 
-    if len(sys.argv) != 2 or sys.argv[1] != "--no-upgrade":
-        upgrade_installer()
+    release_tag = None
+    for arg in sys.argv[1:]:
+        if arg.startswith("--release-tag="):
+            release_tag = arg[14:]
+    if not release_tag:
+        release_tag = fetch_latest_release_tag()
+
+    if "--no-upgrade" not in sys.argv[1:]:
+        upgrade_installer(release_tag)
 
     logging.info("")
     logging.info("")
@@ -343,10 +382,12 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
     logging.info("It won't touch anything outside that directory or "
                  "pollute your system otherwise.")
     logging.info("")
+    logging.info("The version of hass-apps chosen is %s.", release_tag)
+    logging.info("")
 
     dest_dir, venv_dir = install()
 
-    conf_dir = configure(dest_dir)
+    conf_dir = configure(dest_dir, release_tag)
 
     aia_filename = os.path.join(dest_dir, AIA_FILENAME)
     try:
