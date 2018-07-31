@@ -228,6 +228,7 @@ SCHEDULE_RULE_SCHEMA = vol.Schema(vol.All(
     {
         "rules": lambda v: SCHEDULE_SCHEMA(v),  # type: ignore  # pylint: disable=unnecessary-lambda
         "temp": vol.Any(TEMP_SCHEMA, TEMP_EXPRESSION_SCHEMA),
+        vol.Optional("name", default=None): vol.Any(str, None),
         vol.Optional("start", default=None): vol.Any(TIME_SCHEMA, None),
         vol.Optional("end", default=None): vol.Any(TIME_SCHEMA, None),
         vol.Optional("end_plus_days", default=0):

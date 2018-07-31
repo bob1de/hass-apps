@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Added a new special result type called ``SkipSubSchedule`` for
   temperature expressions of rules that have sub-schedules attached
   to them.
+* Schedule rules got a new optional ``name`` parameter to make them
+  easily recognizable in logs.
 
 ### Changed
 * Changed the default values of ``opmode_heat`` and ``opmode_off``

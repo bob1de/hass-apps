@@ -27,6 +27,7 @@ Here is another one:
     - temp: 21.5
       start: "7:00"
       end: "22:00"
+      name: Fancy Rule
     - temp: 16
 
 This schedule contains the same rule as the schedule before, but
@@ -35,7 +36,9 @@ and will set a temperature of ``21.5`` degrees, but only from 7.00 am
 to 10.00 pm. This is because it's placed before the 16-degrees-rule
 and Heaty evaluates rules from top to bottom. That is how schedules
 work. The first matching rule wins and specifies the temperature to
-set.
+set. The ``name`` parameter we specified here is completely optional
+and doesn't influence how the rule is interpreted. A rule's name is
+shown in the logs and may be useful for troubleshooting.
 
 For more fine-grained control, you may also specify seconds in addition to
 hour and minute. ``22:00:30`` means 10.00 pm + 30 seconds, for instance.
@@ -57,7 +60,7 @@ which behaves exactly like the previous one.
 ::
 
     schedule:
-    - { temp: 21.5, start: "7:00", end: "22:00" }
+    - { temp: 21.5, start: "7:00", end: "22:00", name: "Fancy Rule" }
     - { temp: 16,   start: "0:00", end: "0:00", end_plus_days: 1 }
 
 Note how each rule has been rewritten to take just a single line.
