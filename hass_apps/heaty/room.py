@@ -85,7 +85,7 @@ class Room:
             # multiple timers for the same time.
             times = set()  # type: T.Set[datetime.time]
             for path in self.schedule.unfold():
-                for rule in path:
+                for rule in path.rules:
                     if not rule.is_always_valid:
                         times.update((rule.start_time, rule.end_time),)
 
@@ -157,15 +157,17 @@ class Room:
         rules evaluate to Skip()), None is returned."""
 
         def insert_paths(
-                paths: T.List[schedule.RulePathType], first_index: int,
-                path_prefix: schedule.RulePathType,
+                paths: T.List[schedule.RulePath], first_index: int,
+                path_prefix: schedule.RulePath,
                 rules: T.Iterable[schedule.Rule],
         ) -> None:
-            """Helper to form paths from a sequence of rules and insert
-            these paths into a list."""
+            """Helper to append each single of a set of rules to a commmon
+            path prefix and insert the resulting paths into a list."""
 
             for rule in rules:
-                paths.insert(first_index, path_prefix + (rule,))
+                path = path_prefix.copy()
+                path.add(rule)
+                paths.insert(first_index, path)
                 first_index += 1
 
         self.log("Evaluating schedule: {}".format(sched),
@@ -173,22 +175,24 @@ class Room:
 
         result_sum = expr.Add(0)
         temp_expr_cache = {}  # type: T.Dict[expr.ExprType, T.Optional[expr.ResultBase]]
-        paths = []  # type: T.List[schedule.RulePathType]
-        insert_paths(paths, 0, (), sched.matching_rules(when))
+        paths = []  # type: T.List[schedule.RulePath]
+        insert_paths(paths, 0, schedule.RulePath(sched),
+                     sched.matching_rules(when))
         path_idx = 0
         while path_idx < len(paths):
             path = paths[path_idx]
             path_idx += 1
 
             rule = schedule.get_rule_path_temp_rule(path)
-            if isinstance(path[-1], schedule.SubScheduleRule):
+            last_rule = path.rules[-1]
+            if isinstance(last_rule, schedule.SubScheduleRule):
                 self.log("Processing sub-schedule rule path: {}".format(path),
                          level="DEBUG")
                 if rule.temp_expr is None:
                     self.log("Descending into sub-schedule.",
                              level="DEBUG")
                     insert_paths(paths, path_idx, path,
-                                 path[-1].sub_schedule.matching_rules(when))
+                                 last_rule.sub_schedule.matching_rules(when))
                     continue
             else:
                 self.log("Processing rule path: {}".format(path),
@@ -212,11 +216,11 @@ class Room:
             if isinstance(result, expr.SkipSubSchedule):
                 continue
 
-            if isinstance(path[-1], schedule.SubScheduleRule):
+            if isinstance(last_rule, schedule.SubScheduleRule):
                 self.log("Descending into sub-schedule.",
                          level="DEBUG")
                 insert_paths(paths, path_idx, path,
-                             path[-1].sub_schedule.matching_rules(when))
+                             last_rule.sub_schedule.matching_rules(when))
                 continue
 
             if result is None:
@@ -238,7 +242,8 @@ class Room:
             if isinstance(result, expr.IncludeSchedule):
                 self.log("Inserting sub-schedule.",
                          level="DEBUG")
-                insert_paths(paths, path_idx, (),
+                insert_paths(paths, path_idx,
+                             schedule.RulePath(result.schedule),
                              result.schedule.matching_rules(when))
                 continue
 
@@ -246,7 +251,7 @@ class Room:
                 result_sum += result
 
             if isinstance(result_sum, expr.Result):
-                return result_sum.temp, path[-1]
+                return result_sum.temp, last_rule
 
         return None
 

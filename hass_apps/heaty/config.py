@@ -106,7 +106,7 @@ def validate_rule_paths(sched: schedule.Schedule) -> schedule.Schedule:
     A ValueError is raised when this check fails."""
 
     for path in sched.unfold():
-        if not isinstance(path[-1], schedule.SubScheduleRule):
+        if path.is_final:
             schedule.get_rule_path_temp_rule(path)
 
     return sched

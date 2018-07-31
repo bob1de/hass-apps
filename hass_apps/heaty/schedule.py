@@ -10,11 +10,6 @@ import datetime
 from . import expr, util
 
 
-# Type of a rule path, a tuple of Rule objects representing  the hirarchy
-# of SubScheduleRules that lead to a Rule.
-RulePathType = T.Tuple["Rule", ...]
-
-
 class Rule:
     """A rule that can be added to a schedule."""
 
@@ -122,6 +117,68 @@ class Rule:
         return self.end_plus_days >= 1
 
 
+class RulePath:
+    """A chain of rules starting from a root schedule through sub-schedule
+    rules."""
+
+    def __init__(self, root_schedule: "Schedule") -> None:
+        self.root_schedule = root_schedule
+        self.rules = []  # type: T.List[Rule]
+
+    def __repr__(self) -> str:
+        if not self.rules:
+            return "<RulePath {}/<empty>>".format(self.root_schedule)
+        loc = []
+        sched = self.root_schedule
+        for rule in self.rules:
+            loc.append(str(sched.rules.index(rule) + 1))
+            if isinstance(rule, SubScheduleRule):
+                sched = rule.sub_schedule
+        return "<RulePath {}/{}:{}>" \
+                .format(self.root_schedule, "/".join(loc), rule)  # pylint: disable=undefined-loop-variable
+
+    def add(self, rule: Rule) -> None:
+        """Add's a rule to the end of the path.
+        A ValueError is raised when the rule to add isn't part of the
+        previous rule's sub-schedule or the previous rule is a final
+        rule."""
+
+        if self.rules:
+            if not isinstance(self.rules[-1], SubScheduleRule):
+                raise ValueError(
+                    "The previous rule in the path ({}) is no SubScheduleRule."
+                    .format(self.rules[-1])
+                )
+            if rule not in self.rules[-1].sub_schedule.rules:
+                raise ValueError(
+                    "{} isn't part of the previous rule in path "
+                    "({})'s sub-schedule ({})."
+                    .format(rule, self.rules[-1], self.rules[-1].sub_schedule)
+                )
+        elif rule not in self.root_schedule.rules:
+            raise ValueError(
+                "{} isn't part of the path's root schedule ({})."
+                .format(rule, self.root_schedule)
+            )
+        self.rules.append(rule)
+
+    def copy(self) -> "RulePath":
+        """Creates a mutable copy of this path and returns it."""
+
+        path = type(self)(self.root_schedule)
+        for rule in self.rules:
+            path.add(rule)
+        return path
+
+    @property
+    def is_final(self) -> bool:
+        """Tells whether the last rule in the path is no SubScheduleRule."""
+
+        if not self.rules:
+            return False
+        return not isinstance(self.rules[-1], SubScheduleRule)
+
+
 class SubScheduleRule(Rule):
     """A schedule rule with a sub-schedule attached."""
 
@@ -211,7 +268,7 @@ class Schedule:
 
         times = set()  # type: T.Set[datetime.time]
         for path in self.unfold():
-            for rule in path:
+            for rule in path.rules:
                 if not rule.is_always_valid:
                     times.update((rule.start_time, rule.end_time),)
         if not times:
@@ -235,28 +292,30 @@ class Schedule:
 
         return min(map(map_func, times))
 
-    def unfold(self) -> T.Iterator[RulePathType]:
-        """Returns an iterator over rule paths (tuples of Rule objects).
-        The elements in the tuple represent the chain of SubScheduleRule
-        objects leading to a rule. The last element may either be a
-        SubScheduleRule (meaning the path leads to a node) or a Rule
-        (meaning the path leads to a leaf). A node is returned first,
-        followed by it's successors (like in depth-first search)."""
+    def unfold(self) -> T.Iterator[RulePath]:
+        """Returns an iterator over rule paths.
+        The last rule of a path may either be a SubScheduleRule (meaning
+        the path leads to a node) or a Rule (meaning the path leads to
+        a leaf). A node is returned first, followed by it's successors
+        (like in depth-first search)."""
 
         for rule in self.rules:
-            yield (rule,)
+            path = RulePath(self)
+            path.add(rule)
+            yield path
             if isinstance(rule, SubScheduleRule):
-                _rule = rule  # type: Rule
                 for path in rule.sub_schedule.unfold():
-                    yield (_rule,) + path
+                    path.root_schedule = self
+                    path.rules.insert(0, rule)
+                    yield path
 
 
-def get_rule_path_temp_rule(path: RulePathType) -> Rule:
+def get_rule_path_temp_rule(path: RulePath) -> Rule:
     """Returns the first rule containing a temperature expression,
     searching the path from right to left. A ValueError is raised in
     case there is no rule with a temperature expression in the path."""
 
-    for rule in reversed(path):
+    for rule in reversed(path.rules):
         if rule.temp_expr is not None:
             return rule
 
