@@ -70,8 +70,11 @@ class Room:
                  .format(repr(self.name)),
                  level="DEBUG")
 
+        # initialize all thermostats first to fetch their states,
+        # then listen to the target_temp_changed event
         for therm in self.thermostats:
             therm.initialize()
+        for therm in self.thermostats:
             therm.events.on(
                 "target_temp_changed", self.notify_target_temp_changed
             )
