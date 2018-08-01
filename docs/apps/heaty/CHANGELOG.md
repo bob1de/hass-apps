@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 ### Changed
+* When the end time of a schedule rule is prior or equal to its start
+  time, ``end_plus_days`` now gets increased by ``1``,no matter what it
+  has been set to explicitly. The magical incrementing when ``end`` was
+  unset is now gone. The docs have been updated accordingly.
 
 ### Deprecated
 

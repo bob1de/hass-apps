@@ -2,9 +2,8 @@
 This module implements the Schedule and Rule classes.
 """
 
-import typing as T  # pylint: disable=unused-import
+import typing as T
 
-import collections
 import datetime
 
 from . import expr, util
@@ -26,24 +25,28 @@ class Rule:
 
         self.name = name
 
+        midnight = datetime.time(0, 0)
         if start_time is None:
-            # make it midnight
-            start_time = datetime.time(0, 0)
+            start_time = midnight
         self.start_time = start_time
 
         if end_time is None:
-            # make it midnight (00:00 of the next day)
-            end_time = datetime.time(0, 0)
-            end_plus_days += 1
+            end_time = midnight
         self.end_time = end_time
 
-        if end_time <= start_time and end_plus_days == 0:
-            end_plus_days = 1
+        if end_time <= start_time:
+            end_plus_days += 1
         self.end_plus_days = end_plus_days
 
         if constraints is None:
             constraints = {}
         self.constraints = constraints
+
+        # try to simplify the rule
+        if self.is_always_valid:
+            self.start_time = midnight
+            self.end_time = midnight
+            self.end_plus_days = 1
 
         self.temp_expr = None  # type: T.Optional[expr.ExprType]
         self.temp_expr_raw = None  # type: T.Optional[expr.ExprType]
@@ -62,23 +65,26 @@ class Rule:
     def __repr__(self) -> str:
         return "<Rule {}{}>".format(
             "{} ".format(repr(self.name)) if self.name is not None else "",
-            ", ".join(["{}={}".format(k, v)
-                       for k, v in self._get_repr_properties().items()])
+            ", ".join(self._get_repr_tokens())
         )
 
-    def _get_repr_properties(self) -> T.Dict[str, T.Any]:
-        """Returns an OrderedDict with properties to be shown in repr()."""
+    def _get_repr_tokens(self) -> T.List[str]:
+        """Returns a list of tokens to be shown in repr()."""
 
-        props = collections.OrderedDict()  # type: T.Dict[str, T.Any]
-        if not self.is_always_valid:
-            props["start"] = self.start_time
-            props["end"] = self.end_time
-            if self.end_plus_days != 0:
-                props["end_plus_days"] = self.end_plus_days
-            if self.constraints:
-                props["constraints"] = list(self.constraints)
-        props["temp"] = repr(self.temp_expr_raw)
-        return props
+        tokens = []  # type: T.List[str]
+        times = ""
+        midnight = datetime.time(0, 0)
+        if self.start_time != midnight or self.end_time != midnight:
+            fmt = lambda t: t.strftime("%H:%M:%S" if t.second else "%H:%M")  # type: T.Callable[[datetime.time], str]
+            times += "{} - {}".format(fmt(self.start_time), fmt(self.end_time))
+        if self.end_plus_days > 1:
+            times += "+{}d".format(self.end_plus_days - 1)
+        if times:
+            tokens.append(times)
+        if self.constraints:
+            tokens.append("constraints={}".format(list(self.constraints)))
+        tokens.append("temp={}".format(repr(self.temp_expr_raw)))
+        return tokens
 
     def check_constraints(self, date: datetime.date) -> bool:
         """Checks all constraints of this rule against the given date
@@ -198,12 +204,12 @@ class SubScheduleRule(Rule):
 
         self.sub_schedule = sub_schedule
 
-    def _get_repr_properties(self) -> T.Dict[str, T.Any]:
+    def _get_repr_tokens(self) -> T.List[str]:
         """Adds the sub-schedule information to repr()."""
 
-        props = super()._get_repr_properties()
-        props["sub_schedule"] = "yes"
-        return props
+        tokens = super()._get_repr_tokens()
+        tokens.append("has sub-schedule")
+        return tokens
 
 
 class Schedule:

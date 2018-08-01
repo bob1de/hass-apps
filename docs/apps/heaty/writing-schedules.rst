@@ -43,16 +43,17 @@ shown in the logs and may be useful for troubleshooting.
 For more fine-grained control, you may also specify seconds in addition to
 hour and minute. ``22:00:30`` means 10.00 pm + 30 seconds, for instance.
 
-If you omit the ``start`` parameter, Heaty assumes that you mean
-midnight (``00:00``) and fills that in for you.
+If you omit the ``start`` parameter, Heaty assumes that you mean midnight
+(``00:00``) and fills that in for you. When ``end`` is not specified,
+Heaty sets ``00:00`` for it as well. This alone wouldn't make sense,
+because the resulting rule would stop being valid the same moment it
+starts at.
 
-When ``end`` is not specified, Heaty does two things. First, it sets
-``0:00`` as value for ``end``. This alone wouldn't make sense,
-because the resulting rule would stop being valid before it started.
-To achieve the behaviour we'd expect, Heaty sets another attribute,
-``end_plus_days: 1``. This means that the rule is valid up to the
-time specified in the ``end`` field, but one day later than the
-start. Cool, right?
+To achieve the behaviour we'd expect, Heaty applies another
+check. Whenever the end time is less or equal to the start time, it
+increases another attribute called ``end_plus_days`` (which defaults
+to ``0``) by ``1``. This means that the rule is valid up to the time
+specified in the ``end`` field, but one day later. Cool, right?
 
 Having done the same manually would result in the following schedule,
 which behaves exactly like the previous one.
