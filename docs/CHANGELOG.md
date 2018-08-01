@@ -6,17 +6,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/efficiosoft/hass-apps/compare/v0.20180707.0...HEAD
+[Unreleased]: https://github.com/efficiosoft/hass-apps/compare/v0.20180801.0...HEAD
 
 ### Fixed
 
 ### Security
 
 ### Added
-* Added a script that automates the installation process and can be run
-  with just one single command. See
-  [here](getting-started.html#auto-install-assistant) for more
-  information.
 
 ### Changed
 
@@ -25,6 +21,23 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   release. Please switch to AppDaemon 3.x.
 
 ### Removed
+
+
+## [0.20180801.0] - 2018-08-01
+[0.20180801.0]: https://github.com/efficiosoft/hass-apps/compare/v0.20180707.0...v0.20180801.0
+
+### Added
+* Added a script that automates the installation process and can be run
+  with just one single command. See
+  [here](getting-started.html#auto-install-assistant) for more
+  information.
+
+### Changed
+* heaty v0.15.0
+
+### Deprecated
+* AppDaemon 2.x support will be dropped in a late August 2018
+  release. Please switch to AppDaemon 3.x.
 
 
 ## [0.20180707.0] - 2018-07-07
