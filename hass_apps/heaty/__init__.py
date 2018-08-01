@@ -3,4 +3,4 @@ This is the heaty package. Functionality is separated in the
 various sub-modules.
 """
 
-__version__ = "0.14.0"
+__version__ = "0.15.0"

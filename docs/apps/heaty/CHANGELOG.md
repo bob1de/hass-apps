@@ -9,10 +9,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
-* Added documentation for the ``current_temp_state_attr`` option to the
-  sample configuration file.
 
 ### Security
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+
+## 0.15.0 - 2018-08-01
+
+### Fixed
+* Added documentation for the ``current_temp_state_attr`` option to the
+  sample configuration file.
 
 ### Added
 * The ``current_temp_state_attr`` option can now be set to ``null``
@@ -34,8 +47,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Deprecated
 * 0.16.0: The former name ``Ignore`` for the ``Skip`` result type,
   which is still provided as a fallback, will be removed.
-
-### Removed
 
 
 ## 0.14.0 - 2018-07-07
