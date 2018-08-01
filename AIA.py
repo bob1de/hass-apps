@@ -25,6 +25,7 @@ DOCS_URL = "https://hass-apps.readthedocs.io/en/stable/"
 AIA_FILENAME = "AIA.py"
 MIN_PYVERSION = StrictVersion("3.5")
 SUPPORTED_PLATFORMS = ("linux",)
+NUM_VERSIONS_TO_SHOW = 3
 
 
 def fatal(*args):
@@ -49,7 +50,7 @@ def read(prompt, default=None):
             return default
 
 
-def install():  # pylint: disable=too-many-branches,too-many-statements
+def install(release_tag):  # pylint: disable=too-many-branches,too-many-statements
     """Install hass-apps."""
 
     # try to detect whether this could be an upgrade
@@ -127,9 +128,11 @@ def install():  # pylint: disable=too-many-branches,too-many-statements
             continue
         break
 
-    logging.info("Installing hass-apps.")
-    cmd = ["sh", "-c", ". {}; pip install --upgrade hass-apps"
-           .format(activate)]
+    if release_tag.lower().startswith("v"):
+        version = release_tag[1:]
+    logging.info("Installing hass-apps (version = %s).", version)
+    cmd = ["sh", "-c", ". {}; pip install --upgrade {}"
+           .format(activate, shlex.quote("hass-apps=={}".format(version)))]
     while True:
         if subprocess.call(cmd) != 0:
             logging.error("The pip call seems to have failed.")
@@ -256,10 +259,9 @@ def configure(dest_dir, release_tag):
 def fetch_latest_release_tag():
     """Returns the git tag of the latest stable release."""
 
-    logging.info("Fetching the list of releases.")
-
-    import urllib.request
+    logging.info("Fetching the list of tags.")
     url = "https://api.github.com/repos/{}/{}/tags".format(GH_OWNER, GH_REPO)
+    import urllib.request
     try:
         with urllib.request.urlopen(url) as res:
             json_data = res.read().decode(res.headers.get_content_charset())
@@ -267,18 +269,32 @@ def fetch_latest_release_tag():
         logging.error(err)
         fatal("Couldn't fetch the release list.")
 
+    versions = []
     import json
     try:
         data = json.loads(json_data)
         assert isinstance(data, list)
-        assert data
-        assert "name" in data[0]
-        release_tag = data[0]["name"]
-    except AssertionError:
-        fatal("The tag list is mis-formatted.")
+        for item in data[:NUM_VERSIONS_TO_SHOW]:
+            assert isinstance(item, dict) and "name" in item
+            versions.append(item["name"])
+    except (AssertionError, json.decoder.JSONDecodeError):
+        logging.error("The tag list is mis-formatted.")
 
-    logging.info("The latest release is %s.", release_tag)
-    return release_tag
+    while True:
+        logging.info("The following versions are available.")
+        logging.info("Note: Only the %d most recent versions are shown",
+                     NUM_VERSIONS_TO_SHOW)
+        logging.info("")
+        logging.info("    %s", ", ".join(versions))
+        logging.info("")
+        logging.info("It's recommended to install the latest version.")
+        default = versions[0] if versions else None
+        version = read("Version to install", default)
+        if version not in versions:
+            logging.error("The version %s is not known.", version)
+            if read("Try to use it anyway?", "n") != "y":
+                continue
+        return version
 
 
 def upgrade_installer(release_tag):
@@ -385,7 +401,7 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
     logging.info("The version of hass-apps chosen is %s.", release_tag)
     logging.info("")
 
-    dest_dir, venv_dir = install()
+    dest_dir, venv_dir = install(release_tag)
 
     conf_dir = configure(dest_dir, release_tag)
 
