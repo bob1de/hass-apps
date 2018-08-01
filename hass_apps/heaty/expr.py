@@ -24,60 +24,71 @@ TempValueType = T.Union[float, int, str, "Off", "Temp"]
 
 
 class AddibleMixin:
-    """Mixin that makes a temperature expression result addible."""
-    pass
+    """Mixin that marks a temperature expression's result as addible."""
+
+    def __init__(self, value: TempValueType) -> None:
+        self.value = Temp(value)
+
+    def __eq__(self, other: T.Any) -> bool:
+        return type(self) is type(other) and self.value == other.value
 
 class ResultBase:
     """Holds the result of a temperature expression."""
 
-    def __init__(self, temp: T.Any) -> None:
-        self.temp = Temp(temp)  # type: T.Optional[Temp]
-
     def __eq__(self, other: T.Any) -> bool:
-        return type(self) is type(other) and self.temp == other.temp
-
+        return type(self) is type(other)
 
 class Result(ResultBase, AddibleMixin):
     """Final result of a temperature expression."""
 
     def __repr__(self) -> str:
-        return "Result({})".format(self.temp)
+        return "Result({})".format(self.value)
 
 class Add(ResultBase, AddibleMixin):
-    """Result of a temperature expression that is intended to be added
-    to the result of a consequent expression."""
+    """Result of a temperature expression to which the result of a
+    consequent expression should be added."""
 
     def __add__(self, other: ResultBase) -> ResultBase:
         if not isinstance(other, AddibleMixin):
             raise TypeError("can't add {} and {}"
                             .format(repr(type(self)), repr(type(other))))
 
-        return type(other)(self.temp + other.temp)
+        return type(other)(self.value + other.value)
 
     def __repr__(self) -> str:
-        return "Add({})".format(self.temp)
+        return "Add({})".format(self.value)
 
 class Break(ResultBase):
-    """Result of a temperature expression that should abort scheduling and
-    leave the temperature unchanged."""
-
-    def __init__(self) -> None:
-        # pylint: disable=super-init-not-called
-        self.temp = None
+    """Result of a temperature expression that should cause scheduling
+    to be aborted and the temperature left unchanged."""
 
     def __repr__(self) -> str:
         return "Break()"
 
-
 class IncludeSchedule(ResultBase):
-    """Result that includes a schedule for processing."""
+    """Result that inserts a schedule in place for further processing."""
 
     def __init__(self, sched: "schedule.Schedule") -> None:
-        # pylint: disable=super-init-not-called
         self.schedule = sched
 
     def __repr__(self) -> str:
         return "IncludeSchedule({})".format(self.schedule)
+
+class Skip(ResultBase):
+    """Result of a temperature expression which should be ignored."""
+
+    def __repr__(self) -> str:
+        return "Skip()"
+
+# Provide the old name as a fallback
+Ignore = Skip
+
+class SkipSubSchedule(ResultBase):
+    """Result of a temperature expression which causes a sub-schedule of "
+    the holding rule to be skipped.."""
+
+    def __repr__(self) -> str:
+        return "SkipSubSchedule()"
 
 
 class Off:
@@ -104,33 +115,6 @@ class Off:
 
 OFF = Off()
 
-
-class Skip(ResultBase):
-    """Result of a temperature expression which should be ignored."""
-
-    def __init__(self) -> None:
-        # pylint: disable=super-init-not-called
-        self.temp = None
-
-    def __repr__(self) -> str:
-        return "Skip()"
-
-# Provide the old name as a fallback
-Ignore = Skip
-
-
-class SkipSubSchedule(ResultBase):
-    """Result of a temperature expression which causes a sub-schedule of "
-    the holding rule to be skipped.."""
-
-    def __init__(self) -> None:
-        # pylint: disable=super-init-not-called
-        self.temp = None
-
-    def __repr__(self) -> str:
-        return "SkipSubSchedule()"
-
-
 @functools.total_ordering
 class Temp:
     """A class holding a temperature value."""
@@ -150,16 +134,16 @@ class Temp:
 
     def __add__(self, other: T.Any) -> "Temp":
         if isinstance(other, (float, int)):
-            other = Temp(other)
-        elif not isinstance(other, Temp):
+            other = type(self)(other)
+        elif not isinstance(other, type(self)):
             raise TypeError("can't add {} and {}"
                             .format(repr(type(self)), repr(type(other))))
 
         # OFF + something is OFF
         if self.is_off or other.is_off:
-            return Temp(Off())
+            return type(self)(Off())
 
-        return Temp(self.value + other.value)
+        return type(self)(self.value + other.value)
 
     def __eq__(self, other: T.Any) -> bool:
         return isinstance(other, Temp) and self.value == other.value
@@ -201,12 +185,13 @@ class Temp:
     @property
     def is_off(self) -> bool:
         """Tells whether this temperature means OFF."""
+
         return isinstance(self.value, Off)
 
     @staticmethod
     def parse_temp(value: T.Any) -> T.Union[float, Off, None]:
         """Converts the given value to a valid temperature of type float
-        or Off().
+        or Off.
         If value is a string, all whitespace is removed first.
         If conversion is not possible, None is returned."""
 

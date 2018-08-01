@@ -237,13 +237,17 @@ class Room:
                     path, level="ERROR")
                 continue
 
-            if isinstance(result, expr.Break):
-                break
-
-            if isinstance(result, expr.Skip):
+            if isinstance(result, expr.AddibleMixin):
+                result_sum += result
+                if isinstance(result_sum, expr.Result):
+                    self.log("Final result: {}".format(result_sum.value),
+                             level="DEBUG")
+                    return result_sum.value, last_rule
+            elif isinstance(result, expr.Skip):
                 continue
-
-            if isinstance(result, expr.IncludeSchedule):
+            elif isinstance(result, expr.Break):
+                break
+            elif isinstance(result, expr.IncludeSchedule):
                 _rules = list(result.schedule.matching_rules(when))
                 log("Inserting sub-schedule {}, of which {} rules are "
                     "currently valid.."
@@ -252,14 +256,6 @@ class Room:
                 insert_paths(paths, path_idx,
                              schedule.RulePath(result.schedule), _rules)
                 continue
-
-            if isinstance(result, expr.AddibleMixin):
-                result_sum += result
-
-            if isinstance(result_sum, expr.Result):
-                self.log("Final result: {}".format(result_sum.temp),
-                         level="DEBUG")
-                return result_sum.temp, last_rule
 
         self.log("Found no result.", level="DEBUG")
         return None
@@ -356,7 +352,7 @@ class Room:
             if _result is not None:
                 temp = _result[0]
         elif isinstance(result, expr.Result):
-            temp = result.temp
+            temp = result.value
 
         if temp is None:
             self.log("Ignoring temperature expression.")
