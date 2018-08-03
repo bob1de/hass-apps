@@ -75,15 +75,21 @@ class Rule:
         times = ""
         midnight = datetime.time(0, 0)
         if self.start_time != midnight or self.end_time != midnight:
-            fmt = lambda t: t.strftime("%H:%M:%S" if t.second else "%H:%M")  # type: T.Callable[[datetime.time], str]
-            times += "{} - {}".format(fmt(self.start_time), fmt(self.end_time))
+            fmt_t = lambda t: t.strftime("%H:%M:%S" if t.second else "%H:%M")  # type: T.Callable[[datetime.time], str]
+            times += "from {} to {}".format(
+                fmt_t(self.start_time), fmt_t(self.end_time)
+            )
         if self.end_plus_days > 1:
             times += "+{}d".format(self.end_plus_days - 1)
         if times:
             tokens.append(times)
-        if self.constraints:
-            tokens.append("constraints={}".format(list(self.constraints)))
-        tokens.append("temp={}".format(repr(self.temp_expr_raw)))
+        fmt_c = lambda x: str(x).replace(" ", "").replace("'", "")  # type: T.Callable[[T.Any], str]
+        for constraint in sorted(self.constraints):
+            tokens.append("{}={}".format(
+                constraint, fmt_c(self.constraints[constraint])
+            ))
+        if self.temp_expr_raw is not None:
+            tokens.append("temp={}".format(repr(self.temp_expr_raw)))
         return tokens
 
     def check_constraints(self, date: datetime.date) -> bool:

@@ -4,6 +4,7 @@ Utility functions that are used everywhere inside Heaty.
 
 import typing as T
 
+import collections
 import datetime
 import re
 
@@ -17,6 +18,34 @@ TIME_FORMAT = "%H:%M:%S"
 # regular expression for time formats, group 1 is hours, group 2 is minutes,
 # optional group 3 is seconds
 TIME_REGEXP = re.compile(r"^ *([01]?\d|2[0-3]) *\: *([0-5]\d) *(?:\: *([0-5]\d) *)?$")
+
+
+class RangingSet(set):
+    """A set for integers that forms nice ranges in its __repr__,
+    perfectly suited for the expansion of range strings."""
+
+    def __repr__(self) -> str:
+        if not self:
+            return "{}"
+
+        # fall back to legacy representation when non-ints are found
+        for item in self:
+            if not isinstance(item, int):
+                return super().__repr__()
+
+        nums = sorted(self)  # type: T.List[int]
+        ranges = collections.OrderedDict()  # type: T.Dict[int, int]
+        range_start = nums[0]
+        ranges[range_start] = range_start
+        for num in nums[1:]:
+            if num - 1 != ranges[range_start]:
+                range_start = num
+            ranges[range_start] = num
+
+        return "{{{}}}".format(", ".join(
+            [str(start) if start == end else "{}-{}".format(start, end)
+             for start, end in ranges.items()]
+        ))
 
 
 def escape_var_name(name: str) -> str:
@@ -36,9 +65,9 @@ def expand_range_string(range_string: T.Union[float, int, str]) -> T.Set[int]:
     string, a set containing only that, converted to int, is returned."""
 
     if isinstance(range_string, (float, int)):
-        return set([int(range_string)])
+        return RangingSet([int(range_string)])
 
-    numbers = set()
+    numbers = RangingSet()
     for part in "".join(range_string.split()).split(","):
         match = RANGE_PATTERN.match(part)
         if match is not None:
