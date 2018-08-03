@@ -189,8 +189,8 @@ class Room:
             self.log(msg, *args, **kwargs)
 
         rules = list(sched.matching_rules(when))
-        self.log("Evaluating {}, of which {} rules are currently valid."
-                 .format(sched, len(rules)),
+        self.log("Evaluating {}, {} / {} rules are currently valid."
+                 .format(sched, len(rules), len(sched.rules)),
                  level="DEBUG")
 
         result_sum = expr.Add(0)
@@ -226,8 +226,9 @@ class Room:
                 if isinstance(result, expr.SkipSubSchedule):
                     continue
                 _rules = list(last_rule.sub_schedule.matching_rules(when))
-                log("Descending into {}, of which {} rules are currently valid."
-                    .format(last_rule.sub_schedule, len(_rules)),
+                log("Descending into {}, {} / {} rules are currently valid."
+                    .format(last_rule.sub_schedule, len(_rules),
+                            len(last_rule.sub_schedule.rules)),
                     path, level="DEBUG")
                 insert_paths(paths, path_idx, path, _rules)
             elif result is None or isinstance(result, expr.Inherit):
@@ -246,9 +247,10 @@ class Room:
                 break
             elif isinstance(result, expr.IncludeSchedule):
                 _rules = list(result.schedule.matching_rules(when))
-                log("Inserting sub-schedule {}, of which {} rules are "
+                log("Inserting sub-schedule {}, {} / {} rules are "
                     "currently valid.."
-                    .format(result.schedule, len(_rules)),
+                    .format(result.schedule, len(_rules),
+                            len(result.schedule.rules)),
                     path, level="DEBUG")
                 insert_paths(paths, path_idx,
                              schedule.RulePath(result.schedule), _rules)
