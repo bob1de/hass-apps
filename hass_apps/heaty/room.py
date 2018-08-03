@@ -131,12 +131,12 @@ class Room:
 
     def eval_temp_expr(
             self, temp_expr: expr.ExprType
-    ) -> T.Optional[expr.ResultBase]:
-        """This is a wrapper around expr.eval_temp_expr that adds
-        the room_name to the evaluation environment, as well as all
-        configured temp_expression_modules. It also catches and logs
-        any exception which is raised during evaluation. In this case,
-        None is returned."""
+    ) -> T.Union[expr.ResultBase, Exception]:
+        """This is a wrapper around expr.eval_temp_expr that adds the
+        room_name to the evaluation environment, as well as all configured
+        temp_expression_modules. It also catches any exception is raised
+        during evaluation. In this case, the caught Exception object
+        is returned."""
 
         extra_env = {
             "room_name": self.name,
@@ -148,7 +148,7 @@ class Room:
             self.log("Error while evaluating temperature expression: "
                      "{}".format(repr(err)),
                      level="ERROR")
-            return None
+            return err
 
     def eval_schedule(
             self, sched: schedule.Schedule, when: datetime.datetime
@@ -194,7 +194,7 @@ class Room:
                  level="DEBUG")
 
         result_sum = expr.Add(0)
-        temp_expr_cache = {}  # type: T.Dict[expr.ExprType, T.Optional[expr.ResultBase]]
+        temp_expr_cache = {}  # type: T.Dict[expr.ExprType, T.Union[expr.ResultBase, Exception]]
         paths = []  # type: T.List[schedule.RulePath]
         insert_paths(paths, 0, schedule.RulePath(sched), rules)
         path_idx = 0
@@ -205,21 +205,21 @@ class Room:
             log("{}".format(path), path, level="DEBUG")
 
             result = None
-            rules_with_temp = list(path.rules_with_temp)
-            if rules_with_temp:
-                rule = rules_with_temp[0]
+            for rule in reversed(path.rules_with_temp):
                 # for mypy only
                 assert rule.temp_expr is not None and \
                        rule.temp_expr_raw is not None
                 if rule.temp_expr_raw in temp_expr_cache:
                     result = temp_expr_cache[rule.temp_expr_raw]
-                    log("=> {}  [cache-hit]".format(result),
+                    log("=> {}  [cache-hit]".format(repr(result)),
                         path, level="DEBUG")
                 else:
                     result = self.eval_temp_expr(rule.temp_expr)
                     temp_expr_cache[rule.temp_expr_raw] = result
-                    log("=> {}".format(result),
+                    log("=> {}".format(repr(result)),
                         path, level="DEBUG")
+                if not isinstance(result, expr.Inherit):
+                    break
 
             last_rule = path.rules[-1]
             if isinstance(last_rule, schedule.SubScheduleRule):
@@ -230,21 +230,18 @@ class Room:
                     .format(last_rule.sub_schedule, len(_rules)),
                     path, level="DEBUG")
                 insert_paths(paths, path_idx, path, _rules)
-                continue
-
-            if result is None:
-                log("Skipping rule due to faulty temperature expression.",
-                    path, level="ERROR")
-                continue
-
-            if isinstance(result, expr.AddibleMixin):
+            elif result is None or isinstance(result, expr.Inherit):
+                log("No temperature definition found, skipping rule.",
+                    path, level="WARNING")
+            elif isinstance(result, Exception):
+                log("Evaluation failed, skipping rule.",
+                    path, level="DEBUG")
+            elif isinstance(result, expr.AddibleMixin):
                 result_sum += result
                 if isinstance(result_sum, expr.Result):
                     self.log("Final result: {}".format(result_sum.value),
                              level="DEBUG")
                     return result_sum.value, last_rule
-            elif isinstance(result, expr.Skip):
-                continue
             elif isinstance(result, expr.Break):
                 break
             elif isinstance(result, expr.IncludeSchedule):
@@ -255,7 +252,6 @@ class Room:
                     path, level="DEBUG")
                 insert_paths(paths, path_idx,
                              schedule.RulePath(result.schedule), _rules)
-                continue
 
         self.log("Found no result.", level="DEBUG")
         return None

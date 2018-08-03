@@ -26,12 +26,14 @@ returned to influence the way your result is treated.
   final ``Result``.
 * ``Break()``, which causes schedule lookup to be aborted immediately.
   The temperature will not be changed in this case.
-* ``Skip()``, which causes the rule to be treated as if it didn't exist
-  at all. If one exists, the next rule is evaluated in this case.
 * ``IncludeSchedule(schedule)``, which evaluates the given schedule
   object. See below for an example on how to use this.
+* ``Inherit()``, which can be returned from rules of sub-schedules in
+  order to dynamically use the ``temp`` value of the parent rule instead.
 * ``Result(value)``: just the final result which will be used as the
   temperature. Schedule lookup is aborted at this point.
+* ``Skip()``, which causes the rule to be treated as if it didn't exist
+  at all. If one exists, the next rule is evaluated in this case.
 * ``SkipSubSchedule()``, which prevents a sub-schedule attached to the
   rule from being evaluated. See below for an example on how to use this.
 
@@ -70,6 +72,51 @@ following globals are available for use in temperature expressions:
    you want to treat a non-existing entity (which's state is returned as
    ``None``) as if it was ``"off"``, you have to use ``not is_on(...)``
    since ``is_off(...)`` would return ``False`` in this case.
+
+
+Temperature Expressions and Sub-Schedules
+-----------------------------------------
+
+In general, there is no difference between using plain temperature values
+and advanced temperature expressions in both rules with a sub-schedule
+attached to them (so-called sub-schedule rules) and the rules contained
+in these sub-schedules. But with temperature expressions, you gain a
+lot more flexibility.
+
+As you know from the `chapter about sub-schedules
+<writing-schedules.html#rules-with-sub-schedules>`_, rules of
+sub-schedules inherit their ``temp`` value from the nearest anchestor
+rule having one defined, should they miss an own one.
+
+With a temperature expression as the ``temp`` value of the rule having
+a sub-schedule, you get the flexibility to dynamically overwrite the
+anchestor's value. Should such an expression return ``Inherit()``, the
+next anchestor's ``temp`` value is tried to be used. When compared to
+plain temperature values, ``Inherit()`` is the equivalent of omitting
+the ``temp`` parameter completely, but with the benefit of deciding
+dynamically about whether to omit it or not.
+
+The whole process can be described as follows. To find the result for
+a particular rule inside a sub-schedule, the ``temp`` parameters of
+the rule and it's anchestor rules are evaluated from inside to outside
+(from right to left when looking at the indentation of the YAML syntax)
+until one results in something different than ``Inherit()``.
+
+Often there is a way to express a schedule without using ``Inherit()``
+at all, simply by slightly restructuring and reordering rules. But there
+is one particular situation in which using it is the only feasible way
+for avoiding repetitions: the usage of ``SkipSubSchedule()``.
+
+.. note::
+
+   The temperature expression returning ``SkipSubSchedule()`` influences
+   the lookup of ``temp`` values. Rules inside a sub-schedule guarded
+   by such an expression will use that expression's result as a default
+   for their ``temp`` parameter, because it'll be the first available
+   ``temp`` (searched from right to left). just keep this in mind
+   and return ``Inherit()`` from the temperature expression if you want
+   to prevent it from influencing the result of rules that are part of
+   the sub-schedule.
 
 
 Using Code from Custom Modules
@@ -341,15 +388,6 @@ the morning into account. This isn't very nice, so let's utilize
 We no longer need to return a ``Skip()`` when the sensor's value is
 too high. Instead, we return ``SkipSubSchedule()`` from the first rule,
 which prevents the whole sub-schedule from being evaluated.
-
-.. note::
-
-   The temperature expression returning ``SkipSubSchedule()`` influences
-   the lookup of ``temp`` values. Rules inside a sub-schedule guarded
-   by such an expression will use that expression as a default for their
-   ``temp`` parameter, because it's always the first available ``temp``
-   (searched from right to left) which is used for a rule. There is no
-   way around this actually wanted behaviour, just keep it in mind.
 
 
 Example: What to Use ``Break()`` for

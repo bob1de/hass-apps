@@ -189,6 +189,12 @@ it counts for all child rules which don't have their own ``temp`` defined.
       - { start: "18:00", end: "19:00" }
     - temp: "OFF"
 
+Note how the ``temp`` value for a rule is chosen. To find the value to
+use for a particular rule, the rule is first considered itself. In case
+it has no ``temp`` defined, all sub-schedule rules that led to this rule
+are then scanned for a temperature value until one is found. When looking
+at the indentation of the YAML, this lookup is done from right to left.
+
 I've to admit that this was a small and well arranged example, but the
 benefit becomes clearer when you start to write longer schedules, maybe
 with separate sections for the different seasons.

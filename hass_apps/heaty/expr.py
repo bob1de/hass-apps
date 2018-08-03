@@ -13,8 +13,8 @@ import datetime
 import functools
 
 
-__all__ = ["Add", "Break", "Ignore", "IncludeSchedule", "OFF", "Off",
-           "Result", "Skip", "SkipSubSchedule", "Temp"]
+__all__ = ["Add", "Break", "Ignore", "IncludeSchedule", "Inherit",
+           "OFF", "Off", "Result", "Skip", "SkipSubSchedule", "Temp"]
 
 
 # type of an evaluable expression
@@ -73,6 +73,13 @@ class IncludeSchedule(ResultBase):
 
     def __repr__(self) -> str:
         return "IncludeSchedule({})".format(self.schedule)
+
+class Inherit(ResultBase):
+    """Result of a temperature expression that causes the next anchestor
+    rule's value to be taken."""
+
+    def __repr__(self) -> str:
+        return "Inherit()"
 
 class Skip(ResultBase):
     """Result of a temperature expression which should be ignored."""
@@ -261,7 +268,5 @@ def eval_temp_expr(
 
     eval_result = eval(temp_expr, env)
     if isinstance(eval_result, ResultBase):
-        result = eval_result
-    else:
-        result = Result(eval_result)
-    return result
+        return eval_result
+    return Result(eval_result)

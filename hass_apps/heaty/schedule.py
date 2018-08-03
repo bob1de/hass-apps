@@ -191,11 +191,11 @@ class RulePath:
         return not isinstance(self.rules[-1], SubScheduleRule)
 
     @property
-    def rules_with_temp(self) -> T.Iterable[Rule]:
-        """An iterable over rules of the path containing a temperature
-        expression, sorted from right to left."""
+    def rules_with_temp(self) -> T.Tuple[Rule, ...]:
+        """A tuple with rules of the path containing a temperature
+        expression, sorted from left to right."""
 
-        return filter(lambda r: r.temp_expr is not None, reversed(self.rules))
+        return tuple(filter(lambda r: r.temp_expr is not None, self.rules))
 
 
 class SubScheduleRule(Rule):
