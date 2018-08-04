@@ -131,7 +131,7 @@ class Room:
 
     def eval_temp_expr(
             self, temp_expr: expr.ExprType
-    ) -> T.Union[expr.ResultBase, Exception]:
+    ) -> T.Union[expr.ResultBase, None, Exception]:
         """This is a wrapper around expr.eval_temp_expr that adds the
         room_name to the evaluation environment, as well as all configured
         temp_expression_modules. It also catches any exception is raised
@@ -194,7 +194,7 @@ class Room:
                  level="DEBUG")
 
         result_sum = expr.Add(0)
-        temp_expr_cache = {}  # type: T.Dict[expr.ExprType, T.Union[expr.ResultBase, Exception]]
+        temp_expr_cache = {}  # type: T.Dict[expr.ExprType, T.Union[expr.ResultBase, None, Exception]]
         paths = []  # type: T.List[schedule.RulePath]
         insert_paths(paths, 0, schedule.RulePath(sched), rules)
         path_idx = 0
@@ -205,7 +205,8 @@ class Room:
             log("{}".format(path), path, level="DEBUG")
 
             result = None
-            for rule in reversed(path.rules_with_temp):
+            rules_with_temp = path.rules_with_temp
+            for rule in reversed(rules_with_temp):
                 # for mypy only
                 assert rule.temp_expr is not None and \
                        rule.temp_expr_raw is not None
@@ -218,7 +219,7 @@ class Room:
                     temp_expr_cache[rule.temp_expr_raw] = result
                     log("=> {}".format(repr(result)),
                         path, level="DEBUG")
-                if not isinstance(result, expr.Inherit):
+                if result is not None:
                     break
 
             last_rule = path.rules[-1]
@@ -231,9 +232,14 @@ class Room:
                             len(last_rule.sub_schedule.rules)),
                     path, level="DEBUG")
                 insert_paths(paths, path_idx, path, _rules)
-            elif result is None or isinstance(result, expr.Inherit):
-                log("No temperature definition found, skipping rule.",
-                    path, level="WARNING")
+            elif result is None:
+                if rules_with_temp:
+                    log("All temperature expressions returned None, "
+                        "skipping rule.",
+                        path, level="WARNING")
+                else:
+                    log("No temperature definition found, skipping rule.",
+                        path, level="WARNING")
             elif isinstance(result, Exception):
                 log("Evaluation failed, skipping rule.",
                     path, level="DEBUG")

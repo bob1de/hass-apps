@@ -28,8 +28,6 @@ returned to influence the way your result is treated.
   The temperature will not be changed in this case.
 * ``IncludeSchedule(schedule)``, which evaluates the given schedule
   object. See below for an example on how to use this.
-* ``Inherit()``, which can be returned from rules of sub-schedules in
-  order to dynamically use the ``temp`` value of the parent rule instead.
 * ``Result(value)``: just the final result which will be used as the
   temperature. Schedule lookup is aborted at this point.
 * ``Skip()``, which causes the rule to be treated as if it didn't exist
@@ -90,9 +88,9 @@ rule having one defined, should they miss an own one.
 
 With a temperature expression as the ``temp`` value of the rule having
 a sub-schedule, you get the flexibility to dynamically overwrite the
-anchestor's value. Should such an expression return ``Inherit()``, the
-next anchestor's ``temp`` value is tried to be used. When compared to
-plain temperature values, ``Inherit()`` is the equivalent of omitting
+anchestor's value. Should such an expression return ``None``, the next
+anchestor's ``temp`` value is tried to be used. When compared to plain
+temperature values, returning ``None`` is the equivalent of omitting
 the ``temp`` parameter completely, but with the benefit of deciding
 dynamically about whether to omit it or not.
 
@@ -100,22 +98,22 @@ The whole process can be described as follows. To find the result for
 a particular rule inside a sub-schedule, the ``temp`` parameters of
 the rule and it's anchestor rules are evaluated from inside to outside
 (from right to left when looking at the indentation of the YAML syntax)
-until one results in something different than ``Inherit()``.
+until one results in something different than ``None``.
 
-Often there is a way to express a schedule without using ``Inherit()``
+Often there is a way to express a schedule without returning ``None``
 at all, simply by slightly restructuring and reordering rules. But there
-is one particular situation in which using it is the only feasible way
+is one particular situation in which doing it is the only feasible way
 for avoiding repetitions: the usage of ``SkipSubSchedule()``.
 
 .. note::
 
-   The temperature expression returning ``SkipSubSchedule()`` influences
+   A temperature expression returning ``SkipSubSchedule()`` influences
    the lookup of ``temp`` values. Rules inside a sub-schedule guarded
    by such an expression will use that expression's result as a default
    for their ``temp`` parameter, because it'll be the first available
    ``temp`` (searched from right to left). just keep this in mind
-   and return ``Inherit()`` from the temperature expression if you want
-   to prevent it from influencing the result of rules that are part of
+   and return ``None`` from the temperature expression if you want to
+   prevent it from influencing the result of rules that are part of
    the sub-schedule.
 
 

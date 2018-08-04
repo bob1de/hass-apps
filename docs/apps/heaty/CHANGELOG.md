@@ -13,10 +13,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
-* Added a new result type for temperature expressions of rules in
-  sub-schedules called ``Inherit``. It causes the next anchestor rule's
-  ``temp`` value to be used instead. Read the docs to learn how this
-  can help you with schedule creation.
+* Temperature expressions of rules in sub-schedules may now return
+  ``None``, which causes the next anchestor rule's ``temp`` value to
+  be used instead. Read the docs to learn how this can help you with
+  schedule creation.
 
 ### Changed
 * When the end time of a schedule rule is prior or equal to its start
