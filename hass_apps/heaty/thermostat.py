@@ -216,17 +216,15 @@ class Thermostat:
         msg = "[{}] {}".format(self, msg)
         self.room.log(msg, *args, **kwargs)
 
-    def cancel_resend_timer(self, quiet: bool = False) -> None:
-        """Cancels the resend timer for this thermostat, if one exists.
-        When quiet is True, no log message is generated."""
+    def cancel_resend_timer(self) -> None:
+        """Cancels the resend timer for this thermostat, if one exists."""
 
         timer = self.resend_timer
         if timer is None:
             return
         self.app.cancel_timer(timer)
         self.resend_timer = None
-        if not quiet:
-            self.log("Cancelled resend timer.", level="DEBUG")
+        self.log("Cancelled resend timer.", level="DEBUG")
 
     @property
     def is_synced(self) -> bool:
@@ -301,17 +299,12 @@ class Thermostat:
                      level="DEBUG")
             return None
 
-        left_retries = self.cfg["set_temp_retries"]
-        self.cancel_resend_timer()
-        self.log("Sending in 1 second: temperature = {}, temperature = {}."
-                 .format(temp or "<unset>", opmode or "<unset>"),
-                 level="DEBUG")
-        timer = self.app.run_in(
-            self._set_temp_resend_cb, 1,
-            left_retries=left_retries,
-            opmode=opmode, temp=temp
-        )
-        self.resend_timer = timer
+        kwargs = {
+            "left_retries": self.cfg["set_temp_retries"],
+            "opmode": opmode,
+            "temp": temp,
+        }
+        self._set_temp_resend_cb(kwargs)
 
         return wanted_temp
 
@@ -325,7 +318,7 @@ class Thermostat:
         temp = kwargs["temp"]
         left_retries = kwargs["left_retries"]
 
-        self.cancel_resend_timer(quiet=True)
+        self.cancel_resend_timer()
 
         self.log("Setting temperature = {}, operation mode = {}, "
                  "left retries = {}."
