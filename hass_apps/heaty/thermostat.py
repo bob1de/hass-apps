@@ -169,8 +169,6 @@ class Thermostat:
                     )
 
         if target_temp == self.wanted_temp:
-            # thermostat adapted to the temperature we want,
-            # cancel any re-send timer
             self.cancel_resend_timer()
 
         if target_temp != self.current_target_temp:
@@ -218,17 +216,17 @@ class Thermostat:
         msg = "[{}] {}".format(self, msg)
         self.room.log(msg, *args, **kwargs)
 
-    def cancel_resend_timer(self) -> bool:
-        """Cancel the resend timer for this thermostat, if one exists.
-        Returns whether a timer was cancelled."""
+    def cancel_resend_timer(self, quiet: bool = False) -> None:
+        """Cancels the resend timer for this thermostat, if one exists.
+        When quiet is True, no log message is generated."""
 
         timer = self.resend_timer
         if timer is None:
-            return False
+            return
         self.app.cancel_timer(timer)
         self.resend_timer = None
-        self.log("Cancelled resend timer.", level="DEBUG")
-        return True
+        if not quiet:
+            self.log("Cancelled resend timer.", level="DEBUG")
 
     @property
     def is_synced(self) -> bool:
@@ -305,6 +303,9 @@ class Thermostat:
 
         left_retries = self.cfg["set_temp_retries"]
         self.cancel_resend_timer()
+        self.log("Sending in 1 second: temperature = {}, temperature = {}."
+                 .format(temp or "<unset>", opmode or "<unset>"),
+                 level="DEBUG")
         timer = self.app.run_in(
             self._set_temp_resend_cb, 1,
             left_retries=left_retries,
@@ -324,10 +325,10 @@ class Thermostat:
         temp = kwargs["temp"]
         left_retries = kwargs["left_retries"]
 
-        self.cancel_resend_timer()
+        self.cancel_resend_timer(quiet=True)
 
         self.log("Setting temperature = {}, operation mode = {}, "
-                 "left retries = {}"
+                 "left retries = {}."
                  .format(temp or "<unset>", opmode or "<unset>",
                          left_retries),
                  level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
