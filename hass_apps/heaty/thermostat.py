@@ -68,16 +68,19 @@ class Thermostat:
                          level="WARNING")
 
         if self.cfg["supports_temps"]:
-            value = state.get(self.cfg["target_temp_state_attr"])
-            try:
-                value = float(value)
-            except (TypeError, ValueError):
-                self.log("The value {} for attribute {} is no valid "
-                         "temperature value. "
-                         "Please check your config!"
-                         .format(repr(value),
-                                 self.cfg["target_temp_state_attr"]),
-                         level="WARNING")
+            temp_attrs = [self.cfg["target_temp_state_attr"]]
+            if self.cfg["current_temp_state_attr"]:
+                temp_attrs.append(self.cfg["current_temp_state_attr"])
+            for attr in temp_attrs:
+                value = state.get(attr)
+                try:
+                    value = float(value)
+                except (TypeError, ValueError):
+                    self.log("The value {} for attribute {} is no valid "
+                             "temperature value. "
+                             "Please check your config!"
+                             .format(repr(value), repr(attr)),
+                             level="WARNING")
 
         allowed_opmodes = state.get("operation_list")
         if not self.cfg["supports_opmodes"]:

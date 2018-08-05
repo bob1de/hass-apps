@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   ``None``, which causes the next anchestor rule's ``temp`` value to
   be used instead. Read the docs to learn how this can help you with
   schedule creation.
+* Added a plausibility check for the ``current_temp_state_attr``
+  thermostat config parameter.
 
 ### Changed
 * When the end time of a schedule rule is prior or equal to its start
