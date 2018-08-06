@@ -244,7 +244,7 @@ class Schedule:
             return "<Schedule with {} rules>".format(len(self.rules))
         return "<Schedule {}>".format(repr(self.name))
 
-    def matching_rules(
+    def get_matching_rules(
             self, when: datetime.datetime
         ) -> T.Iterator[Rule]:
         """Returns an iterator over all rules of this schedule that are
@@ -284,7 +284,7 @@ class Schedule:
                 yield rule
                 break
 
-    def next_schedule_datetime(
+    def get_next_scheduling_datetime(
             self, now: datetime.datetime
     ) -> T.Optional[datetime.datetime]:
         """Returns a datetime object with the time at which the next
@@ -294,11 +294,7 @@ class Schedule:
         None is returned in case there are no rules in the schedule
         which are not universally valid anyway."""
 
-        times = set()  # type: T.Set[datetime.time]
-        for path in self.unfold():
-            for rule in path.rules:
-                if not rule.is_always_valid:
-                    times.update((rule.start_time, rule.end_time),)
+        times = self.get_scheduling_times()
         if not times:
             # no constrained rules in schedule
             return None
@@ -319,6 +315,17 @@ class Schedule:
             return datetime.datetime.combine(today, _time)
 
         return min(map(map_func, times))
+
+    def get_scheduling_times(self) -> T.Set[datetime.time]:
+        """Returns a set of times a re-scheduling should be triggered
+        at. Rules of sub-schedules are considered as well."""
+
+        times = set()  # type: T.Set[datetime.time]
+        for path in self.unfold():
+            for rule in path.rules:
+                if not rule.is_always_valid:
+                    times.update((rule.start_time, rule.end_time,))
+        return times
 
     def unfold(self) -> T.Iterator[RulePath]:
         """Returns an iterator over rule paths.
