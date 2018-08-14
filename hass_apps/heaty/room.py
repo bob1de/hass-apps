@@ -175,13 +175,8 @@ class Room:
             """Wrapper around self.log that prefixes spaces to the
             message based on the length of the rule path."""
 
-            prefix = " "
-            if path.rules:
-                prefix += " " * 3 * (len(path.rules) - 1)
-            prefix += "\u251c" + "\u2500"
-
-            msg = "{} {}".format(prefix, msg)
-            self.log(msg, *args, **kwargs)
+            prefix = " " * 3 * max(0, len(path.rules) - 1) + "\u251c\u2500"
+            self.log("{} {}".format(prefix, msg), *args, **kwargs)
 
         rules = list(sched.get_matching_rules(when))
         self.log("Evaluating {}, {} / {} rules are currently valid."
