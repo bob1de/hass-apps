@@ -125,7 +125,7 @@ class Thermostat:
         if self.cfg["supports_opmodes"]:
             opmode = attrs.get(self.cfg["opmode_state_attr"])
             self.log("Attribute {} is {}."
-                     .format(self.cfg["opmode_state_attr"], opmode),
+                     .format(repr(self.cfg["opmode_state_attr"]), repr(opmode)),
                      level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
             if opmode == self.cfg["opmode_off"]:
                 _target_temp = expr.Off()
@@ -140,8 +140,8 @@ class Thermostat:
             if self.cfg["supports_temps"]:
                 _target_temp = attrs.get(self.cfg["target_temp_state_attr"])
                 self.log("Attribute {} is {}."
-                         .format(self.cfg["target_temp_state_attr"],
-                                 _target_temp),
+                         .format(repr(self.cfg["target_temp_state_attr"]),
+                                 repr(_target_temp)),
                          level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
             else:
                 _target_temp = 0
@@ -157,7 +157,7 @@ class Thermostat:
         if current_temp_attr and self.cfg["supports_temps"]:
             _current_temp = attrs.get(current_temp_attr)
             self.log("Attribute {} is {}."
-                     .format(current_temp_attr, _current_temp),
+                     .format(repr(current_temp_attr), repr(_current_temp)),
                      level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
             try:
                 current_temp = expr.Temp(_current_temp)  # type: T.Optional[expr.Temp]
@@ -325,7 +325,7 @@ class Thermostat:
 
         self.log("Setting temperature = {}, operation mode = {}, "
                  "left retries = {}."
-                 .format(temp or "<unset>", opmode or "<unset>",
+                 .format(temp or "<unset>", repr(opmode) or "<unset>",
                          left_retries),
                  level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
 
