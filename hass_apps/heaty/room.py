@@ -119,7 +119,7 @@ class Room:
             changed = changed or bool(result)
 
         if changed:
-            self.log("Temperature set to {}.  <{}>"
+            self.log("Temperature set to {}.  [{}]"
                      .format(target_temp,
                              "scheduled" if scheduled else "manual"),
                      prefix=common.LOG_PREFIX_OUTGOING)
