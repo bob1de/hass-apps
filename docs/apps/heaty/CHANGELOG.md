@@ -13,6 +13,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+
+## 0.16.0 - 2018-08-24
+
+### Added
 * Temperature expressions of rules in sub-schedules may now return
   ``None``, which causes the next anchestor rule's ``temp`` value to
   be used instead. Read the docs to learn how this can help you with
@@ -25,8 +36,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   time, ``end_plus_days`` now gets increased by ``1``,no matter what it
   has been set to explicitly. The magical incrementing when ``end`` was
   unset is now gone. The docs have been updated accordingly.
-
-### Deprecated
 
 ### Removed
 * The former name ``Ignore`` for the temperature expression result type
