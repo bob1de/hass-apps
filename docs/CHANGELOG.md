@@ -8,7 +8,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ## Unreleased
 
 ### Fixed
-* Fixed appdaemon dependency to version >= 3.0.0.
 
 ### Security
 
@@ -19,6 +18,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Deprecated
 
 ### Removed
+
+
+## 0.20180824.1
+
+### Fixed
+* Fixed appdaemon dependency to version >= 3.0.0.
 
 
 ## 0.20180824.0
