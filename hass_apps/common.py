@@ -6,15 +6,7 @@ import typing as T
 
 import copy
 
-try:
-    from appdaemon.plugins.hass import hassapi
-except ImportError:
-    from appdaemon import appapi
-    AppBase = appapi.AppDaemon
-    _IS_AD3 = False
-else:
-    AppBase = hassapi.Hass
-    _IS_AD3 = True
+from appdaemon.plugins.hass import hassapi
 
 
 # prefixes for log messages
@@ -26,15 +18,11 @@ LOG_PREFIX_INCOMING = "-->"
 LOG_PREFIX_OUTGOING = "<--"
 
 
-class App(AppBase):
+class App(hassapi.Hass):
     """
-    This is a sub-class of hassapi.Hass (for appdaemon >= 3.0.0) or
-    appapi.AppDaemon (for appdaemon < 3.0.0) which adds some common
+    This is a sub-class of hassapi.Hass which adds some common
     functionality. It's used by all apps included in hass_apps.
     """
-
-    # will be True for appdaemon >= 3, False otherwise
-    _is_ad3 = _IS_AD3
 
     class Meta:
         """
