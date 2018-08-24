@@ -5,8 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 
-## [Unreleased]
-[Unreleased]: https://github.com/efficiosoft/hass-apps/compare/v0.20180801.0...HEAD
+## Unreleased
 
 ### Fixed
 
@@ -17,6 +16,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 ### Deprecated
+
+### Removed
+
+
+## 0.20180824.0
+
+### Changed
+* heaty v0.16.0
 
 ### Removed
 * Removed AppDaemon 2.x support.
