@@ -302,12 +302,12 @@ class Thermostat:
                      level="DEBUG")
             return None
 
-        kwargs = {
+        self.cancel_resend_timer()
+        self._set_temp_resend_cb({
             "left_retries": self.cfg["set_temp_retries"],
             "opmode": opmode,
             "temp": temp,
-        }
-        self._set_temp_resend_cb(kwargs)
+        })
 
         return wanted_temp
 
@@ -321,7 +321,7 @@ class Thermostat:
         temp = kwargs["temp"]
         left_retries = kwargs["left_retries"]
 
-        self.cancel_resend_timer()
+        self.resend_timer = None
 
         self.log("Setting temperature = {}, operation mode = {}, "
                  "left retries = {}."
