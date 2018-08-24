@@ -13,8 +13,8 @@ import datetime
 import functools
 
 
-__all__ = ["Add", "Break", "Ignore", "IncludeSchedule", "OFF", "Off",
-           "Result", "Skip", "SkipSubSchedule", "Temp"]
+__all__ = ["Add", "Break", "IncludeSchedule", "OFF", "Off", "Result",
+           "Skip", "SkipSubSchedule", "Temp"]
 
 
 # type of an evaluable expression
@@ -79,9 +79,6 @@ class Skip(ResultBase):
 
     def __repr__(self) -> str:
         return "Skip()"
-
-# Provide the old name as a fallback
-Ignore = Skip
 
 class SkipSubSchedule(ResultBase):
     """Result of a temperature expression which causes a sub-schedule of "

@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Deprecated
 
 ### Removed
+* The former name ``Ignore`` for the temperature expression result type
+  now called ``Skip`` has been removed.
 
 
 ## 0.15.0 - 2018-08-01
