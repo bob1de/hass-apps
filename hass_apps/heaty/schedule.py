@@ -218,7 +218,7 @@ class SubScheduleRule(Rule):
         """Adds the sub-schedule information to repr()."""
 
         tokens = super()._get_repr_tokens()
-        tokens.append("has sub-schedule")
+        tokens.insert(0, "with sub-schedule")
         return tokens
 
 
