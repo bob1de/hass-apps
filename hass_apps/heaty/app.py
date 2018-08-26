@@ -145,7 +145,7 @@ class HeatyApp(common.App):
             rooms = self.rooms
         restart = bool(data.get("cancel_running_timer", False))
 
-        self.log("Re-schedule event received for: {}{}"
+        self.log("Re-schedule event received for: {}{}."
                  .format(", ".join([str(room) for room in rooms]),
                          " [cancel running timer]" if restart else ""),
                  prefix=common.LOG_PREFIX_INCOMING)
