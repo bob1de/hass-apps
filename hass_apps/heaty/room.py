@@ -111,6 +111,12 @@ class Room:
         if scheduled and not self.app.require_master_is_on():
             return
 
+        self.log("Setting temperature to {}.  [{}{}]"
+                 .format(target_temp,
+                         "scheduled" if scheduled else "manual",
+                         ", force re-sending" if force_resend else ""),
+                 level="DEBUG")
+
         self.wanted_temp = target_temp
 
         changed = False
@@ -305,7 +311,7 @@ class Room:
             # temp and rule didn't change, what means that the
             # re-scheduling wasn't necessary and was e.g. caused
             # by a daily timer which doesn't count for today
-            self.log("Neither rule nor temperature changed, not re-setting it.",
+            self.log("Neither rule nor result changed, not setting it again.",
                      level="DEBUG")
             return
 
