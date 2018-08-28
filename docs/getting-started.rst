@@ -111,13 +111,18 @@ containing hass-apps, because it needs to be installed into AppDaemon's
 container, but there already is work in progress to make the installation
 more seamless in the future.
 
-The only actions needed in order to install under hass.io are:
+The actions needed in order to install under hass.io are:
 
 1. Install the appdaemon add-on.
 2. Copy the ``hass_apps`` folder into the ``apps`` directory of your
    AppDaemon container. This is also the only thing you need to do when
    upgrading to a newer version of hass-apps.
-3. Continue with the configuration as normal.
+3. Download the observable Python package (version 0.3.2 at least)
+   from PyPi, e.g. as a ``.tar.gz`` file and extract it. Inside, you'll
+   find a directory named ``observable-<version>``. Enter that and copy
+   the contained ``observable`` directory into your AppDaemon's ``apps``
+   directory, just alongside ``hass_apps``.
+4. Continue with the configuration as normal.
 
 
 Configuration
