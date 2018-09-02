@@ -185,8 +185,8 @@ class Room:
             self.log("{} {}".format(prefix, msg), *args, **kwargs)
 
         rules = list(sched.get_matching_rules(when))
-        self.log("Evaluating {}, {} / {} rules are currently valid."
-                 .format(sched, len(rules), len(sched.rules)),
+        self.log("Evaluating {}, {} / {} rules are valid at {}."
+                 .format(sched, len(rules), len(sched.rules), when),
                  level="DEBUG")
 
         result_sum = expr.Add(0)
