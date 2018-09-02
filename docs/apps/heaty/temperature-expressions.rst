@@ -21,19 +21,20 @@ object, Heaty converts it to a ``Result`` automatically for convenience.
 An object of one of the following sub-types of ``ResultBase`` can be
 returned to influence the way your result is treated.
 
+* ``Abort()``, which causes schedule lookup to be aborted immediately.
+  The temperature will not be changed in this case.
 * ``Add(value)``, which causes ``value`` to be added to the result of
   a consequent rule. This is continued until a rule evaluates to a
   final ``Result``.
-* ``Break()``, which causes schedule lookup to be aborted immediately.
-  The temperature will not be changed in this case.
+* ``Break(levels=1)``, which causes lookup of one (or multiple nested)
+  sub-schedule(s) to be aborted immediately. The evaluation will continue
+  after the sub-schedule(s).
 * ``IncludeSchedule(schedule)``, which evaluates the given schedule
   object. See below for an example on how to use this.
 * ``Result(value)``: just the final result which will be used as the
   temperature. Schedule lookup is aborted at this point.
 * ``Skip()``, which causes the rule to be treated as if it didn't exist
   at all. If one exists, the next rule is evaluated in this case.
-* ``SkipSubSchedule()``, which prevents a sub-schedule attached to the
-  rule from being evaluated. See below for an example on how to use this.
 
 If you want to turn the thermostats in a room off, there is a special
 value available under the name ``OFF``. Just return that.
@@ -99,22 +100,6 @@ a particular rule inside a sub-schedule, the ``temp`` parameters of
 the rule and it's anchestor rules are evaluated from inside to outside
 (from right to left when looking at the indentation of the YAML syntax)
 until one results in something different than ``None``.
-
-Often there is a way to express a schedule without returning ``None``
-at all, simply by slightly restructuring and reordering rules. But there
-is one particular situation in which doing it is the only feasible way
-for avoiding repetitions: the usage of ``SkipSubSchedule()``.
-
-.. note::
-
-   A temperature expression returning ``SkipSubSchedule()`` influences
-   the lookup of ``temp`` values. Rules inside a sub-schedule guarded
-   by such an expression will use that expression's result as a default
-   for their ``temp`` parameter, because it'll be the first available
-   ``temp`` (searched from right to left). just keep this in mind
-   and return ``None`` from the temperature expression if you want to
-   prevent it from influencing the result of rules that are part of
-   the sub-schedule.
 
 
 Using Code from Custom Modules
@@ -322,85 +307,64 @@ custom code as shown in one of the previous examples. Just think of
 a function that selects different schedules based on external criteria,
 such as weather sensors or presence detection.
 
-It has to be noted that splitting up schedules doesn't bring any extra
-power to Heaty's scheduling capabilities, but it can make configurations
-much more readable as they grow.
+.. note::
 
-
-Example: Skip Sub-Schedules Dynamically
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The `sub-schedule feature
-<writing-schedules.html#rules-with-sub-schedules>`_ is handy for
-combining rules with similar constraints, but it lacks a syntax for
-deciding whether to include a whole block of rules or not dynamically,
-e.g. based on the state of entities.
-
-To work around this limitation, you could include a schedule snippet as
-shown in the previous example, but this moves the declaration of rules
-away from the location they are actually included at and thus can make
-your schedules difficult to understand. Schedule snippets are primarily
-meant for situations in which you want to re-use the same set of rules
-at different locations.
-
-This is the point at which the ``SkipSubSchedule()`` result type comes
-into play. Return it from the temperature expression of a rule with a
-sub-schedule attached to it. We start with the example from the section
-about sub-schedules and add a simple condition to it.
-
-::
-
-    schedule:
-    - temp: 20 if float(state("sensor.outside_temp")) < 20 else Skip()
-      months: 1-4
-      weekdays: 1-6
-      rules:
-      - temp: 23 if float(state("sensor.outside_temp")) < 20 else Skip()
-        start: "06:00"
-        end: "07:00"
-      - { start: "11:30", end: "12:30" }
-      - { start: "18:00", end: "19:00" }
-    - temp: "OFF"
-
-This schedule now only applies the 20 degrees (respectively 23 degrees in
-the morning) when the sensor named ``sensor.outside_temp`` reports a value
-less than ``20``. Otherwise, the last rule will turn the thermostats off.
-
-However, you see that we have to repeat the temperature expression
-enforcing the condition twice in order to take the 23 degrees in
-the morning into account. This isn't very nice, so let's utilize
-``SkipSubSchedule()`` in order to prevent the repetition.
-
-::
-
-    schedule:
-    - temp: 20 if float(state("sensor.outside_temp")) < 20 else SkipSubSchedule()
-      months: 1-4
-      weekdays: 1-6
-      rules:
-      - { start: "06:00", end: "07:00", temp: 23 }
-      - { start: "11:30", end: "12:30" }
-      - { start: "18:00", end: "19:00" }
-    - temp: "OFF"
-
-We no longer need to return a ``Skip()`` when the sensor's value is
-too high. Instead, we return ``SkipSubSchedule()`` from the first rule,
-which prevents the whole sub-schedule from being evaluated.
+   Splitting up schedules doesn't bring any extra power to Heaty's
+   scheduling capabilities, but it can make configurations much more
+   readable as they grow.
 
 
 Example: What to Use ``Break()`` for
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``Break`` return type is most useful for disabling Heaty's
+When in a sub-schedule, returning ``Break()`` from a temperature
+expression will skip the remaining rules of that sub-schedule and
+continue evaluation after it. You can use it together with ``Skip()``
+to create a conditional sub-schedule, for instance.
+
+::
+
+    schedule:
+    - temp: 20
+      rules:
+      - temp: Skip() if is_on("input_boolean.include_sub_schedule") else Break()
+      - { start: "07:00", end: "09:00" }
+      - { start: "12:00", end: "22:00" }
+      - temp: 17
+     - temp: "OFF"
+
+The rules 2-4 of the sub-schedule will only be respected when
+``input_boolean.include_sub_schedule`` is on. Otherwise, evaluation
+continues with the last rule, setting the temperature to ``OFF``.
+
+The actual definition of this result type is ``Break(levels=1)``,
+which means that you may optionally pass a parameter called ``levels``
+to ``Break()``. This parameter controls how many levels of nested
+sub-schedules to break out of. The implicit default value ``1`` will
+only abort the innermost sub-schedule (the one currently in). However,
+you may want to directly abort its parent schedule as well by returning
+``Break(2)``. In the above example, this would actually break the
+top-level schedule and hence abort the entire schedule evaluation.
+
+.. note::
+
+   Returning ``Break()`` in the top-level schedule is equivalent to
+   returning ``Abort()``.
+
+
+Example: What to Use ``Abort()`` for
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``Abort`` return type is most useful for disabling Heaty's
 scheduling mechanism depending on the state of entities. You might
 implement a schedule on/off switch with it, like so:
 
 ::
 
     schedule_prepend:
-    - temp: Break() if is_off("input_boolean.heating_schedule") else Skip()
+    - temp: Abort() if is_off("input_boolean.heating_schedule") else Skip()
 
-As soon as ``Break()`` is returned, schedule evaluation is aborted and
+As soon as ``Abort()`` is returned, schedule evaluation is aborted and
 the temperature stays unchanged.
 
 

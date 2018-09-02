@@ -13,12 +13,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
+* Added a result type for temperature expressions called ``Abort()``
+  which has the same effect ``Break()`` had until now.
 
 ### Changed
+* The ``Break()`` result type for temperature expressions now only
+  breaks the innermost sub-schedule, unless a value greater than ``1``
+  is passed as its ``levels`` parameter. See the docs for a thorough
+  description.
 
 ### Deprecated
 
 ### Removed
+* Removed the ``SkipSubSchedule()`` result type for temperature
+  expressions. It's purpose is now covered by the enhanced ``Break()``.
 
 
 ## 0.16.0 - 2018-08-24

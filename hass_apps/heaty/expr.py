@@ -13,8 +13,8 @@ import datetime
 import functools
 
 
-__all__ = ["Add", "Break", "IncludeSchedule", "OFF", "Off", "Result",
-           "Skip", "SkipSubSchedule", "Temp"]
+__all__ = ["Abort", "Add", "Break", "IncludeSchedule", "OFF", "Off", "Result",
+           "Skip", "Temp"]
 
 
 # type of an evaluable expression
@@ -44,6 +44,13 @@ class Result(ResultBase, AddibleMixin):
     def __repr__(self) -> str:
         return "Result({})".format(self.value)
 
+class Abort(ResultBase):
+    """Result of a temperature expression that should cause scheduling
+    to be aborted and the temperature left unchanged."""
+
+    def __repr__(self) -> str:
+        return "Abort()"
+
 class Add(ResultBase, AddibleMixin):
     """Result of a temperature expression to which the result of a
     consequent expression should be added."""
@@ -59,11 +66,18 @@ class Add(ResultBase, AddibleMixin):
         return "Add({})".format(self.value)
 
 class Break(ResultBase):
-    """Result of a temperature expression that should cause scheduling
-    to be aborted and the temperature left unchanged."""
+    """Result of a temperature expression that should cause the rest of
+    a sub-schedule to be skipped."""
+
+    def __init__(self, levels: int = 1) -> None:
+        if not isinstance(levels, int) or levels < 1:
+            raise ValueError(
+                "levels to break must be >= 1, but is {}".format(repr(levels))
+            )
+        self.levels = levels
 
     def __repr__(self) -> str:
-        return "Break()"
+        return "Break({})".format(self.levels if self.levels != 1 else "")
 
 class IncludeSchedule(ResultBase):
     """Result that inserts a schedule in place for further processing."""
@@ -79,13 +93,6 @@ class Skip(ResultBase):
 
     def __repr__(self) -> str:
         return "Skip()"
-
-class SkipSubSchedule(ResultBase):
-    """Result of a temperature expression which causes a sub-schedule of "
-    the holding rule to be skipped.."""
-
-    def __repr__(self) -> str:
-        return "SkipSubSchedule()"
 
 
 class Off:

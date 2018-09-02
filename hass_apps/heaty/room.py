@@ -184,9 +184,12 @@ class Room:
             prefix = " " * 3 * max(0, len(path.rules) - 1) + "\u251c\u2500"
             self.log("{} {}".format(prefix, msg), *args, **kwargs)
 
+        self.log("Assuming it to be {}.".format(when),
+                 level="DEBUG")
+
         rules = list(sched.get_matching_rules(when))
-        self.log("Evaluating {}, {} / {} rules are valid at {}."
-                 .format(sched, len(rules), len(sched.rules), when),
+        self.log("{} / {} rules of {} are currently valid."
+                 .format(len(rules), len(sched.rules), sched),
                  level="DEBUG")
 
         result_sum = expr.Add(0)
@@ -199,6 +202,16 @@ class Room:
             path_idx += 1
 
             log("{}".format(path), path, level="DEBUG")
+
+            last_rule = path.rules[-1]
+            if isinstance(last_rule, schedule.SubScheduleRule):
+                _rules = list(last_rule.sub_schedule.get_matching_rules(when))
+                log("{} / {} rules of {} are currently valid."
+                    .format(len(_rules), len(last_rule.sub_schedule.rules),
+                            last_rule.sub_schedule),
+                    path, level="DEBUG")
+                insert_paths(paths, path_idx, path, _rules)
+                continue
 
             result = None
             rules_with_temp = path.rules_with_temp
@@ -218,17 +231,7 @@ class Room:
                 if result is not None:
                     break
 
-            last_rule = path.rules[-1]
-            if isinstance(last_rule, schedule.SubScheduleRule):
-                if isinstance(result, expr.SkipSubSchedule):
-                    continue
-                _rules = list(last_rule.sub_schedule.get_matching_rules(when))
-                log("Descending into {}, {} / {} rules are currently valid."
-                    .format(last_rule.sub_schedule, len(_rules),
-                            len(last_rule.sub_schedule.rules)),
-                    path, level="DEBUG")
-                insert_paths(paths, path_idx, path, _rules)
-            elif result is None:
+            if result is None:
                 if rules_with_temp:
                     log("All temperature expressions returned None, "
                         "skipping rule.",
@@ -245,14 +248,20 @@ class Room:
                     self.log("Final result: {}".format(result_sum.value),
                              level="DEBUG")
                     return result_sum.value, last_rule
-            elif isinstance(result, expr.Break):
+            elif isinstance(result, expr.Abort):
                 break
+            elif isinstance(result, expr.Break):
+                prefix_size = max(0, len(path.rules) - result.levels)
+                prefix = path.rules[:prefix_size]
+                while path_idx < len(paths) and \
+                      paths[path_idx].root_schedule == path.root_schedule and \
+                      paths[path_idx].rules[:prefix_size] == prefix:
+                    del paths[path_idx]
             elif isinstance(result, expr.IncludeSchedule):
                 _rules = list(result.schedule.get_matching_rules(when))
-                log("Inserting sub-schedule {}, {} / {} rules are "
-                    "currently valid.."
-                    .format(result.schedule, len(_rules),
-                            len(result.schedule.rules)),
+                log("{} / {} rules of {} are currently valid."
+                    .format(len(_rules), len(result.schedule.rules),
+                            result.schedule),
                     path, level="DEBUG")
                 insert_paths(paths, path_idx,
                              schedule.RulePath(result.schedule), _rules)
