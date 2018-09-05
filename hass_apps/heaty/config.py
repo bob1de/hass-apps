@@ -336,11 +336,12 @@ STATS_ZONE_SCHEMA = vol.Schema(vol.All(
 CONFIG_SCHEMA = vol.Schema(vol.All(
     vol.Schema({
         vol.Optional("heaty_id", default="default"): str,
-        vol.Optional("untrusted_temp_expressions", default=False): bool,
         vol.Optional("master_switch", default=None):
             vol.Any(ENTITY_ID_SCHEMA, None),
         vol.Optional("master_off_temp", default=expr.OFF): TEMP_SCHEMA,
         vol.Optional("window_open_temp", default=expr.OFF): TEMP_SCHEMA,
+        vol.Optional("reschedule_at_startup", default=True): bool,
+        vol.Optional("untrusted_temp_expressions", default=False): bool,
         vol.Optional("temp_expression_modules", default=dict):
             TEMP_EXPRESSION_MODULES_SCHEMA,
         vol.Optional("thermostat_defaults", default=dict):

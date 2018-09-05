@@ -30,15 +30,27 @@ class Room:
         self.schedule = None  # type: T.Optional[schedule.Schedule]
 
         self.wanted_temp = None  # type: T.Optional[expr.Temp]
+        self.scheduled_temp = None  # type: T.Optional[expr.Temp]
         self.reschedule_timer = None  # type: T.Optional[uuid.UUID]
-        self.current_schedule_temp = None  # type: T.Optional[expr.Temp]
-        self.current_schedule_rule = None  # type: T.Optional[schedule.Rule]
 
     def __repr__(self) -> str:
         return "<Room {}>".format(str(self))
 
     def __str__(self) -> str:
         return "R:{}".format(self.cfg.get("friendly_name", self.name))
+
+    def _get_sensor(self, param: str) -> T.Any:
+        """Returns the state value of the sensor for given parameter in HA."""
+
+        entity_id = "sensor.heaty_{}_room_{}_{}" \
+                    .format(self.app.cfg["heaty_id"], self.name, param)
+        self.log("Querying state of {}."
+                 .format(repr(entity_id)),
+                 level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
+        state = self.app.get_state(entity_id)
+        self.log("= {}".format(repr(state)),
+                 level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
+        return state
 
     def _reschedule_timer_cb(self, kwargs: dict) -> None:
         """Is called whenever a re-schedule timer fires."""
@@ -48,9 +60,8 @@ class Room:
 
         self.reschedule_timer = None
 
-        # invalidate cached temp/rule
-        self.current_schedule_temp = None
-        self.current_schedule_rule = None
+        # invalidate cached temp
+        self.scheduled_temp = None
 
         self.apply_schedule()
 
@@ -61,74 +72,103 @@ class Room:
                  level="DEBUG")
         self.apply_schedule()
 
-    def initialize(self) -> None:
-        """Should be called after all schedules, thermostats and window
-        sensors have been added in order to register state listeners
-        and timers."""
+    def _set_sensor(self, param: str, state: T.Any) -> None:
+        """Updates the sensor for given parameter in HA."""
 
-        self.log("Initializing room (name={})."
-                 .format(repr(self.name)),
-                 level="DEBUG")
+        entity_id = "sensor.heaty_{}_room_{}_{}" \
+                    .format(self.app.cfg["heaty_id"], self.name, param)
+        self.log("Setting state of {} to {}."
+                 .format(repr(entity_id), repr(state)),
+                 level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
+        self.app.set_state(entity_id, state=state)
 
-        # initialize all thermostats first to fetch their states,
-        # then listen to the target_temp_changed event
-        for therm in self.thermostats:
-            therm.initialize()
-        for therm in self.thermostats:
-            therm.events.on(
-                "target_temp_changed", self.notify_target_temp_changed
-            )
-
-        for wsensor in self.window_sensors:
-            wsensor.initialize()
-            wsensor.events.on("open_close", self.notify_window_action)
-
-        if self.schedule:
-            times = self.schedule.get_scheduling_times()
-            self.log("Registering scheduling timers at: {{{}}}"
-                     .format(", ".join([str(_time) for _time in times])),
-                     level="DEBUG")
-            for _time in times:
-                self.app.run_daily(self._schedule_timer_cb, _time)
-        else:
-            self.log("No schedule configured.", level="DEBUG")
-
-    def log(self, msg: str, *args: T.Any, **kwargs: T.Any) -> None:
-        """Prefixes the room to log messages."""
-        msg = "[{}] {}".format(self, msg)
-        self.app.log(msg, *args, **kwargs)
-
-    def set_temp(
-            self, target_temp: expr.Temp, scheduled: bool = False,
-            force_resend: bool = False
+    def apply_schedule(
+            self, force_resend: bool = False, skip_send: bool = False
     ) -> None:
-        """Sets the given target temperature for all thermostats in the
-        room. If scheduled is True, a disabled master switch prevents
-        setting the temperature.
-        Temperatures won't be send to thermostats redundantly unless
-        force_resend is True."""
+        """Sets the temperature that is configured for the current
+        date and time. If the master switch is turned off, this won't
+        do anything.
+        This method won't re-schedule if a re-schedule timer runs.
+        It will also detect when the result hasn't changed compared to
+        the last run and prevent re-setting the temperature in that case.
+        If force_resend is True and the temperature didn't change,
+        it is sent to the thermostats anyway.
+        If skip_send is True, only the records will be updated without
+        setting the thermostats.
+        In case of an open window, temperature is cached and not sent."""
 
-        if scheduled and not self.app.require_master_is_on():
+        if not self.app.require_master_is_on():
             return
 
-        self.log("Setting temperature to {}.  [{}{}]"
-                 .format(target_temp,
-                         "scheduled" if scheduled else "manual",
-                         ", force re-sending" if force_resend else ""),
+        if self.reschedule_timer:
+            # don't schedule now, wait for the timer instead
+            self.log("Not scheduling now due to a running re-schedule "
+                     "timer.",
+                     level="DEBUG")
+            return
+
+        self.log("Applying room's schedule.",
                  level="DEBUG")
 
-        self.wanted_temp = target_temp
+        result = self.get_scheduled_temp()
+        if result is None:
+            self.log("No suitable temperature found in schedule.",
+                     level="DEBUG")
+            return
 
-        changed = False
-        for therm in self.thermostats:
-            result = therm.set_temp(target_temp, force_resend=force_resend)
-            changed = changed or bool(result)
+        temp = result[0]
+        if temp == self.scheduled_temp and not force_resend:
+            self.log("Result didn't change, not setting it again.",
+                     level="DEBUG")
+            return
 
-        if changed:
-            self.log("Temperature set to {}.  [{}]"
-                     .format(target_temp,
-                             "scheduled" if scheduled else "manual"),
-                     prefix=common.LOG_PREFIX_OUTGOING)
+        self.scheduled_temp = temp
+        self._set_sensor("scheduled_temp", temp.serialize())
+
+        if skip_send:
+            self.log("Not setting the temperature due to skip_send.",
+                     level="DEBUG")
+            return
+
+        if self.get_open_windows():
+            self.log("Caching and not setting temperature due to an "
+                     "open window.")
+            self.wanted_temp = temp
+        else:
+            self.set_temp(temp, scheduled=True, force_resend=force_resend)
+
+    def cancel_reschedule_timer(self) -> bool:
+        """Cancels the reschedule timer for this room, if one
+        exists. Returns whether a timer has been cancelled."""
+
+        timer = self.reschedule_timer
+        if timer is None:
+            return False
+
+        self.app.cancel_timer(timer)
+        self.reschedule_timer = None
+        self.log("Cancelled re-schedule timer.", level="DEBUG")
+        return True
+
+    def check_for_open_window(self) -> bool:
+        """Checks whether a window is open in this room and,
+        if so, turns the heating off there. The value stored in
+        self.wanted_temp is restored after the heating
+        has been turned off. It returns True if a window is open,
+        False otherwise."""
+
+        if self.get_open_windows():
+            # window is open, turn heating off
+            orig_temp = self.wanted_temp
+            open_temp = self.app.cfg["window_open_temp"]
+            if orig_temp != open_temp:
+                self.log("Setting heating to {} due to an open window."
+                         .format(open_temp),
+                         prefix=common.LOG_PREFIX_OUTGOING)
+                self.set_temp(open_temp, scheduled=False)
+                self.wanted_temp = orig_temp
+            return True
+        return False
 
     def eval_temp_expr(
             self, temp_expr: expr.ExprType
@@ -269,6 +309,12 @@ class Room:
         self.log("Found no result.", level="DEBUG")
         return None
 
+    def get_open_windows(self) -> T.List[WindowSensor]:
+        """Returns a list of window sensors in this room which
+        currently report to be open,"""
+
+        return list(filter(lambda sensor: sensor.is_open, self.window_sensors))
+
     def get_scheduled_temp(
             self,
     ) -> T.Optional[T.Tuple[expr.Temp, schedule.Rule]]:
@@ -282,139 +328,53 @@ class Room:
             return None
         return self.eval_schedule(self.schedule, self.app.datetime())
 
-    def apply_schedule(self, force_resend: bool = False) -> None:
-        """Sets the temperature that is configured for the current
-        date and time. If the master switch is turned off, this won't
-        do anything.
-        This method won't re-schedule if a re-schedule timer runs.
-        It will also detect when neither the rule nor the result
-        of its temperature expression changed compared to the last run
-        and prevent re-setting the temperature in that case.
-        If force_resend is True and the temperature didn't
-        change, it is sent to the thermostats anyway.
-        In case of an open window, temperature is cached and not sent."""
+    def initialize(self) -> None:
+        """Should be called after all schedules, thermostats and window
+        sensors have been added in order to register state listeners
+        and timers."""
 
-        if not self.app.require_master_is_on():
-            return
-
-        if self.reschedule_timer:
-            # don't schedule now, wait for the timer instead
-            self.log("Not scheduling now due to a running re-schedule "
-                     "timer.",
-                     level="DEBUG")
-            return
-
-        self.log("Applying room's schedule.",
+        self.log("Initializing room (name={})."
+                 .format(repr(self.name)),
                  level="DEBUG")
 
-        result = self.get_scheduled_temp()
-        if result is None:
-            self.log("No suitable temperature found in schedule.",
+        _scheduled_temp = self._get_sensor("scheduled_temp")
+        try:
+            self.scheduled_temp = expr.Temp(_scheduled_temp)
+        except ValueError:
+            self.log("Last scheduled temperature is unknown.",
                      level="DEBUG")
-            return
-
-        temp, rule = result
-        if temp == self.current_schedule_temp and \
-           rule is self.current_schedule_rule and \
-           not force_resend:
-            # temp and rule didn't change, what means that the
-            # re-scheduling wasn't necessary and was e.g. caused
-            # by a daily timer which doesn't count for today
-            self.log("Neither rule nor result changed, not setting it again.",
+        else:
+            self.log("Last scheduled temperature was {}."
+                     .format(self.scheduled_temp),
                      level="DEBUG")
-            return
 
-        self.current_schedule_temp = temp
-        self.current_schedule_rule = rule
+        # initialize all thermostats first to fetch their states,
+        # then listen to the target_temp_changed event
+        for therm in self.thermostats:
+            therm.initialize()
+        for therm in self.thermostats:
+            therm.events.on(
+                "target_temp_changed", self.notify_target_temp_changed
+            )
 
-        if self.get_open_windows():
-            self.log("Caching and not setting temperature due to an "
-                     "open window.")
-            self.wanted_temp = temp
+        for wsensor in self.window_sensors:
+            wsensor.initialize()
+            wsensor.events.on("open_close", self.notify_window_action)
+
+        if self.schedule:
+            times = self.schedule.get_scheduling_times()
+            self.log("Registering scheduling timers at: {{{}}}"
+                     .format(", ".join([str(_time) for _time in times])),
+                     level="DEBUG")
+            for _time in times:
+                self.app.run_daily(self._schedule_timer_cb, _time)
         else:
-            self.set_temp(temp, scheduled=True, force_resend=force_resend)
+            self.log("No schedule configured.", level="DEBUG")
 
-    def set_temp_manually(
-            self, temp_expr: expr.ExprType, force_resend: bool = False,
-            reschedule_delay: T.Union[float, int, None] = None
-    ) -> None:
-        """Evaluates the given temperature expression and sets the result.
-        If the master switch is turned off, this won't do anything.
-        If force_resend is True and the temperature didn't
-        change, it is sent to the thermostats anyway.
-        An existing re-schedule timer is cancelled and a new one is
-        started if re-schedule timers are configured. reschedule_delay,
-        if given, overwrites the value configured for the room.
-        In case of an open window, temperature is cached and not sent."""
-
-        if not self.app.require_master_is_on():
-            return
-
-        result = self.eval_temp_expr(temp_expr)
-        self.log("Evaluated temperature expression {} to {}."
-                 .format(repr(temp_expr), repr(result)),
-                 level="DEBUG")
-
-        temp = None
-        if isinstance(result, expr.IncludeSchedule):
-            _result = self.eval_schedule(result.schedule, self.app.datetime())
-            if _result is not None:
-                temp = _result[0]
-        elif isinstance(result, expr.Result):
-            temp = result.value
-
-        if temp is None:
-            self.log("Ignoring temperature expression.")
-            return
-
-        if self.get_open_windows():
-            self.log("Caching and not setting temperature due to an"
-                     "open window.")
-            self.wanted_temp = temp
-        else:
-            self.set_temp(temp, scheduled=False, force_resend=force_resend)
-
-        self.start_reschedule_timer(reschedule_delay=reschedule_delay,
-                                    restart=True)
-
-    def cancel_reschedule_timer(self) -> bool:
-        """Cancels the reschedule timer for this room, if one
-        exists. Returns whether a timer has been cancelled."""
-
-        timer = self.reschedule_timer
-        if timer is None:
-            return False
-
-        self.app.cancel_timer(timer)
-        self.reschedule_timer = None
-        self.log("Cancelled re-schedule timer.", level="DEBUG")
-        return True
-
-    def get_open_windows(self) -> T.List[WindowSensor]:
-        """Returns a list of window sensors in this room which
-        currently report to be open,"""
-
-        return list(filter(lambda sensor: sensor.is_open, self.window_sensors))
-
-    def check_for_open_window(self) -> bool:
-        """Checks whether a window is open in this room and,
-        if so, turns the heating off there. The value stored in
-        self.wanted_temp is restored after the heating
-        has been turned off. It returns True if a window is open,
-        False otherwise."""
-
-        if self.get_open_windows():
-            # window is open, turn heating off
-            orig_temp = self.wanted_temp
-            open_temp = self.app.cfg["window_open_temp"]
-            if orig_temp != open_temp:
-                self.log("Setting heating to {} due to an open window."
-                         .format(open_temp),
-                         prefix=common.LOG_PREFIX_OUTGOING)
-                self.set_temp(open_temp, scheduled=False)
-                self.wanted_temp = orig_temp
-            return True
-        return False
+    def log(self, msg: str, *args: T.Any, **kwargs: T.Any) -> None:
+        """Prefixes the room to log messages."""
+        msg = "[{}] {}".format(self, msg)
+        self.app.log(msg, *args, **kwargs)
 
     def notify_set_temp_event(
             self, temp_expr: expr.ExprType, force_resend: bool = False,
@@ -489,6 +449,81 @@ class Room:
                 self.log("Restoring temperature to {}.".format(orig_temp),
                          level="DEBUG")
                 self.set_temp(orig_temp, scheduled=False)
+
+    def set_temp(
+            self, target_temp: expr.Temp, scheduled: bool = False,
+            force_resend: bool = False
+    ) -> None:
+        """Sets the given target temperature for all thermostats in the
+        room. If scheduled is True, a disabled master switch prevents
+        setting the temperature.
+        Temperatures won't be send to thermostats redundantly unless
+        force_resend is True."""
+
+        if scheduled and not self.app.require_master_is_on():
+            return
+
+        self.log("Setting temperature to {}.  [{}{}]"
+                 .format(target_temp,
+                         "scheduled" if scheduled else "manual",
+                         ", force re-sending" if force_resend else ""),
+                 level="DEBUG")
+
+        self.wanted_temp = target_temp
+
+        changed = False
+        for therm in self.thermostats:
+            result = therm.set_temp(target_temp, force_resend=force_resend)
+            changed = changed or bool(result)
+
+        if changed:
+            self.log("Temperature set to {}.  [{}]"
+                     .format(target_temp,
+                             "scheduled" if scheduled else "manual"),
+                     prefix=common.LOG_PREFIX_OUTGOING)
+
+    def set_temp_manually(
+            self, temp_expr: expr.ExprType, force_resend: bool = False,
+            reschedule_delay: T.Union[float, int, None] = None
+    ) -> None:
+        """Evaluates the given temperature expression and sets the result.
+        If the master switch is turned off, this won't do anything.
+        If force_resend is True and the temperature didn't
+        change, it is sent to the thermostats anyway.
+        An existing re-schedule timer is cancelled and a new one is
+        started if re-schedule timers are configured. reschedule_delay,
+        if given, overwrites the value configured for the room.
+        In case of an open window, temperature is cached and not sent."""
+
+        if not self.app.require_master_is_on():
+            return
+
+        result = self.eval_temp_expr(temp_expr)
+        self.log("Evaluated temperature expression {} to {}."
+                 .format(repr(temp_expr), repr(result)),
+                 level="DEBUG")
+
+        temp = None
+        if isinstance(result, expr.IncludeSchedule):
+            _result = self.eval_schedule(result.schedule, self.app.datetime())
+            if _result is not None:
+                temp = _result[0]
+        elif isinstance(result, expr.Result):
+            temp = result.value
+
+        if temp is None:
+            self.log("Ignoring temperature expression.")
+            return
+
+        if self.get_open_windows():
+            self.log("Caching and not setting temperature due to an"
+                     "open window.")
+            self.wanted_temp = temp
+        else:
+            self.set_temp(temp, scheduled=False, force_resend=force_resend)
+
+        self.start_reschedule_timer(reschedule_delay=reschedule_delay,
+                                    restart=True)
 
     def start_reschedule_timer(
             self, reschedule_delay: T.Union[float, int, None] = None,

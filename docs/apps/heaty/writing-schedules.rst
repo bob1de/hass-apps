@@ -17,7 +17,7 @@ sense if they couldn't do more than that.
 
 
 Basic Scheduling Based on Time of the Day
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------------------
 
 Here is another one:
 
@@ -80,7 +80,7 @@ on, for instance, the days of the week. Let's do that next.
 
 
 Constraints
-~~~~~~~~~~~
+-----------
 
 ::
 
@@ -139,7 +139,7 @@ All constraints you define need to be fulfilled for the rule to match.
 
 
 Rules with Sub-Schedules
-~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 
 Imagine you need to turn on heating three times a day for one hour,
 but only on working days from January to April. The obvious way of doing

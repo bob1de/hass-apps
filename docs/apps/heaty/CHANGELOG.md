@@ -15,12 +15,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 * Added a result type for temperature expressions called ``Abort()``
   which has the same effect ``Break()`` had until now.
+* For each room, a sensor entity named
+  ``sensor.heaty_<heaty_id>_room_<room_name>_scheduled_temp`` gets
+  created in Home Assistant. This sensor's state is updated with the
+  scheduled temperature whenever it changes.
+* Added a new boolean configuration option ``reschedule_at_startup``
+  which defaults to ``true``. When it's disabled, Heaty won't apply the
+  scheduled temperature until the next time the scheduling result changes.
 
 ### Changed
 * The ``Break()`` result type for temperature expressions now only
   breaks the innermost sub-schedule, unless a value greater than ``1``
   is passed as its ``levels`` parameter. See the docs for a thorough
   description.
+* At startup, Heaty now fetches the last known scheduled temperatures
+  from the ``..._scheduled_temp`` sensor entities it created before. This
+  has the effect that thermostats which have been changed manually aren't
+  forced back to the schedule when AppDaemon is restarted.
 
 ### Deprecated
 

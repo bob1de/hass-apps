@@ -212,6 +212,14 @@ class Temp:
         except (ValueError, TypeError):
             return None
 
+    def serialize(self) -> str:
+        """Converts the temperature into a string that Temp can be
+        initialized with again later."""
+
+        if self.is_off:
+            return "OFF"
+        return str(self.value)
+
 
 def build_expr_env(app: "HeatyApp") -> T.Dict[str, T.Any]:
     """This function builds and returns an environment usable as globals

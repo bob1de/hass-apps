@@ -51,12 +51,6 @@ heaty_full:
   # (default: false)
   #debug: false
 
-  # If you enable this option, potentially harmful temperature
-  # expressions received in a heaty_set_temp event are evaluated.
-  # For more information, please see README.rst.
-  # (default: false)
-  #untrusted_temp_expressions: false
-
   # This switch can be used to turn off all rooms (e.g. for vacation times).
   # You may use any switch that has the states "on" and "off".
   # (default: none)
@@ -75,6 +69,19 @@ heaty_full:
   # to <opmode_off> explicitly.
   # (default: "OFF")
   #window_open_temp: "OFF"
+
+  # By default, Heaty applies schedules at startup so that all rooms
+  # are set to their configured temperatures. When disabling this
+  # setting, initial temperatures won't be changed until the next
+  # scheduled temperature change occurs.
+  # (default: true)
+  #reschedule_at_startup: true
+
+  # If you enable this option, potentially harmful temperature
+  # expressions received in a heaty_set_temp event are evaluated.
+  # For more information, please see README.rst.
+  # (default: false)
+  #untrusted_temp_expressions: false
 
   # Here you can define Python modules that should be available from
   # inside your temperature expressions. These modules are imported

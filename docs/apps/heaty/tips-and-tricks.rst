@@ -79,3 +79,13 @@ Now let's put this all together into a valid schedule rule:
 ::
 
     - temp: state("input_number.day_temperature") if time.hour >= float(state("input_number.start_hour")) and time.hour <= float(state("input_number.end_hour")) else Skip()
+
+
+Reacting to Changes of the Scheduled Temperature
+------------------------------------------------
+
+For each room, a sensor entity named
+``sensor.heaty_<heaty_id>_room_<room_name>_scheduled_temp`` is created in
+Home Assistant. This sensor will always hold the scheduled temperature
+for the room. Reacting to changes of it's value is possible with normal
+Home Assistant automations.

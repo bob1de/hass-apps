@@ -90,7 +90,9 @@ class HeatyApp(common.App):
         if self.master_is_on():
             for room in self.rooms:
                 if not room.check_for_open_window():
-                    room.apply_schedule()
+                    room.apply_schedule(
+                        skip_send=not self.cfg["reschedule_at_startup"]
+                    )
         else:
             self.log("Master switch is off, not setting temperatures "
                      "initially.")
@@ -114,9 +116,8 @@ class HeatyApp(common.App):
             else:
                 room.cancel_reschedule_timer()
                 room.set_temp(self.cfg["master_off_temp"], scheduled=False)
-                # invalidate cached temp/rule
-                room.current_schedule_temp = None
-                room.current_schedule_rule = None
+                # invalidate cached temp
+                room.scheduled_temp = None
 
     def _reschedule_event_cb(
             self, event: str, data: dict, kwargs: dict
