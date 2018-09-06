@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Added a new boolean configuration option ``reschedule_at_startup``
   which defaults to ``true``. When it's disabled, Heaty won't apply the
   scheduled temperature until the next time the scheduling result changes.
+* Added a per thermostat setting named ``off_temp`` to allow overwriting
+  the value to send for ``OFF``.
 
 ### Changed
 * The ``Break()`` result type for temperature expressions now only
