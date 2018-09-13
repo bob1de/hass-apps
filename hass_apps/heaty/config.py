@@ -179,10 +179,7 @@ THERMOSTAT_SCHEMA = vol.Schema(vol.All(
             vol.All(TEMP_SCHEMA, vol.NotIn([expr.Temp(expr.OFF)])),
             None,
         ),
-        vol.Optional("off_temp", default=None): vol.Any(
-            vol.All(TEMP_SCHEMA, vol.NotIn([expr.Temp(expr.OFF)])),
-            None,
-        ),
+        vol.Optional("off_temp", default=expr.OFF): TEMP_SCHEMA,
         vol.Optional("set_temp_retries", default=10):
             vol.All(int, vol.Range(min=-1)),
         vol.Optional("set_temp_retry_interval", default=30):

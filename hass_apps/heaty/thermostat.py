@@ -251,7 +251,7 @@ class Thermostat:
         The return value is either the actually set temperature or
         None, if nothing has been sent."""
 
-        if target_temp.is_off and self.cfg["off_temp"] is not None:
+        if target_temp.is_off:
             target_temp = self.cfg["off_temp"]
 
         if target_temp.is_off:

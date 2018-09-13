@@ -121,13 +121,13 @@ heaty_full:
     #min_temp: null
     #max_temp: null
 
-    # When this is set to something different than null, Heaty will
+    # When this is set to something different than "OFF", Heaty will
     # rewrite the value OFF into this temperature before sending it to
     # the thermostat. You can set it to 4.0 degrees (if your thermostat
     # supports this low value) in order to prevent frost-induced damage
     # to your heating setup.
-    # (default: null)
-    #off_temp: null
+    # (default: "OFF")
+    #off_temp: "OFF"
 
     # This setting tells Heaty how often it should retry sending
     # a temperature to the thermostat. If the thermostat reports
