@@ -83,7 +83,7 @@ class Room:
         self.app.set_state(entity_id, state=state)
 
     def apply_schedule(
-            self, force_resend: bool = False, skip_send: bool = False
+            self, send: bool = True, force_resend: bool = False
     ) -> None:
         """Sets the temperature that is configured for the current
         date and time. If the master switch is turned off, this won't
@@ -91,10 +91,10 @@ class Room:
         This method won't re-schedule if a re-schedule timer runs.
         It will also detect when the result hasn't changed compared to
         the last run and prevent re-setting the temperature in that case.
+        If send is False, only the records will be updated without
+        actually setting the thermostats.
         If force_resend is True and the temperature didn't change,
         it is sent to the thermostats anyway.
-        If skip_send is True, only the records will be updated without
-        setting the thermostats.
         In case of an open window, temperature is cached and not sent."""
 
         if not self.app.require_master_is_on():
@@ -125,8 +125,8 @@ class Room:
         self.scheduled_temp = temp
         self._set_sensor("scheduled_temp", temp.serialize())
 
-        if skip_send:
-            self.log("Not setting the temperature due to skip_send.",
+        if not send:
+            self.log("Not setting the temperature due to send = False.",
                      level="DEBUG")
             return
 

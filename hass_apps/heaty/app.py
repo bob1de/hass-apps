@@ -91,7 +91,7 @@ class HeatyApp(common.App):
             for room in self.rooms:
                 if not room.check_for_open_window():
                     room.apply_schedule(
-                        skip_send=not self.cfg["reschedule_at_startup"]
+                        send=self.cfg["reschedule_at_startup"]
                     )
         else:
             self.log("Master switch is off, not setting temperatures "
