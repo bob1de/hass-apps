@@ -20,8 +20,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   created in Home Assistant. This sensor's state is updated with the
   scheduled temperature whenever it changes.
 * Added a new boolean configuration option ``reschedule_at_startup``
-  which defaults to ``true``. When it's disabled, Heaty won't apply the
-  scheduled temperature until the next time the scheduling result changes.
+  which defaults to ``true``. When it's disabled and Heaty starts,
+  the scheduled temperature won't be applied until the next time the
+  result of schedule evaluation changes.
 * Added a per thermostat setting named ``off_temp`` to allow overwriting
   the value to send for ``OFF``.
 
