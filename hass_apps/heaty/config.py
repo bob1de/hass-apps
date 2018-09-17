@@ -35,10 +35,7 @@ def build_schedule_rule(rule: dict) -> schedule.Rule:
     return schedule.Rule(**kwargs)
 
 def build_schedule(rules: T.Iterable[dict]) -> schedule.Schedule:
-    """Compiles the given rules and returns a schedule containing them.
-    When check is True, a check is run after schedule creation to ensure
-    each path contains at least one rule with a temperature expression.
-    A ValueError is raised when this check fails."""
+    """Compiles the given rules and returns a schedule containing them."""
 
     sched = schedule.Schedule()
     for rule in rules:
