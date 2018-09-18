@@ -35,8 +35,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   from the ``..._scheduled_temp`` sensor entities it created before. This
   has the effect that thermostats which have been changed manually aren't
   forced back to the schedule when AppDaemon is restarted.
+* The ``temp`` parameter of schedule rule definitionss has been renamed
+  to ``value`` with the shortcut ``v``. The previous name will continue
+  to work until 0.18.0.
+* The ``temp`` parameter of the ``heaty_set_temp`` event has been renamed
+  to ``value`` with the shortcut ``v``. The previous name will continue
+  to work until 0.18.0.
 
 ### Deprecated
+* 0.18.0: The previous name ``temp`` for the ``value`` parameter of
+  schedule rule definitions will be removed.
+* 0.18.0: The previous name ``temp`` for the ``value`` parameter of the
+  ``heaty_set_temp`` event will be removed.
 
 ### Removed
 * Removed the ``SkipSubSchedule()`` result type for temperature

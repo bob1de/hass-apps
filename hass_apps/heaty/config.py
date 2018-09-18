@@ -27,7 +27,7 @@ def build_schedule_rule(rule: dict) -> schedule.Rule:
         "end_time": rule["end"],
         "end_plus_days": rule["end_plus_days"],
         "constraints": constraints,
-        "temp_expr": rule.get("temp"),
+        "temp_expr": rule.get("value"),
     }
 
     if "rules" in rule:
@@ -101,6 +101,16 @@ def config_post_hook(cfg: dict) -> dict:
     cfg["_app"].stats_zones = szones
 
     return cfg
+
+def schedule_rule_pre_hook(rule: dict) -> dict:
+    """Copy value for the value key over from alternative names."""
+
+    rule = rule.copy()
+    for key in ("v", "temp"):
+        if key in rule:
+            rule.setdefault("value", rule[key])
+            del rule[key]
+    return rule
 
 def validate_rule_paths(sched: schedule.Schedule) -> schedule.Schedule:
     """A validator to be run after schedule creation to ensure
@@ -226,9 +236,10 @@ WINDOW_SENSOR_SCHEMA = vol.Schema(vol.All(
 
 SCHEDULE_RULE_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
+    schedule_rule_pre_hook,
     {
         "rules": lambda v: SCHEDULE_SCHEMA(v),  # type: ignore  # pylint: disable=unnecessary-lambda
-        "temp": vol.Any(TEMP_SCHEMA, TEMP_EXPRESSION_SCHEMA),
+        "value": vol.Any(TEMP_SCHEMA, TEMP_EXPRESSION_SCHEMA),
         vol.Optional("name", default=None): vol.Any(str, None),
         vol.Optional("start", default=None): vol.Any(TIME_SCHEMA, None),
         vol.Optional("end", default=None): vol.Any(TIME_SCHEMA, None),

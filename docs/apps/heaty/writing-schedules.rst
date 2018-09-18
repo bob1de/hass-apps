@@ -4,16 +4,19 @@ Writing Schedules
 A schedule controls the temperature in a room over time. It consists
 of a set of rules.
 
-Each rule must at least define a temperature:
+Each rule must at least define a temperature value:
 
 ::
 
     schedule:
-    - temp: 16
+    - value: 16
 
 This schedule would just always set the temperature to ``16``
 degrees, nothing else. Of course, schedules wouldn't make a lot
 sense if they couldn't do more than that.
+
+For ``value``, there is a shortcut ``v`` to make rules more
+compact. We'll use that from now on.
 
 
 Basic Scheduling Based on Time of the Day
@@ -24,18 +27,18 @@ Here is another one:
 ::
 
     schedule:
-    - temp: 21.5
+    - v: 21.5
       start: "7:00"
       end: "22:00"
       name: Fancy Rule
-    - temp: 16
+    - v: 16
 
 This schedule contains the same rule as the schedule before, but
 additionally, it got a new one. The new rule overwrites the second
 and will set a temperature of ``21.5`` degrees, but only from 7.00 am
 to 10.00 pm. This is because it's placed before the 16-degrees-rule
 and Heaty evaluates rules from top to bottom. That is how schedules
-work. The first matching rule wins and specifies the temperature to
+work. The first matching rule wins and determines the temperature to
 set. The ``name`` parameter we specified here is completely optional
 and doesn't influence how the rule is interpreted. A rule's name is
 shown in the logs and may be useful for troubleshooting.
@@ -61,8 +64,8 @@ which behaves exactly like the previous one.
 ::
 
     schedule:
-    - { temp: 21.5, start: "7:00", end: "22:00", name: "Fancy Rule" }
-    - { temp: 16,   start: "0:00", end: "0:00", end_plus_days: 1 }
+    - { v: 21.5, start: "7:00", end: "22:00", name: "Fancy Rule" }
+    - { v: 16,   start: "0:00", end: "0:00", end_plus_days: 1 }
 
 Note how each rule has been rewritten to take just a single line.
 This is no special feature of Heaty, it's rather normal YAML. But
@@ -85,16 +88,16 @@ Constraints
 ::
 
     schedule:
-    - temp: 22
+    - v: 22
       weekdays: 1-5
       start: "7:00"
       end: "22:00"
 
-    - temp: 22
+    - v: 22
       weekdays: 6,7
       start: "7:45"
 
-    - temp: 15
+    - v: 15
 
 With your knowledge so far, this should be self-explanatory. The only
 new parameter is ``weekdays``, which is a so called constraint.
@@ -148,10 +151,10 @@ this is to define four rules:
 ::
 
     schedule:
-    - { temp: 23, start: "06:00", end: "07:00", months: "1-4", weekdays: "1-5" }
-    - { temp: 20, start: "11:30", end: "12:30", months: "1-4", weekdays: "1-5" }
-    - { temp: 20, start: "18:00", end: "19:00", months: "1-4", weekdays: "1-5" }
-    - { temp: "OFF" }
+    - { v: 23, start: "06:00", end: "07:00", months: "1-4", weekdays: "1-5" }
+    - { v: 20, start: "11:30", end: "12:30", months: "1-4", weekdays: "1-5" }
+    - { v: 20, start: "18:00", end: "19:00", months: "1-4", weekdays: "1-5" }
+    - { v: "OFF" }
 
 But what if you want to extend the schedule to heat on Saturdays as
 well? You'd end up changing this at three different places.
@@ -164,34 +167,34 @@ The more elegant way involves so-called sub-schedule rules. Look at this:
     - months: 1-4
       weekdays: 1-6
       rules:
-      - { temp: 23, start: "06:00", end: "07:00" }
-      - { temp: 20, start: "11:30", end: "12:30" }
-      - { temp: 20, start: "18:00", end: "19:00" }
-    - temp: "OFF"
+      - { v: 23, start: "06:00", end: "07:00" }
+      - { v: 20, start: "11:30", end: "12:30" }
+      - { v: 20, start: "18:00", end: "19:00" }
+    - v: "OFF"
 
 The first, outer rule containing the ``rules`` parameter isn't considered
 for evaluation itself. Instead, it's child rules - those defined under
 ``rules:`` - are considered, but only when the constraints of the parent
 rule (``months`` and ``weekdays`` in this case) are fulfilled.
 
-We can go even further and move the ``temp: 20`` one level up, so that
-it counts for all child rules which don't have their own ``temp`` defined.
+We can go even further and move the ``v: 20`` one level up, so that
+it counts for all child rules which don't have their own ``v`` defined.
 
 ::
 
     schedule:
-    - temp: 20
+    - v: 20
       months: 1-4
       weekdays: 1-6
       rules:
-      - { start: "06:00", end: "07:00", temp: 23 }
+      - { start: "06:00", end: "07:00", v: 23 }
       - { start: "11:30", end: "12:30" }
       - { start: "18:00", end: "19:00" }
-    - temp: "OFF"
+    - v: "OFF"
 
-Note how the ``temp`` value for a rule is chosen. To find the value to
+Note how the ``v`` value for a rule is chosen. To find the value to
 use for a particular rule, the rule is first considered itself. In case
-it has no ``temp`` defined, all sub-schedule rules that led to this rule
+it has no ``v`` defined, all sub-schedule rules that led to this rule
 are then scanned for a temperature value until one is found. When looking
 at the indentation of the YAML, this lookup is done from right to left.
 

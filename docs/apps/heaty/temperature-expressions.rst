@@ -84,19 +84,19 @@ lot more flexibility.
 
 As you know from the `chapter about sub-schedules
 <writing-schedules.html#rules-with-sub-schedules>`_, rules of
-sub-schedules inherit their ``temp`` value from the nearest anchestor
+sub-schedules inherit their ``v`` value from the nearest anchestor
 rule having one defined, should they miss an own one.
 
-With a temperature expression as the ``temp`` value of the rule having
+With a temperature expression as the ``v`` value of the rule having
 a sub-schedule, you get the flexibility to dynamically overwrite the
 anchestor's value. Should such an expression return ``None``, the next
-anchestor's ``temp`` value is tried to be used. When compared to plain
+anchestor's ``v`` value is tried to be used. When compared to plain
 temperature values, returning ``None`` is the equivalent of omitting
-the ``temp`` parameter completely, but with the benefit of deciding
+the ``v`` parameter completely, but with the benefit of deciding
 dynamically about whether to omit it or not.
 
 The whole process can be described as follows. To find the result for
-a particular rule inside a sub-schedule, the ``temp`` parameters of
+a particular rule inside a sub-schedule, the ``v`` parameters of
 the rule and it's anchestor rules are evaluated from inside to outside
 (from right to left when looking at the indentation of the YAML syntax)
 until one results in something different than ``None``.
@@ -159,8 +159,8 @@ order):
 ::
 
     schedule:
-    - temp: my_mod.get_temp(room_name, app)
-    - temp: 19
+    - v: my_mod.get_temp(room_name, app)
+    - v: 19
 
 Last step is to write a simple Home Assistant automation to emit a
 re-schedule event whenever the state of ``switch.take_a_bath`` changes.
@@ -203,8 +203,8 @@ same effect, but without the use of any external Python module:
 ::
 
     schedule:
-    - temp: 22 if is_on("switch.take_a_bath") else Skip()
-    - temp: 19
+    - v: 22 if is_on("switch.take_a_bath") else Skip()
+    - v: 19
 
 Basically, we inlined the Python code we previously placed in
 ``my_mod.py`` right into the schedule rule. This works because it is
@@ -226,7 +226,7 @@ This is a rule I once used in my own Heaty configuration at home:
 ::
 
     schedule_prepend:
-    - temp: Add(-3) if is_on("input_boolean.absent") else Skip()
+    - v: Add(-3) if is_on("input_boolean.absent") else Skip()
 
 What does this? Well, the first thing we see is that the rule is placed
 inside the ``schedule_prepend`` section. That means, it is valid for
@@ -282,20 +282,20 @@ the configuration, hence we create one to play with:
 
     schedule_snippets:
       summer:
-      - { temp: 20, start: "07:00", end: "22:00", weekdays: 1-5 }
-      - { temp: 20, start: "08:00", weekdays: 6-7 }
-      - { temp: 16 }
+      - { v: 20, start: "07:00", end: "22:00", weekdays: 1-5 }
+      - { v: 20, start: "08:00", weekdays: 6-7 }
+      - { v: 16 }
 
 Now, we include the snippet into a room's schedule:
 
 ::
 
     schedule:
-    - temp: IncludeSchedule(schedule_snippets["summer"])
+    - v: IncludeSchedule(schedule_snippets["summer"])
       months: 6-9
-    - { temp: 21, start: "07:00", end: "21:30", weekdays: 1-5 }
-    - { temp: 21, start: "08:00", end: "23:00", weekdays: 6-7 }
-    - { temp: 17 }
+    - { v: 21, start: "07:00", end: "21:30", weekdays: 1-5 }
+    - { v: 21, start: "08:00", end: "23:00", weekdays: 6-7 }
+    - { v: 17 }
 
 It turns out that you could have done the exact same without including
 schedules by adding the ``months: 6-9`` constraint to all rules of the
@@ -325,13 +325,13 @@ to create a conditional sub-schedule, for instance.
 ::
 
     schedule:
-    - temp: 20
+    - v: 20
       rules:
-      - temp: Skip() if is_on("input_boolean.include_sub_schedule") else Break()
+      - v: Skip() if is_on("input_boolean.include_sub_schedule") else Break()
       - { start: "07:00", end: "09:00" }
       - { start: "12:00", end: "22:00" }
-      - temp: 17
-     - temp: "OFF"
+      - v: 17
+     - v: "OFF"
 
 The rules 2-4 of the sub-schedule will only be respected when
 ``input_boolean.include_sub_schedule`` is on. Otherwise, evaluation
@@ -362,7 +362,7 @@ implement a schedule on/off switch with it, like so:
 ::
 
     schedule_prepend:
-    - temp: Abort() if is_off("input_boolean.heating_schedule") else Skip()
+    - v: Abort() if is_off("input_boolean.heating_schedule") else Skip()
 
 As soon as ``Abort()`` is returned, schedule evaluation is aborted and
 the temperature stays unchanged.

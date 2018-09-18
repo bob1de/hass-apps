@@ -19,7 +19,7 @@ Heaty introduces two new events it listens for:
 
   * ``room_name``: the name of the room as defined in Heaty's
     configuration (not the ``friendly_name``)
-  * ``temp``: a temperature expression
+  * ``value`` or ``v``: a plain temperature value or temperature expression
   * ``force_resend``: whether to re-send the temperature to the
     thermostats even if it hasn't changed due to Heaty's records (default:
     ``false``)
@@ -42,7 +42,7 @@ regular schedule after one hour:
       - event: heaty_set_temp
         event_data:
           room_name: living
-          temp: 25.0
+          v: 25.0
           reschedule_delay: 60
 
 In case you run multiple instances of Heaty in parallel, a ``heaty_id``

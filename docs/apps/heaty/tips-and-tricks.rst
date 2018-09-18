@@ -54,7 +54,7 @@ which are based on the state of entities in Home Assistant.
 Let's assume you've got two entities, ``input_number.start_hour`` and
 ``input_number.end_hour``. Then you could write a schedule rule without
 the ``start`` and ``end`` fields set, resulting in it always being valid.
-As the value for ``temp``, you configure a temperature expression like
+As the value for ``v``, you configure a temperature expression like
 the following:
 
 ::
@@ -78,7 +78,7 @@ Now let's put this all together into a valid schedule rule:
 
 ::
 
-    - temp: state("input_number.day_temperature") if time.hour >= float(state("input_number.start_hour")) and time.hour <= float(state("input_number.end_hour")) else Skip()
+    - v: state("input_number.day_temperature") if time.hour >= float(state("input_number.start_hour")) and time.hour <= float(state("input_number.end_hour")) else Skip()
 
 
 Reacting to Changes of the Scheduled Temperature

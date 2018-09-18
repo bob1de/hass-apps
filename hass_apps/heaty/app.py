@@ -163,7 +163,7 @@ class HeatyApp(common.App):
             self, event: str, data: dict, kwargs: dict
     ) -> None:
         """This callback executes when a heaty_set_temp event is received.
-        data must contain a "room_name" and a "temp", which may also
+        data must contain a "room_name" and a "value"/"v", which may also
         be a temperature expression. "force_resend" is optional and
         False by default. If it is set to True, the temperature is
         re-sent to the thermostats even if it hasn't changed due to
@@ -178,7 +178,11 @@ class HeatyApp(common.App):
 
         try:
             room_name = data["room_name"]
-            temp_expr = data["temp"]
+            for key in ("v", "temp"):
+                if key in data:
+                    data.setdefault("value", data[key])
+                    break
+            temp_expr = data["value"]
             reschedule_delay = data.get("reschedule_delay")
             if not isinstance(reschedule_delay, (type(None), float, int)):
                 raise TypeError()
