@@ -19,8 +19,8 @@ For ``value``, there is a shortcut ``v`` to make rules more
 compact. We'll use that from now on.
 
 
-Basic Scheduling Based on Time of the Day
------------------------------------------
+Scheduling Based on Time of the Day
+-----------------------------------
 
 Here is another one:
 
@@ -33,15 +33,23 @@ Here is another one:
       name: Fancy Rule
     - v: 16
 
-This schedule contains the same rule as the schedule before, but
-additionally, it got a new one. The new rule overwrites the second
-and will set a temperature of ``21.5`` degrees, but only from 7.00 am
-to 10.00 pm. This is because it's placed before the 16-degrees-rule
-and Heaty evaluates rules from top to bottom. That is how schedules
-work. The first matching rule wins and determines the temperature to
-set. The ``name`` parameter we specified here is completely optional
-and doesn't influence how the rule is interpreted. A rule's name is
-shown in the logs and may be useful for troubleshooting.
+This schedule shares the 16 degrees rule with the previous one,
+but additionally, it got a new rule at the top. The new first rule
+overwrites the second and will set a temperature of ``21.5`` degrees,
+but only from 7.00 am to 10.00 pm. This is because it's placed before
+the 16 degrees-rule and Heaty evaluates rules from top to bottom. From
+10.00 pm to next day 7.00 am, the ``16`` degrees do still apply.
+
+That's how schedules work. The first matching rule wins and determines
+the temperature to set. Consequently, you should design your schedules
+with the most specific rules at the top and gradually generalize to
+wider time frames towards the bottom. Finally, there should be a fallback
+rule without time constraints at all to ensure you have no time slot left
+without a temperature defined for.
+
+The ``name`` parameter we specified here is completely optional and
+doesn't influence how the rule is interpreted. A rule's name is shown
+in the logs and may be useful for troubleshooting.
 
 For more fine-grained control, you may also specify seconds in addition to
 hour and minute. ``22:00:30`` means 10.00 pm + 30 seconds, for instance.
@@ -52,11 +60,11 @@ Heaty sets ``00:00`` for it as well. This alone wouldn't make sense,
 because the resulting rule would stop being valid the same moment it
 starts at.
 
-To achieve the behaviour we'd expect, Heaty applies another
+To achieve the behaviour we'd expect, Heaty performs another
 check. Whenever the end time is less or equal to the start time, it
-increases another attribute called ``end_plus_days`` (which defaults
-to ``0``) by ``1``. This means that the rule is valid up to the time
-specified in the ``end`` field, but one day later. Cool, right?
+increases the value of another attribute called ``end_plus_days`` (which
+defaults to ``0``) by ``1``. This means that the rule is valid up to
+the time specified in the ``end`` field, but one day later. Cool, right?
 
 Having done the same manually would result in the following schedule,
 which behaves exactly like the previous one.
@@ -65,7 +73,7 @@ which behaves exactly like the previous one.
 
     schedule:
     - { v: 21.5, start: "7:00", end: "22:00", name: "Fancy Rule" }
-    - { v: 16,   start: "0:00", end: "0:00", end_plus_days: 1 }
+    - { v: 16,   start: "0:00", end: "0:00" }
 
 Note how each rule has been rewritten to take just a single line.
 This is no special feature of Heaty, it's rather normal YAML. But
@@ -73,13 +81,8 @@ writing rules this way is often more readable, especially if you
 need to create multiple similar ones which, for instance, only
 differ in weekdays, time or temperature.
 
-Having that said, it is always a good idea to add a fallback rule
-(one with just a temperature and neither ``start`` nor ``end``) as the
-last rule in your schedule, which specifies a temperature to use when
-no other rule matched.
-
-Now we have covered the basics, but we can't create schedules based
-on, for instance, the days of the week. Let's do that next.
+Now we have covered the basics, but we can't create schedules based on,
+for instance, the days of the week. Let's do that next.
 
 
 Constraints
