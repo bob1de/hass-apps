@@ -243,8 +243,8 @@ SCHEDULE_RULE_SCHEMA = vol.Schema(vol.All(
         vol.Optional("name", default=None): vol.Any(str, None),
         vol.Optional("start", default=None): vol.Any(TIME_SCHEMA, None),
         vol.Optional("end", default=None): vol.Any(TIME_SCHEMA, None),
-        vol.Optional("end_plus_days", default=0):
-            vol.All(int, vol.Range(min=0)),
+        vol.Optional("end_plus_days", default=None):
+            vol.Any(vol.All(int, vol.Range(min=0)), None),
         vol.Optional("years"): RANGE_STRING_SCHEMA,
         vol.Optional("months"): RANGE_STRING_SCHEMA,
         vol.Optional("days"): RANGE_STRING_SCHEMA,

@@ -19,7 +19,7 @@ class Rule:
     def __init__(
             self, name: str = None,
             start_time: datetime.time = None, end_time: datetime.time = None,
-            end_plus_days: int = 0, constraints: T.Dict[str, T.Any] = None,
+            end_plus_days: int = None, constraints: T.Dict[str, T.Any] = None,
             temp_expr: expr.ExprType = None,
         ) -> None:
 
@@ -34,8 +34,8 @@ class Rule:
             end_time = midnight
         self.end_time = end_time
 
-        if end_time <= start_time:
-            end_plus_days += 1
+        if end_plus_days is None:
+            end_plus_days = 1 if end_time <= start_time else 0
         self.end_plus_days = end_plus_days
 
         if constraints is None:
@@ -79,7 +79,7 @@ class Rule:
             times = "from {} to {}".format(
                 fmt_t(self.start_time), fmt_t(self.end_time)
             )
-            if self.end_plus_days > 0:
+            if self.end_plus_days:
                 times += "+{}d".format(self.end_plus_days)
             tokens.append(times)
         elif self.end_plus_days > 1:

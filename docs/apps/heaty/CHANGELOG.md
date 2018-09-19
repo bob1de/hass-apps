@@ -41,6 +41,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * The ``temp`` parameter of the ``heaty_set_temp`` event has been renamed
   to ``value`` with the shortcut ``v``. The previous name will continue
   to work until 0.18.0.
+* The ``end_plus_days`` parameter of schedule rules is now only set to
+  ``1`` if it hasn't been specified explicitly and the rule's end time
+  is prior or equal to its start time.
 
 ### Deprecated
 * 0.18.0: The previous name ``temp`` for the ``value`` parameter of

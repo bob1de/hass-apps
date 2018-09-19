@@ -54,35 +54,59 @@ in the logs and may be useful for troubleshooting.
 For more fine-grained control, you may also specify seconds in addition to
 hour and minute. ``22:00:30`` means 10.00 pm + 30 seconds, for instance.
 
-If you omit the ``start`` parameter, Heaty assumes that you mean midnight
-(``00:00``) and fills that in for you. When ``end`` is not specified,
-Heaty sets ``00:00`` for it as well. This alone wouldn't make sense,
-because the resulting rule would stop being valid the same moment it
-starts at.
 
-To achieve the behaviour we'd expect, Heaty performs another
-check. Whenever the end time is less or equal to the start time, it
-increases the value of another attribute called ``end_plus_days`` (which
-defaults to ``0``) by ``1``. This means that the rule is valid up to
-the time specified in the ``end`` field, but one day later. Cool, right?
+Rules Spanning Multiple Days
+----------------------------
 
-Having done the same manually would result in the following schedule,
-which behaves exactly like the previous one.
+Now let's come back to the 16-degrees rule we wrote above and figure
+out why that actually counts as a fallback for the whole day. Here's
+the rule we have so far.
 
 ::
 
-    schedule:
-    - { v: 21.5, start: "7:00", end: "22:00", name: "Fancy Rule" }
-    - { v: 16,   start: "0:00", end: "0:00" }
+    - temp: 16
 
-Note how each rule has been rewritten to take just a single line.
+If you omit the ``start`` parameter, Heaty assumes that you mean midnight
+(``00:00``) and fills that in for you. When ``end`` is not specified,
+Heaty sets ``00:00`` for it as well. That's what we did for this
+rule. However, a rule that ends the same moment it starts at wouldn't
+make sense. We expect it to count for the whole day instead.
+
+In order to express what we actually want, there's another parameter named
+``end_plus_days`` to tell Heaty how many midnights there are between
+the start and end time. As we didn't specify this parameter explicitly,
+it's value is determined by Heaty. If the end time of the rule is prior
+or equal to its start time, ``end_plus_days`` is assumed to be
+``1``, otherwise ``0``.
+
+.. note::
+
+   The value of ``end_plus_days`` can't be negative, meaning you can't
+   span a rule backwards in time. Only positive integers and ``0``
+   are allowed.
+
+.. note::
+
+   You don't need to care about setting ``end_plus_days`` yourself,
+   unless one of your rules should span more than 24 hours, requiring
+   ``end_plus_days: 2`` or greater.
+
+Having written out what Heaty assumes automatically would result in the
+following rule, which behaves exactly identical to what we begun with.
+
+::
+
+    - { v: 16,   start: "0:00", end: "0:00", end_plus_days: 1 }
+
+Note how the rule has been rewritten to take just a single line.
 This is no special feature of Heaty, it's rather normal YAML. But
 writing rules this way is often more readable, especially if you
 need to create multiple similar ones which, for instance, only
 differ in weekdays, time or temperature.
 
-Now we have covered the basics, but we can't create schedules based on,
-for instance, the days of the week. Let's do that next.
+You can now write rules that span midnights, but you still can't create
+schedules based on, for instance, the days of the week. Let's do that
+next.
 
 
 Constraints
