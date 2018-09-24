@@ -7,6 +7,7 @@ import typing as T
 import copy
 
 from appdaemon.plugins.hass import hassapi
+from appdaemon.utils import __version__ as AD_VERSION
 
 
 # prefixes for log messages
@@ -68,8 +69,8 @@ class App(hassapi.Hass):
             kwargs["prefix"] = LOG_PREFIX_ALERT
             self.log(*args, **kwargs)
 
-        alert("Welcome to {} (version {})!"
-              .format(self.Meta.name, self.Meta.version))
+        alert("Welcome to {} {}, running on AppDaemon {}."
+              .format(self.Meta.name, self.Meta.version, AD_VERSION))
         alert("")
         alert("This is an app from the hass-apps package.")
         alert("  DOCS: https://hass-apps.readthedocs.io/en/stable/")
