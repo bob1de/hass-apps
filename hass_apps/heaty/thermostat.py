@@ -46,8 +46,8 @@ class Thermostat:
             self.log("Thermostat couldn't be found.", level="WARNING")
             return
 
-        state = copy.deepcopy((_state or {}).get("attributes", {}))
-        state.update(copy.deepcopy(_state or {}))
+        state = copy.deepcopy(_state or {})  # type: T.Dict[str, T.Any]
+        state.update((state or {}).get("attributes", {}))
 
         required_attrs = []
         if self.cfg["supports_opmodes"]:
@@ -74,7 +74,7 @@ class Thermostat:
             for attr in temp_attrs:
                 value = state.get(attr)
                 try:
-                    value = float(value)
+                    value = float(value)  # type: ignore
                 except (TypeError, ValueError):
                     self.log("The value {} for attribute {} is no valid "
                              "temperature value. "
@@ -118,8 +118,8 @@ class Thermostat:
         This method fetches both the current and target temperature from
         the thermostat and reacts accordingly."""
 
-        attrs = copy.deepcopy((new or {}).get("attributes", {}))
-        attrs.update(copy.deepcopy(new or {}))
+        attrs = copy.deepcopy(new or {})
+        attrs.update((attrs or {}).get("attributes", {}))
 
         _target_temp = None  # type: T.Optional[expr.TempValueType]
         if self.cfg["supports_opmodes"]:
