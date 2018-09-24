@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 * Re-generated sphinx configuration with version 1.7.8.
+* Changed minimum version of observable dependency to 1.0.0.
 
 ### Deprecated
 
