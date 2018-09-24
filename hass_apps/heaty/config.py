@@ -166,9 +166,12 @@ TEMP_EXPRESSION_MODULE_SCHEMA = vol.Schema(vol.All(
         "as": PYTHON_VAR_SCHEMA,
     },
 ))
-TEMP_EXPRESSION_MODULES_SCHEMA = vol.Schema({
-    vol.Extra: lambda v: TEMP_EXPRESSION_MODULE_SCHEMA(v or {}),
-})
+TEMP_EXPRESSION_MODULES_SCHEMA = vol.Schema(vol.All(
+    lambda v: v or {},
+    {
+        vol.Extra: TEMP_EXPRESSION_MODULE_SCHEMA,
+    },
+))
 
 
 ########## THERMOSTATS
