@@ -417,7 +417,7 @@ class Room:
 
         if neutral_temp == self.wanted_temp:
             self.cancel_reschedule_timer()
-        else:
+        elif self.cfg["reschedule_delay"]:
             self.start_reschedule_timer(restart=True)
 
     def notify_window_action(self, sensor: WindowSensor, is_open: bool) -> None:  # pylint: disable=unused-argument
