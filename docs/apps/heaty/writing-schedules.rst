@@ -64,7 +64,7 @@ the rule we have so far.
 
 ::
 
-    - temp: 16
+    - v: 16
 
 If you omit the ``start`` parameter, Heaty assumes that you mean midnight
 (``00:00``) and fills that in for you. When ``end`` is not specified,
