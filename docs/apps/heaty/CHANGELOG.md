@@ -9,12 +9,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
+
+### Security
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+
+## 0.17.0 - 2018-10-05
+
+### Fixed
 * An empty ``temp_expression_modules:`` stanza in the configuration does
   not fail configuration validation anymore.
 * Not setting a room's ``reschedule_delay`` doesn't cause changes to be
   reverted immediately anymore.
-
-### Security
 
 ### Added
 * Added a result type for temperature expressions called ``Abort()``
