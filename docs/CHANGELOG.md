@@ -14,12 +14,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 
 ### Changed
-* Re-generated sphinx configuration with version 1.7.8.
-* Changed minimum version of observable dependency to 1.0.0.
 
 ### Deprecated
 
 ### Removed
+
+
+## 0.20181005.0
+
+### Changed
+* Re-generated sphinx configuration with version 1.7.8.
+* Changed minimum version of observable dependency to 1.0.0.
+* heaty v0.17.0
 
 
 ## 0.20180824.1
