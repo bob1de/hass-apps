@@ -1,0 +1,33 @@
+# The attribute of the entity to be watched for state changes.
+#state_attr: state
+
+# Here, the possible values of that attribute are configured.
+states:
+
+  #some_state:
+
+    # The service that needs to be called in order to make state_attr
+    # show this state.
+    #service: <required>
+
+    # The data to be passed to the service.
+    #service_data: {}
+
+    # Whether to include the entity id as "entity_id" in the service data.
+    #iclude_entity_id: true
+
+    # The parameter as which the actual value should be passed in the
+    # service data.
+    # null means not include the value in the service data.
+    #value_param: null
+
+  #other_state:
+    # ...
+
+  # The keyword "_other_" stands for a so-called wildcard state that
+  # matches any state not explicitly defined here. You may want to use
+  # the wildcard state to catch arbitrary numbers, for example.
+  # If you define all possible states explicitly and don't need a wildcard
+  # state, simply leave it out.
+  #_other_:
+    # ...

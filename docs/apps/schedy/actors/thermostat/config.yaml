@@ -1,0 +1,63 @@
+# Delta that is added to the temperature value sent to this
+# thermostat in order to correct potential inaccuracies of
+# the temperature sensor.
+#delta: 0
+
+# The minimum/maximum temperature the thermostat supports.
+# If a temperature lower than min_temp is going to be set, the
+# operation mode will be switched off instead of setting the
+# temperature. A temperature setting higher than max_temp causes
+# max_temp to be set instead.
+# null means there is no limitation.
+#min_temp: null
+#max_temp: null
+
+# When this is set to something different than "OFF", Schedy will
+# rewrite the value OFF into this temperature before sending it to
+# the thermostat. You can set it to 4.0 degrees (if your thermostat
+# supports this low value) in order to prevent frost-induced damage
+# to your heating setup.
+#off_temp: "OFF"
+
+# Set this to false if your thermostat doesn't support operation modes.
+# Please note that you won't be able to turn it off completely without
+# operation mode support.
+#supports_opmodes: true
+
+# These two settings can be used to tweak the names of the
+# operation modes.
+#opmode_heat: heat
+#opmode_off: "off"
+
+
+#######################################################################
+# The following settings normally don't need to be touched unless you #
+# want to abuse the thermostat actor to control something different.  #
+#######################################################################
+
+# You might want to use an alternative service that receives
+# the operation mode name.
+#opmode_heat_service: climate/set_operation_mode
+#opmode_off_service: climate/set_operation_mode
+# The service call parameter which the operation mode should be
+# sent as. Set to null in order to omit the operation mode from the
+# service call.
+#opmode_heat_service_attr: operation_mode
+#opmode_off_service_attr: operation_mode
+# Entity attribute that holds the name of the current operation mode.
+# This is used to detect manual temperature adjustments, provide
+# correct temperature values on startup and notice that a
+# thermostat picked up temperature changes.
+#opmode_state_attr: operation_mode
+
+# These are the counterparts for opmode_service_* and opmode_state_*.
+#target_temp_service: climate/set_temperature
+#target_temp_service_attr: temperature
+#target_temp_state_attr: temperature
+
+# Entity attribute that holds the current temperature as measured
+# by the thermostat's temperature sensor.
+# This is used for calculating the statistical temp_delta value. If
+# your thermostat doesn't support this feature, set the value to null
+# in order to disable it.
+#current_temp_state_attr: current_temperature

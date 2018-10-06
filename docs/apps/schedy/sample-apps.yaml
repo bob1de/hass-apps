@@ -1,0 +1,121 @@
+schedy:
+  # Obligatory settings that tell appdaemon where to find the app.
+  # You shouldn't need to change these two.
+  module: hass_apps_loader
+  class: SchedyApp
+
+  # Enable debugging output
+  #debug: false
+
+
+  # By default, Schedy applies schedules at startup so that all rooms
+  # are set to their configured values. When disabling this setting,
+  # Schedy will try to fetch the last known scheduled value from the
+  # records stored in Home Assistant and only re-send when that differs
+  # from the current value.
+  #reschedule_at_startup: true
+
+
+  # If you enable this option, potentially harmful expressions received
+  # in schedy_set_value events are evaluated.
+  #expressions_from_events: false
+
+  # Here you can define Python modules that should be available
+  # inside your expressions. These modules are imported upon Schedy's
+  # initialization, hence you have to restart AppDaemon after making
+  # changes to these modules.
+  expression_modules:
+    #math:
+    #my_custom_module:
+      # Optionally, define an alternative name under which the module
+      # should be available.
+      #as: alt_name
+
+
+  # Chose the type of actors that should be controlled by this instance
+  # of Schedy.
+  # Possible types can be found in the documentation.
+  #actor_type: <required>
+
+  # In the following config block, you may define templates with
+  # settings that affect multiple actors in your setup. These can then be
+  # used as a starting point for the configuration of individual actors.
+  actor_templates:
+
+    # Each template needs to have a name.
+    # The "default" template is always present, no matter if you define
+    # it or not. Of course it will be empty by default.
+    default:
+
+      # These settings are valid for all actor types. Actor
+      # type-specific settings can be found in the documentation.
+
+      # An alternative friendly name to display in logs.
+      #friendly_name: ...
+
+      # This setting tells Schedy how often it should try sending a
+      # value to the actor. If the actor reports the set value back, no
+      # further retry is made. You may find this useful if the connection
+      # between Home Assistant and your actor is unreliable. Set to 0 in
+      # order to disable retrying. -1 removes the limit and causes the
+      # value to be re-sent until the actor reports it back in its state
+      # (avoid this whenever possible).
+      #send_retries: 10
+      # How many seconds to wait before retrying.
+      #send_retry_interval: 30
+
+
+  # Add schedule rules you want to have prepended to each room's schedule
+  # automatically here.
+  schedule_prepend:
+
+  # Add schedule rules you want to have appended to each room's schedule
+  # automatically here.
+  schedule_append:
+
+  # Optionally, configure schedule snippets that can be included by
+  # expressions dynamically. See the documentation for an example on
+  # how to use them.
+  schedule_snippets:
+
+    #summer:
+    # ...
+
+
+  # Configure your rooms here.
+  rooms:
+
+    # Create such a block for every room you want to control.
+    #living:
+
+      # An alternative friendly name to display in logs.
+      #friendly_name: ...
+
+      # This setting controls whether changes reported by one actor
+      # should automatically be replicated to the other ones in this
+      # particular room.
+      #replicate_changes: true
+
+      # Set this value to a number of minutes and Schedy will
+      # automatically re-schedule the value after a manual change has
+      # been made. If you, for instance, use the thermostat actor type
+      # and change the target temperature at one of your thermostats and
+      # this value is set to 120, Schedy will again apply the schedule
+      # two hours after you made the change.
+      # 0 means not re-schedule before the next scheduled value change
+      # occurs.
+      #reschedule_delay: 0
+
+      # All actors of this room go here.
+      #actors:
+
+        # This could be a sample thermostat.
+        #climate.living1:
+
+          # Choose the template this actor should inherit its settings
+          # from.
+          #template: default
+
+          # We could, for instance, overwrite the delta defined in the
+          # template, if any, for this particular thermostat only.
+          delta: 1.0

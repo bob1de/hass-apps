@@ -14,6 +14,7 @@ from distutils.version import StrictVersion
 
 
 APPS = (
+    "schedy",
     "heaty",
     "motion_light",
 )
