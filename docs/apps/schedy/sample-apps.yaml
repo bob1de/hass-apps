@@ -47,22 +47,7 @@ schedy:
     # it or not. Of course it will be empty by default.
     default:
 
-      # These settings are valid for all actor types. Actor
-      # type-specific settings can be found in the documentation.
-
-      # An alternative friendly name to display in logs.
-      #friendly_name: ...
-
-      # This setting tells Schedy how often it should try sending a
-      # value to the actor. If the actor reports the set value back, no
-      # further retry is made. You may find this useful if the connection
-      # between Home Assistant and your actor is unreliable. Set to 0 in
-      # order to disable retrying. -1 removes the limit and causes the
-      # value to be re-sent until the actor reports it back in its state
-      # (avoid this whenever possible).
-      #send_retries: 10
-      # How many seconds to wait before retrying.
-      #send_retry_interval: 30
+      # Actor type-specific settings can be found in the documentation.
 
 
   # Add schedule rules you want to have prepended to each room's schedule

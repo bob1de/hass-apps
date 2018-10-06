@@ -12,7 +12,7 @@ a wildcard for undefined states, this is a quite powerful mechanism.
 Configuration
 -------------
 
-.. include:: ../config_intro
+.. include:: ../config-intro.rst.snippet
 
 .. literalinclude:: config.yaml
    :language: yaml

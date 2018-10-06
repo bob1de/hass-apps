@@ -45,3 +45,12 @@ Currently, the following actor types are available:
    :maxdepth: 1
 
    */index
+
+
+Common Settings
+---------------
+
+There are some settings common among all available actor types.
+
+.. literalinclude:: common-config.yaml
+   :language: yaml

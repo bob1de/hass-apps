@@ -36,7 +36,7 @@ Schedy configuration with thermostat actors.
 Configuration
 -------------
 
-.. include:: ../config_intro
+.. include:: ../config-intro.rst.snippet
 
 .. literalinclude:: config.yaml
    :language: yaml

@@ -1,0 +1,13 @@
+# An alternative friendly name to display in logs.
+#friendly_name: ...
+
+# This setting tells Schedy how often it should try sending a
+# value to the actor. If the actor reports the set value back, no
+# further retry is made. You may find this useful if the connection
+# between Home Assistant and your actor is unreliable. Set to 0 in
+# order to disable retrying. -1 removes the limit and causes the
+# value to be re-sent until the actor reports it back in its state
+# (avoid this whenever possible).
+#send_retries: 10
+# How many seconds to wait before retrying.
+#send_retry_interval: 30
