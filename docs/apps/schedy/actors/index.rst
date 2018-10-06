@@ -36,7 +36,7 @@ actor-specific pages.
          # ...
 
    Of course, the same room names may then be used in each of these app
-   instances, since they run completely independent from each other.
+   instances, since they run completely independent of each other.
 
 Currently, the following actor types are available:
 

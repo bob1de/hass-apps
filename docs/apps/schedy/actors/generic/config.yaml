@@ -14,7 +14,7 @@ states:
     #service_data: {}
 
     # Whether to include the entity id as "entity_id" in the service data.
-    #iclude_entity_id: true
+    #include_entity_id: true
 
     # The parameter as which the actual value should be passed in the
     # service data.
