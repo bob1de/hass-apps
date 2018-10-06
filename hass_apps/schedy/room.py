@@ -67,7 +67,7 @@ class Room:
             "value_changed", self.notify_value_changed
         )
         if self.wanted_value is not None and \
-           all([a.initialized for a in self.actors]):
+           all([a.is_initialized for a in self.actors]):
             self.set_value(self.wanted_value, scheduled=False)
 
     def _reschedule_timer_cb(self, kwargs: dict) -> None:
@@ -447,7 +447,7 @@ class Room:
         self.wanted_value = value
 
         changed = False
-        for actor in filter(lambda a: a.initialized, self.actors):
+        for actor in filter(lambda a: a.is_initialized, self.actors):
             result = actor.set_value(value, force_resend=force_resend)
             changed = changed or bool(result)
 

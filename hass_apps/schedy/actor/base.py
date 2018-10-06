@@ -27,7 +27,7 @@ class ActorBase:
         self.cfg = cfg
         self.room = room
         self.app = room.app
-        self.initialized = False
+        self.is_initialized = False
         self.current_value = None  # type: T.Any
         self.wanted_value = None  # type: T.Any
         self.resend_timer = None  # type: T.Optional[uuid.UUID]
@@ -187,7 +187,7 @@ class ActorBase:
 
         self.after_initialization()
 
-        self.initialized = True
+        self.is_initialized = True
         return True
 
     @classmethod
