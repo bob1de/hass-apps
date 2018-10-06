@@ -1,15 +1,22 @@
+# This hook should perform all actions required for moving the actor
+# to the state corresponding to the value given as "value". The result
+# of the hook isn't respected. You'll probably use this for calling
+# some services.
+#send_hook: <required>
+
 # This hook is executed when a state update is received from the
 # watched entity. It has the dictionary with all received state attributes
 # available in the variable "state". The result has to be the scheduling
 # value corresponding to this state. If the result is None, the state
 # change is ignored.
-#state_hook: <required>
-
-# This hook should perform all actions required for moving the actor
-# to the state corresponding to the value given as "value". The result
-# of the hook isn't respected. You'll probably use this for calling
-# some services.
-#send_hook: ...
+# When you don't define a state hook, the actor doesn't react to state
+# changes at all. Inferring values from states is then impossible, which
+# also disables change replication between actors in a room. Should you
+# really decide to not map states back to values, make sure you set the
+# "send_retries" setting to a low value, because the actor won't be able
+# to notice when it has reached the desired state and always send until
+# the configured number of retries is exceeded.
+#state_hook: ...
 
 # This hook is optional and may be used to preprocess a value generated
 # by scheduling before it is stored and passed on to the send hook. The

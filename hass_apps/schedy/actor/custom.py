@@ -13,15 +13,15 @@ from .base import ActorBase
 
 
 CONFIG_SCHEMA = vol.Schema({
-    "filter_value_hook": vol.All(
-        str,
-        util.compile_expression,
-    ),
-    "send_hook": vol.All(
+    vol.Required("send_hook"): vol.All(
         str,
         util.compile_expression,
     ),
     "state_hook": vol.All(
+        str,
+        util.compile_expression,
+    ),
+    "filter_value_hook": vol.All(
         str,
         util.compile_expression,
     ),
@@ -68,12 +68,6 @@ class CustomActor(ActorBase):
 
     def filter_set_value(self, value: T.Any) -> T.Any:
         """Executes the configured filter_value script."""
-
-        if "send_hook" not in self.cfg:
-            self.log("Actor doesn't support sending because of missing "
-                     "send hook.",
-                     level="DEBUG")
-            return None
 
         if "filter_value_hook" in self.cfg:
             env = {"value": value}
