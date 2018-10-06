@@ -31,6 +31,6 @@ Supported Values
 ----------------
 
 The custom actor doesn't limit the values your schedules can
-generate. Anything that your ``send`` hook accepts is fine. With the
-optional ``filter_value`` hook you may preprocess the values before they
-are stored and get passed into ``send``.
+generate. Anything that your ``send_hook`` accepts is fine. With the
+optional ``filter_value_hook`` you may preprocess the values before they
+are stored and get passed into ``send_hook``.

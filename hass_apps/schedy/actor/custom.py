@@ -14,15 +14,15 @@ from .base import ActorBase
 
 
 CONFIG_SCHEMA = vol.Schema({
-    "filter_value": vol.All(
+    "filter_value_hook": vol.All(
         str,
         util.compile_expression,
     ),
-    "send": vol.All(
+    "send_hook": vol.All(
         str,
         util.compile_expression,
     ),
-    "state_to_value": vol.All(
+    "state_hook": vol.All(
         str,
         util.compile_expression,
     ),
@@ -65,20 +65,20 @@ class CustomActor(ActorBase):
         self.log("Executing send script.",
                  level="DEBUG")
         env = {"value": self.wanted_value}
-        self._exec_script(self.cfg["send"], env)
+        self._exec_script(self.cfg["send_hook"], env)
 
     def filter_set_value(self, value: T.Any) -> T.Any:
         """Executes the configured filter_value script."""
 
-        if "send" not in self.cfg:
+        if "send_hook" not in self.cfg:
             self.log("Actor doesn't support sending because of missing "
-                     "send script.",
+                     "send hook.",
                      level="DEBUG")
             return None
 
-        if "filter_value" in self.cfg:
+        if "filter_value_hook" in self.cfg:
             env = {"value": value}
-            result = self._exec_script(self.cfg["filter_value"], env)
+            result = self._exec_script(self.cfg["filter_value_hook"], env)
             self.log("Filter rewrote value {} to {}."
                      .format(repr(value), repr(result)),
                      level="WARNING")
@@ -88,11 +88,11 @@ class CustomActor(ActorBase):
     def notify_state_changed(self, attrs: dict) -> None:
         """Is called when the entity's state changes."""
 
-        if "state_to_value" not in self.cfg:
+        if "state_hook" not in self.cfg:
             return
 
         env = {"state": attrs}
-        value = self._exec_script(self.cfg["state_to_value"], env)
+        value = self._exec_script(self.cfg["state_hook"], env)
         self.log("State {} resulted in a value of {}."
                  .format(repr(attrs), repr(value)),
                  level="DEBUG")
