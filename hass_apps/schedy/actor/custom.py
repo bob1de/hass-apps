@@ -45,9 +45,10 @@ class CustomActor(ActorBase):
         result or None, if unset or an error occured."""
 
         env = env.copy()
-        env.setdefault("app", self.app)
-        env.setdefault("config", self.cfg["config"])
         env.setdefault("entity_id", self.entity_id)
+        env.setdefault("config", self.cfg["config"])
+        env.setdefault("app", self.app)
+        env.setdefault("actor", self)
 
         try:
             exec(expr, env)  # pylint: disable=exec-used

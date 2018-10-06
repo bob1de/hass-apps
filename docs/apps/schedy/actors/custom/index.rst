@@ -55,10 +55,19 @@ work with:
 
 * ``state`` or ``value``: The input depending on the type of hook.
 * ``entity_id``: The actor's entity id.
-* ``app``: The ``appdaemon.plugins.hass.hassapi.Hass`` object to be used
-  for calling services etc.
 * ``config``: The custom configuration dictionary as defined in the
   actor configuration.
+* ``app``: The ``appdaemon.plugins.hass.hassapi.Hass`` object to be used
+  for calling services etc.
+* ``actor``: The ``CustomActor`` object. The only purpose I could imagine
+  for using this object directly is for generating custom log messages,
+  e.g. for debugging purposes. You could do:
+
+  ::
+
+      actor.log("I'm going to send the value {}."
+                .format(repr(value)),
+                level="DEBUG")
 
 
 Configuration
