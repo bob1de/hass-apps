@@ -1,1 +1,27 @@
+# This hook is executed when a state update is received from the
+# watched entity. It has the dictionary with all received state attributes
+# available in the variable "state". The result has to be the scheduling
+# value corresponding to this state. If the result is None, the state
+# change is ignored.
+#state_hook: <required>
 
+# This hook should perform all actions required for moving the actor
+# to the state corresponding to the value given as "value". The result
+# of the hook isn't respected. You'll probably use this for calling
+# some services.
+#send_hook: ...
+
+# This hook is optional and may be used to preprocess a value generated
+# by scheduling before it is stored and passed on to the send hook. The
+# value is available under the name "value". The result of this hook
+# has to be the updated value or None, in which case the value change
+# is discarded and no send hook is executed.
+#filter_value_hook: ...
+
+# The config parameter is a dictionary which is available in all hooks
+# under the name "config". It can be filled with anything you like and
+# hence is useful for reusing a custom actor template, each time with
+# different settings. You may want to store things like attribute names
+# to be used by your custom hooks in the config dictionary.
+# It's empty by default.
+config:
