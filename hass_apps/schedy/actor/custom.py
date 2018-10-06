@@ -5,7 +5,6 @@ This module implements the custom actor.
 import types
 import typing as T
 
-import re
 import voluptuous as vol
 
 from ... import common
@@ -48,7 +47,7 @@ class CustomActor(ActorBase):
         env = env.copy()
         env.setdefault("app", self.app)
         env.setdefault("config", self.cfg["config"])
-        env.setdefault("re", re)
+        env.setdefault("entity_id", self.entity_id)
 
         try:
             exec(expr, env)  # pylint: disable=exec-used
