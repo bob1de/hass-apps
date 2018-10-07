@@ -1,16 +1,48 @@
 Getting Started
 ===============
 
-Requirements
-------------
+Installation on Hass.io
+-----------------------
+
+
+
+1. In order to use hass-apps in the hass.io ecosystem, you first need to
+   set up an AppDaemon add-on. The steps described here are for `this
+   add-on <https://github.com/hassio-addons/addon-appdaemon3>`_.
+
+2. When you have that up and running, add one of the following options
+   to the add-on's configuration.
+
+   a) To always upgrade to the latest version of hass-apps automatically
+      when AppDaemon starts:
+
+      ::
+
+         "python_packages": [
+             "hass-apps"
+         ],
+
+      b) To install a specific version of hass-apps (e.g. v0.20181005.0):
+
+      ::
+
+         "python_packages": [
+             "hass-apps==0.20181005.0"
+         ],
+
+3. Continue with the `configuration <#id1>`_ as normal.
+
+
+Installation on GNU/Linux
+-------------------------
 
 Hass-apps is a collection of apps for `AppDaemon
 <https://appdaemon.readthedocs.io/en/stable/>`_, hence AppDaemon is a
 dependency of hass-apps and will automatically be installed alongside.
 
-The project itself is developed under GNU/Linux, but since there are no
+The project itself is developed on GNU/Linux, but since there are no
 platform-specific Python modules used it should run everywhere Python
-and AppDaemon are available. However, we'll assume an installation under
+and AppDaemon are available. However, we'll assume an installation on
 GNU/Linux for the rest of this guide. Feel free to apply it to your own
 operating system.
 
@@ -20,13 +52,12 @@ enough, you may continue with installing.
 
 
 Auto-Install Assistant
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
-If you are lucky enough to use GNU/Linux, there is a script available
-to guide you through the installation and configuration. Just open a
-console, terminal, SSH session or whatever and execute the following
-command. Execute it as the user that should run AppDaemon later, doing
-this as root is strictly dissuaded from.
+There is a script available to guide you through the installation and
+configuration. Just open a console, terminal, SSH session or whatever
+and execute the following command. Execute it as the user that should
+run AppDaemon later, doing this as root is strictly dissuaded from.
 
 ::
 
@@ -36,8 +67,8 @@ Once the script has been downloaded, it'll run automatically. Follow
 the instructions on screen.
 
 
-Manual Installation on GNU/LINUX
---------------------------------
+Manual Installation
+~~~~~~~~~~~~~~~~~~~
 
 It is strongly recommended to install hass-apps (+ it's dependencies
 like AppDaemon) into a virtualenv, separated even from Home Assistant in
@@ -103,28 +134,6 @@ process.
           pip install . --upgrade
 
 
-A Note for Hass.io Users
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-Currently, it's not possible to create a plug & play add-on for hass.io
-containing hass-apps, because it needs to be installed into AppDaemon's
-container, but there already is work in progress to make the installation
-more seamless in the future.
-
-The actions needed in order to install under hass.io are:
-
-1. Install the appdaemon add-on.
-2. Copy the ``hass_apps`` folder into the ``apps`` directory of your
-   AppDaemon container. This is also the only thing you need to do when
-   upgrading to a newer version of hass-apps.
-3. Download the observable Python package (version 0.3.2 at least)
-   from PyPi, e.g. as a ``.tar.gz`` file and extract it. Inside, you'll
-   find a directory named ``observable-<version>``. Enter that and copy
-   the contained ``observable`` directory into your AppDaemon's ``apps``
-   directory, just alongside ``hass_apps``.
-4. Continue with the configuration as normal.
-
-
 Configuration
 -------------
 
@@ -137,16 +146,17 @@ which describes what to do. We assume that you've got a working AppDaemon
 3.x for now.
 
 1. Get yourself a nice cup of coffee or tea. You'll surely need it.
-2. Copy the file ``hass_apps/data/hass_apps_loader.py`` into your
-   AppDaemon's ``apps`` directory. This is just a stub which imports
-   the real app's code.
+2. Store the file `hass_apps_loader.py
+   <https://raw.githubusercontent.com/efficiosoft/hass-apps/master/hass_apps_loader.py>`_
+   in your AppDaemon's ``apps`` directory. This is just a stub which
+   imports the real app's code.
 3. Pick one or more apps you want to use.
-4. Copy the contents of ``docs/apps/<some_app>/sample-apps.yaml`` to a
+4. Copy the sample configuration provided for each app in the docs to a
    new YAML file in your AppDaemon's ``apps`` directory and start editing
    it. Adapt the sample configuration as necessary. Documentary comments
    explaining what the different settings mean are included.
-   The sample configuration can also be found in the HTML documentation
-   for each individual app and copied from there.
+   The sample configurations can also be found in the GitHub repository
+   under ``docs/apps/<app_name>/sample-apps.yaml``.
 5. AppDaemon should have noticed the changes made to ``apps.yaml`` and
    restart its apps automatically.
 

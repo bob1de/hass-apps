@@ -6,6 +6,16 @@ regularly in order to get the latest fixes, security updates, feature
 additions and enhancements that are incorporated every now and then.
 
 
+Upgrade on Hass.io
+------------------
+
+When you followed the `tutorial for installing on hass.io
+<getting-started.html#installation-on-hass-io>`_ and decided for
+automatic upgrading, you don't need to do anything. Just ensure that
+your configuration stays compatible with the new hass-apps versions and
+restart the AppDaemon add-on from time to time.
+
+
 Upgrade Using the Auto-Install Assistant
 ----------------------------------------
 
@@ -59,8 +69,8 @@ take effect.
 Switching between PyPi and Git-based Installations
 --------------------------------------------------
 
-It is possible to switch between an installation done from PyPi and a
-manual installation from the git repository.
+It is possible to switch between a manual installation done from PyPi
+and a manual installation from the git repository.
 
 To go from a git-based installation to the latest stable release from
 PyPi, remove the ``hass_apps`` directory that contains your working
@@ -70,4 +80,4 @@ and follow the `Installation Guide`_ from step 3 onwards.
 For switching from PyPi to git, just follow the `Installation Guide`_
 from step 3 onwards.
 
-.. _`Installation Guide`: getting-started.html#installation
+.. _`Installation Guide`: getting-started.html#manual-installation

@@ -22,9 +22,6 @@ setup(
     author_email = "r.schindler@efficiosoft.com",
     license = "Apache 2.0",
     packages = find_packages("."),
-    package_data = {
-        "hass_apps": ["data/*"],
-    },
     install_requires = [
         "appdaemon >= 3.0.0",
         "observable >= 1.0.0",

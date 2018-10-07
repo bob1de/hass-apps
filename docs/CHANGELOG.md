@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 
 ### Changed
+* Installation on hass.io is now a lot simpler, see
+  [here](getting-started.html#installation-on-hass-io).
 
 ### Deprecated
 
