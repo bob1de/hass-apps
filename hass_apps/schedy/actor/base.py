@@ -83,13 +83,13 @@ class ActorBase:
         previous_value = self.current_value
         self.notify_state_changed(attrs)
 
-        if self.values_equal(self.current_value, self.wanted_value):
-            self.cancel_resend_timer()
-
         if not self.values_equal(self.current_value, previous_value):
             self.log("Received value of {}."
                      .format(repr(self.current_value)),
                      level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
+
+        if self.values_equal(self.current_value, self.wanted_value):
+            self.cancel_resend_timer()
 
     def after_initialization(self) -> None:
         """Can be implemented to perform actions after actor initialization."""
@@ -102,8 +102,8 @@ class ActorBase:
         timer = self.resend_timer
         if timer is None:
             return
-        self.app.cancel_timer(timer)
         self.resend_timer = None
+        self.app.cancel_timer(timer)
         self.log("Cancelled resend timer.", level="DEBUG")
 
     def check_config_plausibility(self, state: dict) -> None:
