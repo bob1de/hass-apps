@@ -176,13 +176,11 @@ class SchedyApp(common.App):
 
         self.log("Listening for schedy_reschedule event.",
                  level="DEBUG")
-        self.listen_event(self._reschedule_event_cb, "schedy_reschedule",
-                          app_name=self.name)
+        self.listen_event(self._reschedule_event_cb, "schedy_reschedule")
 
         self.log("Listening for schedy_set_value event.",
                  level="DEBUG")
-        self.listen_event(self._set_value_event_cb, "schedy_set_value",
-                          app_name=self.name)
+        self.listen_event(self._set_value_event_cb, "schedy_set_value")
 
         for room in self.rooms:
             room.apply_schedule(
