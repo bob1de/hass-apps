@@ -453,7 +453,7 @@ class Room:
 
         if changed:
             self.log("Value set to {}.  [{}]"
-                     .format(value,
+                     .format(repr(value),
                              "scheduled" if scheduled else "manual"),
                      prefix=common.LOG_PREFIX_OUTGOING)
 
