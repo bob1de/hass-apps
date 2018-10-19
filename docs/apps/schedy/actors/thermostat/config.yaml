@@ -55,9 +55,9 @@
 #target_temp_service_attr: temperature
 #target_temp_state_attr: temperature
 
+### This feature is currently unused and reserved for later use.
 # Entity attribute that holds the current temperature as measured
 # by the thermostat's temperature sensor.
-# This is used for calculating the statistical temp_delta value. If
-# your thermostat doesn't support this feature, set the value to null
-# in order to disable it.
+# If your thermostat doesn't support current temperature reporting,
+# set the value to null in order to disable it.
 #current_temp_state_attr: current_temperature
