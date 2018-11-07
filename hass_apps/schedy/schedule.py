@@ -93,10 +93,10 @@ class Rule:
             ))
 
         if self.expr_raw is not None:
-            tokens.append("expr={}".format(repr(self.expr_raw)))
+            tokens.append("x={}".format(repr(self.expr_raw)))
 
         if self.value is not None:
-            tokens.append("value={}".format(repr(self.value)))
+            tokens.append("v={}".format(repr(self.value)))
 
         return tokens
 
@@ -240,7 +240,7 @@ class Schedule:
 
     def __repr__(self) -> str:
         if self.name is None:
-            return "<Schedule with {} rules>".format(len(self.rules))
+            return "<Schedule of {} rules>".format(len(self.rules))
         return "<Schedule {}>".format(repr(self.name))
 
     def get_matching_rules(
