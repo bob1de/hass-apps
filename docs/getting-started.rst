@@ -4,8 +4,6 @@ Getting Started
 Installation on Hass.io
 -----------------------
 
-
-
 1. In order to use hass-apps in the hass.io ecosystem, you first need to
    set up an AppDaemon add-on. The steps described here are for `this
    add-on <https://github.com/hassio-addons/addon-appdaemon3>`_.
