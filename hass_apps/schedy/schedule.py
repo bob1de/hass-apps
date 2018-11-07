@@ -149,36 +149,29 @@ class RulePath:
     def __repr__(self) -> str:
         if not self.rules:
             return "<{}/<empty rule path>".format(self.root_schedule)
-        loc = []
+
+        locs = []
         sched = self.root_schedule
         for rule in self.rules:
-            loc.append(str(sched.rules.index(rule) + 1))
-            if isinstance(rule, SubScheduleRule):
-                sched = rule.sub_schedule
-        return "<{}/{}:{}>".format(self.root_schedule, "/".join(loc), rule)  # pylint: disable=undefined-loop-variable
+            if rule in sched.rules:
+                loc = str(sched.rules.index(rule) + 1)
+            else:
+                loc = "?"
+            locs.append(loc)
+            if not isinstance(rule, SubScheduleRule):
+                break
+            sched = rule.sub_schedule
+
+        return "<{}/{}:{}>".format(self.root_schedule, "/".join(locs), rule)  # pylint: disable=undefined-loop-variable
 
     def add(self, rule: Rule) -> None:
         """Add's a rule to the end of the path.
-        A ValueError is raised when the rule to add isn't part of the
-        previous rule's sub-schedule or the previous rule is a final
-        rule."""
+        A ValueError is raised when the previous rule is a final rule."""
 
-        if self.rules:
-            if not isinstance(self.rules[-1], SubScheduleRule):
-                raise ValueError(
-                    "The previous rule in the path ({}) is no SubScheduleRule."
-                    .format(self.rules[-1])
-                )
-            if rule not in self.rules[-1].sub_schedule.rules:
-                raise ValueError(
-                    "{} isn't part of the previous rule in path "
-                    "({})'s sub-schedule ({})."
-                    .format(rule, self.rules[-1], self.rules[-1].sub_schedule)
-                )
-        elif rule not in self.root_schedule.rules:
+        if self.rules and not isinstance(self.rules[-1], SubScheduleRule):
             raise ValueError(
-                "{} isn't part of the path's root schedule ({})."
-                .format(rule, self.root_schedule)
+                "The previous rule in the path ({}) is no SubScheduleRule."
+                .format(self.rules[-1])
             )
         self.rules.append(rule)
 

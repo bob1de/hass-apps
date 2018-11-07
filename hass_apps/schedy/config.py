@@ -209,12 +209,7 @@ SCHEDULE_SCHEMA = vol.Schema(vol.All(
 
 SCHEDULE_SNIPPETS_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
-    {
-        vol.Extra: vol.All(
-            SCHEDULE_SCHEMA,
-            validate_rule_paths,
-        ),
-    },
+    {vol.Extra: SCHEDULE_SCHEMA},
 ))
 
 

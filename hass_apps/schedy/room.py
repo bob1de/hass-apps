@@ -302,8 +302,10 @@ class Room:
                     .format(len(_rules), len(result.schedule.rules),
                             result.schedule),
                     path, level="DEBUG")
-                insert_paths(paths, path_idx,
-                             schedule.RulePath(result.schedule), _rules)
+                _path = path.copy()
+                del _path.rules[-1]
+                _path.add(schedule.SubScheduleRule(result.schedule))
+                insert_paths(paths, path_idx, _path, _rules)
             elif isinstance(result, expression.PreliminaryResult):
                 if isinstance(result, expression.PreliminaryValidationMixin):
                     value = self._validate_value(result.value)
