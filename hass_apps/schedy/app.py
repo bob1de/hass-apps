@@ -38,7 +38,10 @@ class SchedyApp(common.App):
     ) -> None:
         """This callback executes when a schedy_reschedule event is received.
         data may contain a "room_name", which limits the re-scheduling
-        to the given room."""
+        to the given room.
+        mode has to be one of "reevaluate" (the default, only set the
+        value when it changed) or "reset" (restart an eventually running
+        timer and start a new one with reset=True)."""
 
         app_name = data.get("app_name", self.name)
         if app_name != self.name:
@@ -60,17 +63,24 @@ class SchedyApp(common.App):
             rooms = [room]
         else:
             rooms = self.rooms
-        restart = bool(data.get("cancel_running_timer", False))
+        mode = data.get("mode", "reevaluate")
+        if mode not in ("reset", "reevaluate"):
+            self.log("Unknown mode {}."
+                     .format(repr(mode)),
+                     level="ERROR")
+            return
 
-        self.log("Re-schedule event received for: {}{}."
+        self.log("Re-schedule event received for: {} [mode={}]"
                  .format(", ".join([str(room) for room in rooms]),
-                         " [cancel running timer]" if restart else ""),
+                         repr(mode)),
                  prefix=common.LOG_PREFIX_INCOMING)
 
         for room in rooms:
             # delay for 6 seconds to avoid re-scheduling multiple
             # times if multiple events come in shortly
-            room.start_reschedule_timer(reschedule_delay=0.1, restart=restart)
+            room.start_reschedule_timer(
+                reschedule_delay=0.1, reset=bool(mode == "reset")
+            )
 
     def _set_value_event_cb(
             self, event: str, data: dict, kwargs: dict
@@ -93,6 +103,8 @@ class SchedyApp(common.App):
         try:
             room_name = data["room_name"]
             reschedule_delay = data.get("reschedule_delay")
+            if isinstance(reschedule_delay, str):
+                reschedule_delay = float(reschedule_delay)
             if not isinstance(reschedule_delay, (type(None), float, int)):
                 raise TypeError()
             if isinstance(reschedule_delay, (float, int)) and \
@@ -183,6 +195,4 @@ class SchedyApp(common.App):
         self.listen_event(self._set_value_event_cb, "schedy_set_value")
 
         for room in self.rooms:
-            room.apply_schedule(
-                force_reschedule=self.cfg["reschedule_at_startup"]
-            )
+            room.apply_schedule(reset=self.cfg["reset_at_startup"])

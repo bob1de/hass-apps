@@ -11,10 +11,24 @@ control Schedy's behaviour.
   * ``room_name``: the name of the room to re-schedule as defined in
     Schedy's configuration (not the ``friendly_name``) (default: ``null``,
     which means all rooms)
-  * ``cancel_running_timer``: When there is a re-schedule timer
-    running already, Schedy delays the re-scheduling until that timer
-    goes off. Set this parameter to ``true`` to cancel a potential timer
-    and re-schedule immediately instead. (default: ``false``)
+  * ``mode``: There are two different re-scheduling modes you can choose
+    from. (default: ``"reevaluate"``)
+
+    * ``"reevaluate"``: Re-evaluate the schedule and, if the result has
+      changed, set the new value to all actors in the room. If a
+      re-scheduling timer is already running, nothing is done before
+      that timer goes off.
+      This is the mode you normally want when notifying Schedy about
+      state changes of entities used in your schedule.
+    * ``"reset"``: Re-evaluate the schedule and set the resulting value
+      to all actors in the room, no matter if it has changed or not. This
+      mode also cancels an eventually running re-schedule timer and
+      performs the re-scheduling immediately.
+      Use this mode in order to discard any manual adjustment at one of
+      the actors, e.g. when presence state has changed or a master switch
+      was tripped.
+      This is exactly what the built-in automatic re-scheduling does after
+      manual adjustments when configured.
 
 * ``schedy_set_value``: Sets a given value for a room.
   Parameters are:
@@ -28,9 +42,9 @@ control Schedy's behaviour.
   * ``force_resend``: whether to re-send the value to the actors even
     if it hasn't changed due to Schedy's records (default: ``false``)
   * ``reschedule_delay``: a number of minutes after which Schedy should
-    automatically switch back to the schedule (default: the
-    ``reschedule_delay`` set in Schedy's configuration for the particular
-    room)
+    automatically switch back to the schedule; ``0`` disables automatic
+    re-scheduling (default: the ``reschedule_delay`` set in Schedy's
+    configuration for the particular room)
 
 .. note::
 

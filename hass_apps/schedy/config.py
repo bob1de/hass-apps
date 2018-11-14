@@ -235,7 +235,7 @@ ROOM_SCHEMA = vol.Schema(vol.All(
 
 CONFIG_SCHEMA = vol.Schema(vol.All(
     vol.Schema({
-        vol.Optional("reschedule_at_startup", default=True): bool,
+        vol.Optional("reset_at_startup", default=True): bool,
         vol.Optional("expressions_from_events", default=False): bool,
         vol.Optional("expression_modules", default=dict):
             EXPRESSION_MODULES_SCHEMA,

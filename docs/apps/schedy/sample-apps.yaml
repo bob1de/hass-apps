@@ -13,7 +13,7 @@ schedy:
   # Schedy will try to fetch the last known scheduled value from the
   # records stored in Home Assistant and only re-send when that differs
   # from the current value.
-  #reschedule_at_startup: true
+  #reset_at_startup: true
 
 
   # If you enable this option, potentially harmful expressions received
