@@ -150,7 +150,7 @@ When you followed the above steps for installing hass-apps,
 you automatically installed AppDaemon as well. Configuring
 AppDaemon is out of the scope of this tutorial, but there
 is a `Configuration Section in the AppDaemon Documentation
-<https://appdaemon.readthedocs.io/en/stable/INSTALL.html#configuration>`_
+<https://appdaemon.readthedocs.io/en/stable/CONFIGURE.html>`_
 which describes what to do. We assume that you've got a working AppDaemon
 3.x for now.
 
