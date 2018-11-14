@@ -17,7 +17,7 @@ Installation in Docker
 
 1. When you have the official AppDaemon container up and running, create
    a file named ``requirements.txt`` in your ``apps`` directory (or one
-   of its sub-directories) with one of the following contents.
+   of its sub-directories) with one of the following contents. (Appdaemon `version 3.0.2 <https://appdaemon.readthedocs.io/en/3.0.2/HISTORY.html>`_ is required as a minimum)
 
    a) To always have the latest stable version of hass-apps installed
       when AppDaemon starts:
