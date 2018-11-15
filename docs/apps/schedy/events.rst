@@ -11,22 +11,23 @@ control Schedy's behaviour.
   * ``room_name``: the name of the room to re-schedule as defined in
     Schedy's configuration (not the ``friendly_name``) (default: ``null``,
     which means all rooms)
+
   * ``mode``: There are two different re-scheduling modes you can choose
     from. (default: ``"reevaluate"``)
 
     * ``"reevaluate"``: Re-evaluate the schedule and, if the result has
-      changed, set the new value to all actors in the room. If a
-      re-scheduling timer is already running, nothing is done before
-      that timer goes off.
+      changed compared to the previous evaluation, set the new value to
+      all actors in the room. If a re-scheduling timer is already running,
+      nothing is done until that timer goes off.
       This is the mode you normally want when notifying Schedy about
       state changes of entities used in your schedule.
     * ``"reset"``: Re-evaluate the schedule and set the resulting value
       to all actors in the room, no matter if it has changed or not. This
-      mode also cancels an eventually running re-schedule timer and
+      mode also cancels an eventually running re-scheduling timer and
       performs the re-scheduling immediately.
       Use this mode in order to discard any manual adjustment at one of
       the actors, e.g. when presence state has changed or a master switch
-      was tripped.
+      was tripped and you want to ensure all actors are updated.
       This is exactly what the built-in automatic re-scheduling does after
       manual adjustments when configured.
 
