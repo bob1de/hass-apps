@@ -162,15 +162,15 @@ CONFIG_SCHEMA = vol.Schema({
     ),
     vol.Optional("off_temp", default=OFF): TEMP_SCHEMA,
     vol.Optional("supports_opmodes", default=True): bool,
-    vol.Optional("opmode_heat", default="heat"): str,
+    vol.Optional("opmode_on", default="heat"): str,
     vol.Optional("opmode_off", default="off"): str,
     vol.Optional(
-        "opmode_heat_service", default="climate/set_operation_mode"
+        "opmode_on_service", default="climate/set_operation_mode"
     ): vol.All(str, lambda v: v.replace(".", "/")),
     vol.Optional(
         "opmode_off_service", default="climate/set_operation_mode"
     ): vol.All(str, lambda v: v.replace(".", "/")),
-    vol.Optional("opmode_heat_service_attr", default="operation_mode"):
+    vol.Optional("opmode_on_service_attr", default="operation_mode"):
         vol.Any(str, None),
     vol.Optional("opmode_off_service_attr", default="operation_mode"):
         vol.Any(str, None),
@@ -248,7 +248,7 @@ class ThermostatActor(ActorBase):
                      "operation mode support.",
                      level="WARNING")
             return
-        for opmode in (self.cfg["opmode_heat"], self.cfg["opmode_off"]):
+        for opmode in (self.cfg["opmode_on"], self.cfg["opmode_off"]):
             if opmode not in allowed_opmodes:
                 self.log("Thermostat doesn't seem to support the "
                          "operation mode {}, supported modes are: {}. "
@@ -267,11 +267,11 @@ class ThermostatActor(ActorBase):
 
         target_temp = self.wanted_value
         if target_temp.is_off:
-            temp = None
             opmode = self.cfg["opmode_off"]
+            temp = None
         else:
+            opmode = self.cfg["opmode_on"]
             temp = target_temp
-            opmode = self.cfg["opmode_heat"]
         if not self.cfg["supports_opmodes"]:
             opmode = None
 
@@ -281,9 +281,9 @@ class ThermostatActor(ActorBase):
                  level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
 
         if opmode is not None:
-            if opmode == self.cfg["opmode_heat"]:
-                opmode_service = self.cfg["opmode_heat_service"]
-                opmode_service_attr = self.cfg["opmode_heat_service_attr"]
+            if opmode == self.cfg["opmode_on"]:
+                opmode_service = self.cfg["opmode_on_service"]
+                opmode_service_attr = self.cfg["opmode_on_service_attr"]
             else:
                 opmode_service = self.cfg["opmode_off_service"]
                 opmode_service_attr = self.cfg["opmode_off_service_attr"]
@@ -291,6 +291,7 @@ class ThermostatActor(ActorBase):
             if opmode_service_attr:
                 attrs[opmode_service_attr] = opmode
             self.app.call_service(opmode_service, **attrs)
+
         if temp is not None:
             attrs = {"entity_id": self.entity_id,
                      self.cfg["target_temp_service_attr"]: temp.value}
@@ -310,7 +311,7 @@ class ThermostatActor(ActorBase):
             opmode = self.cfg["opmode_off"]
             temp = None
         else:
-            opmode = self.cfg["opmode_heat"]
+            opmode = self.cfg["opmode_on"]
             temp = value + self.cfg["delta"]
             if isinstance(self.cfg["min_temp"], Temp) and \
                temp < self.cfg["min_temp"]:
@@ -350,7 +351,7 @@ class ThermostatActor(ActorBase):
                      level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
             if opmode == self.cfg["opmode_off"]:
                 _target_temp = OFF
-            elif opmode != self.cfg["opmode_heat"]:
+            elif opmode != self.cfg["opmode_on"]:
                 self.log("Unknown operation mode, ignoring thermostat.",
                          level="ERROR")
                 return None
