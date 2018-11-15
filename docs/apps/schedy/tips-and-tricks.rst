@@ -96,7 +96,10 @@ and can check whether one of them reports to be open.
         else:
             result = Skip()
 
-Now, we add an automation to re-schedule when a window's state changes:
+Now, we add an automation to re-schedule when a window's state changes.
+Replace ``schedy_heating`` with the name of your instance of Schedy.
+In order to add more window sensors, just append them to the ``entity_id``
+list and set the ``window_room`` attribute in ``customize.yaml``.
 
 ::
 
@@ -104,8 +107,8 @@ Now, we add an automation to re-schedule when a window's state changes:
       trigger:
       - platform: state
         entity_id:
-        - input_boolean.living_window
-        - input_boolean.kids_window
+        - binary_sensor.living_window
+        - binary_sensor.kids_window
       condition:
       - condition: template
         value_template: "{{ trigger.from_state.state != trigger.to_state.state }}"
@@ -115,8 +118,5 @@ Now, we add an automation to re-schedule when a window's state changes:
           app_name: schedy_heating
           room_name: "{{ trigger.to_state.attributes['window_room'] }}"
           mode: reset
-
-In order to add more window sensors, just append them to the ``entity_id``
-list and set the ``window_room`` attribute in ``customize.yaml``.
 
 That's it. Don't forget to restart Home Assistant after editing the files.
