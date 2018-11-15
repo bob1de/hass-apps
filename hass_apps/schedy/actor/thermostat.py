@@ -307,36 +307,24 @@ class ThermostatActor(ActorBase):
         if value.is_off:
             value = self.cfg["off_temp"]
 
-        if value.is_off:
-            opmode = self.cfg["opmode_off"]
-            temp = None
-        else:
-            opmode = self.cfg["opmode_on"]
-            temp = value + self.cfg["delta"]
+        if not value.is_off:
+            value = value + self.cfg["delta"]
             if isinstance(self.cfg["min_temp"], Temp) and \
-               temp < self.cfg["min_temp"]:
-                temp = self.cfg["min_temp"]
+               value < self.cfg["min_temp"]:
+                value = self.cfg["min_temp"]
             elif isinstance(self.cfg["max_temp"], Temp) and \
-                 temp > self.cfg["max_temp"]:
-                temp = self.cfg["max_temp"]
+                 value > self.cfg["max_temp"]:
+                value = self.cfg["max_temp"]
+        elif not self.cfg["supports_opmodes"]:
+            self.log("Not turning off because it doesn't support "
+                     "operation modes.",
+                     level="WARNING")
+            self.log("Consider defining an off_temp in the actor "
+                     "configuration for these cases.",
+                     level="WARNING")
+            return None
 
-        if not self.cfg["supports_opmodes"]:
-            if opmode == self.cfg["opmode_off"]:
-                self.log("Not turning off because it doesn't support "
-                         "operation modes.",
-                         level="DEBUG")
-                if self.cfg["min_temp"] is not None:
-                    self.log("Setting to minimum supported temperature "
-                             "instead.",
-                             level="DEBUG")
-                    temp = self.cfg["min_temp"]
-            opmode = None
-
-        if opmode == self.cfg["opmode_off"]:
-            wanted_temp = Temp(OFF)  # type: T.Optional[Temp]
-        else:
-            wanted_temp = temp
-        return wanted_temp
+        return value
 
     def notify_state_changed(self, attrs: dict) -> T.Any:
         """Is called when the thermostat's state changes.

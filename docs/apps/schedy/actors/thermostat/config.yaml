@@ -15,11 +15,14 @@
 # the thermostat. You can set it to 4.0 degrees (if your thermostat
 # supports this low value) in order to prevent frost-induced damage
 # to your heating setup.
+# This setting is required when you want to send OFF to thermostats with
+# disabled operation mode support.
 #off_temp: "OFF"
 
 # Set this to false if your thermostat doesn't support operation modes.
 # Please note that you won't be able to turn it off completely without
-# operation mode support.
+# operation mode support. Remember to also configure off_temp when you
+# disable this feature.
 #supports_opmodes: true
 
 # These two settings can be used to tweak the names of the
