@@ -168,8 +168,6 @@ def build_expr_env(app: "SchedyApp") -> T.Dict[str, T.Any]:
 
     # use date/time provided by appdaemon to support time-traveling
     now = app.datetime()
-    is_on = lambda _id: str(app.get_state(_id)).lower() == "on"  # type: T.Callable[[str], bool]
-    is_off = lambda _id: str(app.get_state(_id)).lower() == "off"  # type: T.Callable[[str], bool]
     env = {
         "app": app,
         "schedule_snippets": app.cfg["schedule_snippets"],
@@ -178,10 +176,8 @@ def build_expr_env(app: "SchedyApp") -> T.Dict[str, T.Any]:
         "date": now.date(),
         "time": now.time(),
         "state": app.get_state,
-        "any_on": lambda ids: any([is_on(_id) for _id in ids]),
-        "any_off": lambda ids: any([is_off(_id) for _id in ids]),
-        "is_on": is_on,
-        "is_off": is_off,
+        "is_on": lambda _id: str(app.get_state(_id)).lower() == "on",
+        "is_off": lambda _id: str(app.get_state(_id)).lower() == "off",
     }
 
     globs = globals()
