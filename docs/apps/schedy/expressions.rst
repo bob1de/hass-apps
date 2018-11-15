@@ -28,21 +28,29 @@ API.
 
 The following globals are available for use in expressions.
 
-* ``app``: the ``appdaemon.plugins.hass.hassapi.Hass`` object of Schedy
 * ``room_name``: the name of the room the expression is evaluated for
   as set in Schedy's configuration (not the friendly name)
 * ``schedule_snippets``: a dictionary containing all configured schedule
   snippets, indexed by their name for use with ``IncludeSchedule()``
-* ``now``: a ``datetime.datetime`` object containing the current date
-  and time
-* ``date``: a shortcut for ``now.date()``
-* ``time``: a shortcut for ``now.time()``
-* ``datetime``: Python's ``datetime`` module
-* ``state(entity_id)``: a shortcut for ``app.get_state(entity_id)``
-* ``is_on(entity_id)``: returns ``True`` if the state of the given entity
-  is ``"on"`` (case-insensitive), ``False`` otherwise
-* ``is_off(entity_id)``: returns ``True`` if the state of the given entity
-  is ``"off"`` (case-insensitive), ``False`` otherwise
+
+* date and time:
+  * ``datetime``: Python's ``datetime`` module
+  * ``now``: a ``datetime.datetime`` object containing the current date
+    and time
+  * ``date``: a shortcut for ``now.date()``
+  * ``time``: a shortcut for ``now.time()``
+
+* state:
+  * ``app``: the ``appdaemon.plugins.hass.hassapi.Hass`` object of Schedy
+  * ``is_on(entity_id)``: returns ``True`` if the state of the given entity
+    is ``"on"`` (case-insensitive), ``False`` otherwise
+  * ``is_off(entity_id)``: returns ``True`` if the state of the given entity
+    is ``"off"`` (case-insensitive), ``False`` otherwise
+  * ``any_on([entity_id, ...])``: returns whether ``is_on()`` is ``True``
+    for any of the given entity ids
+  * ``any_off([entity_id, ...])``: returns whether ``is_off()`` is
+    ``True`` for any of the given entity ids
+  * ``state(entity_id, attribute=None)``: a shortcut for ``app.get_state(entity_id, attribute=None)``
 
 .. note::
 
