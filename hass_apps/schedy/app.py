@@ -8,6 +8,7 @@ if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     from .room import Room
 
+import datetime
 import importlib
 
 from .. import common
@@ -76,10 +77,11 @@ class SchedyApp(common.App):
                  prefix=common.LOG_PREFIX_INCOMING)
 
         for room in rooms:
-            # delay for 6 seconds to avoid re-scheduling multiple
-            # times if multiple events come in shortly
+            # delay to avoid re-scheduling multiple times if multiple
+            # events come in shortly
             room.start_reschedule_timer(
-                reschedule_delay=0.1, reset=bool(mode == "reset")
+                reschedule_delay=datetime.timedelta(seconds=3),
+                reset=bool(mode == "reset")
             )
 
     def _set_value_event_cb(

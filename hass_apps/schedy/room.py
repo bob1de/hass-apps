@@ -513,7 +513,9 @@ class Room:
             self.cancel_reschedule_timer()
 
     def start_reschedule_timer(
-            self, reschedule_delay: T.Union[float, int, None] = None,
+            self, reschedule_delay: T.Union[
+                float, int, datetime.datetime, datetime.timedelta, None
+            ] = None,
             reset: bool = False,
     ) -> bool:
         """This method registers a re-schedule timer according to the
@@ -534,10 +536,17 @@ class Room:
 
         if reschedule_delay is None:
             reschedule_delay = self.cfg["reschedule_delay"]
-        assert isinstance(reschedule_delay, (float, int))
 
-        delta = datetime.timedelta(minutes=reschedule_delay)
-        when = self.app.datetime() + delta
+        if isinstance(reschedule_delay, (float, int)):
+            delta = datetime.timedelta(minutes=reschedule_delay)
+            when = self.app.datetime() + delta
+        elif isinstance(reschedule_delay, datetime.datetime):
+            delta = reschedule_delay - self.app.datetime()
+            when = reschedule_delay
+        elif isinstance(reschedule_delay, datetime.timedelta):
+            delta = reschedule_delay
+            when = self.app.datetime() + reschedule_delay
+
         self.log("Re-scheduling not before {} (in {}). [reset={}]"
                  .format(util.format_time(when.time()), delta, reset))
         self.reschedule_timer = self.app.run_at(
