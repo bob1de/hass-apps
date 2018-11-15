@@ -179,11 +179,10 @@ class ActorBase:
                      .format(repr(self.entity_id)),
                      level="WARNING")
             return False
-        else:
-            self.check_config_plausibility(self._preprocess_state(state))
-            # populate self.current_value etc. by simulating a
-            # state change
-            self._state_cb(self.entity_id, "all", state, state, {})
+        self.check_config_plausibility(self._preprocess_state(state))
+        # populate self.current_value etc. by simulating a
+        # state change
+        self._state_cb(self.entity_id, "all", state, state, {})
 
         self.log("Listening for state changes.",
                  level="DEBUG")
@@ -246,8 +245,8 @@ class ActorBase:
         return value
 
     @staticmethod
-    def values_equal(a: T.Any, b: T.Any) -> bool:
+    def values_equal(a: T.Any, b: T.Any) -> bool:  # pylint: disable=invalid-name
         """Should check two validated values for equality.
-        Does a comparison with ==."""
+        This implementation does a comparison with ==."""
 
         return bool(a == b)
