@@ -4,7 +4,7 @@ disable =
     too-few-public-methods,
     wrong-import-position
 max-args = 8
-max-branches = 20
-max-attributes = 8
+max-attributes = 10
+max-branches = 25
 max-locals = 20
-max-statements = 75
+max-statements = 100
