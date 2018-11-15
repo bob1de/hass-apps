@@ -79,11 +79,11 @@ class CustomActor(ActorBase):
             return result
         return value
 
-    def notify_state_changed(self, attrs: dict) -> None:
+    def notify_state_changed(self, attrs: dict) -> T.Any:
         """Is called when the entity's state changes."""
 
         if "state_hook" not in self.cfg:
-            return
+            return None
 
         env = {"state": attrs}
         value = self._exec_script(self.cfg["state_hook"], env)
@@ -92,11 +92,10 @@ class CustomActor(ActorBase):
                  level="DEBUG")
         if value is None:
             self.log("Ignoring value of None.", level="DEBUG")
-            return
+            return None
 
         if value != self.current_value:
             self.log("Received value of {}."
                      .format(repr(value)),
                      prefix=common.LOG_PREFIX_INCOMING)
-            self.current_value = value
-            self.events.trigger("value_changed", self, value)
+        return value

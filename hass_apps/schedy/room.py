@@ -26,6 +26,7 @@ class Room:
         self.cfg = cfg
         self.app = app
         self.actors = []  # type: T.List[ActorBase]
+        self.actor_wanted_values = {}  # type: T.Dict[ActorBase, T.Any]
         self.schedule = None  # type: T.Optional[schedule.Schedule]
 
         self.wanted_value = None  # type: T.Any
@@ -418,7 +419,7 @@ class Room:
         )
 
     def notify_value_changed(
-            self, actor: "ActorBase", value: T.Any  # pylint: disable=unused-argument
+            self, actor: "ActorBase", value: T.Any
     ) -> None:
         """Should be called when the value has been changed externally
         by manual adjustment at an actor."""
@@ -428,7 +429,7 @@ class Room:
                      prefix=common.LOG_PREFIX_OUTGOING)
             self.set_value(value, scheduled=False)
 
-        if actor.values_equal(value, self.wanted_value):
+        if actor.values_equal(value, self.actor_wanted_values.get(actor)):
             self.cancel_reschedule_timer()
         elif self.cfg["reschedule_delay"]:
             self.start_reschedule_timer(reset=True)
@@ -451,8 +452,11 @@ class Room:
 
         changed = False
         for actor in filter(lambda a: a.is_initialized, self.actors):
-            result = actor.set_value(value, force_resend=force_resend)
-            changed = changed or bool(result)
+            _changed, self.actor_wanted_values[actor] = actor.set_value(
+                value, force_resend=force_resend
+            )
+            if _changed:
+                changed = True
 
         if changed:
             self.log("Value set to {}.  [{}]"

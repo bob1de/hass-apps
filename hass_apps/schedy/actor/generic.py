@@ -84,27 +84,26 @@ class GenericActor(ActorBase):
                  level="WARNING")
         return None
 
-    def notify_state_changed(self, attrs: dict) -> None:
+    def notify_state_changed(self, attrs: dict) -> T.Any:
         """Is called when the entity's state changes."""
 
         state_attr = self.cfg["state_attr"]
         if state_attr is None:
-            return
+            return None
         state = attrs.get(state_attr)
         self.log("Attribute {} is {}."
                  .format(repr(state_attr), repr(state)),
                  level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
         if state is None:
             self.log("Ignoring state of None.", level="DEBUG")
-            return
+            return None
 
         state = str(state)
         if not self.values_equal(state, self.current_value):
             self.log("Received state of {}."
                      .format(repr(state)),
                      prefix=common.LOG_PREFIX_INCOMING)
-            self.current_value = state
-            self.events.trigger("value_changed", self, state)
+        return state
 
     @staticmethod
     def values_equal(a: T.Any, b: T.Any) -> bool:

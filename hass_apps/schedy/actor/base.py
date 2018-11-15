@@ -81,15 +81,19 @@ class ActorBase:
         attrs = self._preprocess_state(new)
 
         previous_value = self.current_value
-        self.notify_state_changed(attrs)
+        new_value = self.notify_state_changed(attrs)  # pylint: disable=assignment-from-none
+        if new_value is None:
+            return
 
-        if not self.values_equal(self.current_value, previous_value):
+        if self.values_equal(new_value, self.wanted_value):
+            self.cancel_resend_timer()
+
+        if not self.values_equal(new_value, previous_value):
             self.log("Received value of {}."
                      .format(repr(self.current_value)),
                      level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
-
-        if self.values_equal(self.current_value, self.wanted_value):
-            self.cancel_resend_timer()
+            self.current_value = new_value
+            self.events.trigger("value_changed", self, new_value)
 
     def after_initialization(self) -> None:
         """Can be implemented to perform actions after actor initialization."""
@@ -151,12 +155,12 @@ class ActorBase:
         msg = "[{}] {}".format(self, msg)
         self.room.log(msg, *args, **kwargs)
 
-    def notify_state_changed(self, attrs: dict) -> None:
+    def notify_state_changed(self, attrs: dict) -> T.Any:  # pylint: disable=no-self-use,unused-argument
         """Is called when the entity's state has changed with the new
-        attributes dict as argument. It should update self.current_value
-        if appropriate."""
+        attributes dict as argument. It should return the new value or
+        None, if undetectable."""
 
-        pass
+        return None
 
     def initialize(self) -> bool:
         """Should be called in order to register state listeners and
@@ -208,25 +212,29 @@ class ActorBase:
         except TypeError as err:
             raise ValueError("can't serialize to JSON: {}".format(err))
 
-    def set_value(self, value: T.Any, force_resend: bool = False) -> bool:
+    def set_value(
+            self, value: T.Any, force_resend: bool = False
+    ) -> T.Tuple[bool, T.Any]:
         """Is called in order to change the actor's value. It isn't
         re-sent unless force_resend is True.
-        The return value tells whether a value has been set."""
+        It returns whether a value has been sent or not and the actual
+        value now wanted by this actor."""
 
         value = self.filter_set_value(value)
         if value is None:
-            return False
+            return False, self.wanted_value
 
         self.wanted_value = value
         if not force_resend and self.is_synced:
             self.log("Not sending value {} redundantly."
                      .format(repr(value)),
                      level="DEBUG")
-            return False
+            return False, value
 
         self.cancel_resend_timer()
         self._resend_cb({"left_tries": self.cfg["send_retries"] - 1})
-        return True
+
+        return True, value
 
     @staticmethod
     def validate_value(value: T.Any) -> T.Any:

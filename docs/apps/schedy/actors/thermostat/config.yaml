@@ -4,10 +4,8 @@
 #delta: 0
 
 # The minimum/maximum temperature the thermostat supports.
-# If a temperature lower than min_temp is going to be set, the
-# operation mode will be switched off instead of setting the
-# temperature. A temperature setting higher than max_temp causes
-# max_temp to be set instead.
+# If configured, temperatures outside the supported range are changed
+# to the minimum/maximum value before they're sent to the thermostat.
 # null means there is no limitation.
 #min_temp: null
 #max_temp: null

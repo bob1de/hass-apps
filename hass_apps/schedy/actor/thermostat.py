@@ -307,19 +307,17 @@ class ThermostatActor(ActorBase):
             value = self.cfg["off_temp"]
 
         if value.is_off:
-            temp = None
             opmode = self.cfg["opmode_off"]
+            temp = None
         else:
+            opmode = self.cfg["opmode_heat"]
             temp = value + self.cfg["delta"]
             if isinstance(self.cfg["min_temp"], Temp) and \
                temp < self.cfg["min_temp"]:
-                temp = None
-                opmode = self.cfg["opmode_off"]
-            else:
-                opmode = self.cfg["opmode_heat"]
-                if isinstance(self.cfg["max_temp"], Temp) and \
-                   temp > self.cfg["max_temp"]:
-                    temp = self.cfg["max_temp"]
+                temp = self.cfg["min_temp"]
+            elif isinstance(self.cfg["max_temp"], Temp) and \
+                 temp > self.cfg["max_temp"]:
+                temp = self.cfg["max_temp"]
 
         if not self.cfg["supports_opmodes"]:
             if opmode == self.cfg["opmode_off"]:
@@ -339,7 +337,7 @@ class ThermostatActor(ActorBase):
             wanted_temp = temp
         return wanted_temp
 
-    def notify_state_changed(self, attrs: dict) -> None:
+    def notify_state_changed(self, attrs: dict) -> T.Any:
         """Is called when the thermostat's state changes.
         This method fetches both the current and target temperature from
         the thermostat and reacts accordingly."""
@@ -355,7 +353,7 @@ class ThermostatActor(ActorBase):
             elif opmode != self.cfg["opmode_heat"]:
                 self.log("Unknown operation mode, ignoring thermostat.",
                          level="ERROR")
-                return
+                return None
         else:
             opmode = None
 
@@ -371,7 +369,7 @@ class ThermostatActor(ActorBase):
         except ValueError:
             self.log("Invalid target temperature, ignoring thermostat.",
                      level="ERROR")
-            return
+            return None
 
         current_temp_attr = self.cfg["current_temp_state_attr"]
         if current_temp_attr:
@@ -395,10 +393,8 @@ class ThermostatActor(ActorBase):
             self.log("Received target temperature of {}."
                      .format(str(target_temp)),
                      prefix=common.LOG_PREFIX_INCOMING)
-            self.current_value = target_temp
-            self.events.trigger(
-                "value_changed", self, target_temp - self.cfg["delta"],
-            )
+
+        return target_temp
 
     @classmethod
     def prepare_eval_environment(cls, env: T.Dict[str, T.Any]) -> None:
