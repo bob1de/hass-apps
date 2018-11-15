@@ -101,14 +101,14 @@ class ActorBase:
         pass
 
     def cancel_resend_timer(self) -> None:
-        """Cancels the resend timer for this actor, if one exists."""
+        """Cancels the re-send timer for this actor, if one exists."""
 
         timer = self.resend_timer
         if timer is None:
             return
         self.resend_timer = None
         self.app.cancel_timer(timer)
-        self.log("Cancelled resend timer.", level="DEBUG")
+        self.log("Cancelled re-sending timer.", level="DEBUG")
 
     def check_config_plausibility(self, state: dict) -> None:
         """Is called during initialization to warn the user about some
