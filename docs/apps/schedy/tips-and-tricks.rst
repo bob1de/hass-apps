@@ -49,3 +49,74 @@ For each room, a sensor entity named ``sensor.schedy_<app name>_room_<room
 name>_scheduled_value`` is created in Home Assistant. This sensor will
 always hold the scheduled value for the room. Reacting to changes of
 it's value is possible with normal Home Assistant automations.
+
+
+Open Door or Window Detection
+-----------------------------
+
+When using Schedy for heating control and you've got window sensors, you
+might want to have the thermostats in a room turned off when a window
+is opened. We can achieve this with a single additional schedule rule
+and one automation in Home Assistant for an unlimited number of windows.
+
+We assume that our window sensors are named
+``binary_sensor.living_window`` and ``binary_sensor.kids_window`` and
+report ``"on"`` as their state when the particular window is opened.
+
+To make this solution scale to multiple windows in multiple rooms without
+creating additional automations or rules, we add a new custom attribute
+to our window sensors via the ``customize.yaml`` file that holds the
+name of the Schedy room the sensor belongs to.
+
+::
+
+    binary_sensor.living_window:
+      window_room: living
+
+    binary_sensor.kids_window:
+      window_room: kids
+
+Now, a new rule which sets the temperature to ``OFF`` when a window
+in the current room is open is added. We place it at the top of the
+``schedule_prepend`` configuration section to have it applied to all
+rooms as their first rule.
+This code checks all ``binary_sensor`` entities found in Home Assistant
+for a ``window_room`` attribute and, if present, compares the value
+of that attribute to the name of the room for which the expression is
+evaluated. This way it finds all window sensors for the current room
+and can check whether one of them reports to be open.
+
+::
+
+    - x: |
+        for s in state("binary_sensor"):
+            if state(s, attribute="window_room") == room_name and is_on(s):
+                result = OFF
+                break
+        else:
+            result = Skip()
+
+Now, we add an automation to re-schedule when a window's state changes:
+
+::
+
+    - alias: schedy heating open window detection
+      trigger:
+      - platform: state
+        entity_id:
+        - input_boolean.living_window
+        - input_boolean.kids_window
+      condition:
+      - condition: template
+        value_template: "{{ trigger.from_state.state != trigger.to_state.state }}"
+      action:
+      - event: schedy_reschedule
+        event_data_template:
+          app_name: schedy_heating
+          room_name: "{{ trigger.to_state.attributes['window_room'] }}"
+          mode: reset
+
+In order to add more window sensors, just append them to the ``entity_id``
+list and set the ``window_room`` attribute in ``customize.yaml``.
+
+That's it. Don't forget to restart Home Assistant after editing the files.
