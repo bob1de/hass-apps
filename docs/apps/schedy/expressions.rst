@@ -94,7 +94,6 @@ final yet. Namely, there are:
 * ``Add(x)`` to add a value ``x`` to the final result.
 * ``And(x)`` to combine the final result with ``x`` by the ``and``
   Python operator.
-* ``And(x)``
 * ``Multiply(x)`` to multiply the final result with ``x``.
 * ``Negate()`` to negate the final result. This negates numbers,
   inverts boolean values and swaps the strings ``"on"`` and ``"off"``
