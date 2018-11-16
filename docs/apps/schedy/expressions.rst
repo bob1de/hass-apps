@@ -34,6 +34,7 @@ The following globals are available for use in expressions.
   snippets, indexed by their name for use with ``IncludeSchedule()``
 
 * date and time:
+
   * ``datetime``: Python's ``datetime`` module
   * ``now``: a ``datetime.datetime`` object containing the current date
     and time
@@ -41,6 +42,7 @@ The following globals are available for use in expressions.
   * ``time``: a shortcut for ``now.time()``
 
 * state:
+
   * ``app``: the ``appdaemon.plugins.hass.hassapi.Hass`` object of Schedy
   * ``is_on(entity_id)``: returns ``True`` if the state of the given entity
     is ``"on"`` (case-insensitive), ``False`` otherwise
