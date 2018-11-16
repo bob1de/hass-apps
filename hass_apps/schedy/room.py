@@ -549,8 +549,13 @@ class Room:
             delta = delay
             when = self.app.datetime() + delay
 
-        self.log("Re-scheduling not before {} (in {}). [reset={}]"
-                 .format(util.format_time(when.time()), delta, reset))
+        if reset:
+            self.log("Re-applying the schedule not before {} (in {})."
+                     .format(util.format_time(when.time()), delta))
+        else:
+            self.log("Re-evaluating the schedule at {} (in {})."
+                     .format(util.format_time(when.time()), delta))
+
         self.rescheduling_data = when, self.app.run_at(
             self._rescheduling_timer_cb, when, reset=reset
         )
