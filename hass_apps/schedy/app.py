@@ -34,6 +34,46 @@ class SchedyApp(common.App):
         self.expression_modules = {}  # type: T.Dict[str, types.ModuleType]
         super().__init__(*args, **kwargs)
 
+    def _check_accept_event(self, event: str, data: dict) -> bool:
+        """Returns whether this Schedy instance is addressed by the
+        given event name and data."""
+
+        app_name = data.get("app_name", self.name)
+        if app_name != self.name:
+            self.log("Ignoring {} event for app_name '{}', "
+                     "ours is '{}'."
+                     .format(event, app_name, self.name),
+                     level="DEBUG")
+            return False
+        return True
+
+    def _get_event_rooms(
+            self, event: str, room_names: T.Any
+    ) -> T.Iterable["Room"]:
+        """Returns an iterable over the rooms whose names were passed
+        for the given event name. Passing None as room_names causes all
+        rooms to be returned. A string or list of strings is converted
+        to a list of the corresponding Room objects."""
+
+        rooms = []
+        if room_names is None:
+            rooms.extend(self.rooms)
+        else:
+            if isinstance(room_names, str):
+                room_names = [room_names]
+            elif not isinstance(room_names, list):
+                room_names = []
+            for room_name in room_names:
+                room = self.get_room(room_name)
+                if room:
+                    rooms.append(room)
+                else:
+                    self.log("Ignoring {} event for unknown room {}."
+                             .format(event, repr(room_name)),
+                             level="WARNING")
+
+        return rooms
+
     def _reschedule_event_cb(
             self, event: str, data: dict, kwargs: dict
     ) -> None:
@@ -44,32 +84,17 @@ class SchedyApp(common.App):
         value when it changed) or "reset" (restart an eventually running
         timer and start a new one with reset=True)."""
 
-        app_name = data.get("app_name", self.name)
-        if app_name != self.name:
-            self.log("Ignoring re-schedule event for app_name '{}', "
-                     "ours is '{}'."
-                     .format(app_name, self.name),
-                     level="DEBUG")
+        if not self._check_accept_event(event, data):
             return
 
-        room_name = data.get("room_name")
-        if room_name:
-            room = self.get_room(room_name)
-            if not room:
-                self.log("Ignoring schedy_reschedule event for "
-                         "unknown room {}."
-                         .format(repr(room_name)),
-                         level="WARNING")
-                return
-            rooms = [room]
-        else:
-            rooms = self.rooms
         mode = data.get("mode", "reevaluate")
         if mode not in ("reset", "reevaluate"):
             self.log("Unknown mode {}."
                      .format(repr(mode)),
                      level="ERROR")
             return
+
+        rooms = self._get_event_rooms(event, data.get("room"))
 
         self.log("Re-schedule event received for: {} [mode={}]"
                  .format(", ".join([str(room) for room in rooms]),
@@ -94,16 +119,10 @@ class SchedyApp(common.App):
         to True, the value is re-sent to the actorss even if it hasn't
         changed."""
 
-        app_name = data.get("app_name", self.name)
-        if app_name != self.name:
-            self.log("Ignoring schedy_set_value event for app_name '{}', "
-                     "ours is '{}'."
-                     .format(app_name, self.name),
-                     level="DEBUG")
+        if not self._check_accept_event(event, data):
             return
 
         try:
-            room_name = data["room_name"]
             rescheduling_delay = data.get("rescheduling_delay")
             if isinstance(rescheduling_delay, str):
                 rescheduling_delay = float(rescheduling_delay)
@@ -133,23 +152,18 @@ class SchedyApp(common.App):
             else:
                 raise ValueError()
         except (KeyError, TypeError, ValueError):
-            self.log("Ignoring schedy_set_value event with invalid data: {}"
-                     .format(repr(data)),
+            self.log("Ignoring {} event with invalid data: {}"
+                     .format(event, repr(data)),
                      level="WARNING")
             return
 
-        room = self.get_room(room_name)
-        if not room:
-            self.log("Ignoring schedy_set_value event for unknown room {}."
-                     .format(repr(room_name)),
-                     level="WARNING")
-            return
-
-        room.notify_set_value_event(
-            expr_raw=expr, value=value,
-            force_resend=bool(data.get("force_resend")),
-            rescheduling_delay=rescheduling_delay
-        )
+        rooms = self._get_event_rooms(event, data.get("room"))
+        for room in rooms:
+            room.notify_set_value_event(
+                expr_raw=expr, value=value,
+                force_resend=bool(data.get("force_resend")),
+                rescheduling_delay=rescheduling_delay
+            )
 
     def get_room(self, room_name: str) -> T.Optional["Room"]:
         """Returns the room with given name or None, if no such room

@@ -116,7 +116,7 @@ list and set the ``window_room`` attribute in ``customize.yaml``.
       - event: schedy_reschedule
         event_data_template:
           app_name: schedy_heating
-          room_name: "{{ trigger.to_state.attributes['window_room'] }}"
+          room: "{{ trigger.to_state.attributes['window_room'] }}"
           mode: reset
 
 That's it. Don't forget to restart Home Assistant after editing the files.

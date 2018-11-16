@@ -206,7 +206,7 @@ in `this chapter <events.html>`_.
       - event: schedy_reschedule
         event_data:
           app_name: <name of your schedy instance>
-          room_name: bathroom
+          room: bathroom
 
 We're done! Now, whenever we toggle the ``take_a_bath`` switch, the
 schedule is re-evaluated and our first schedule rule executes. The

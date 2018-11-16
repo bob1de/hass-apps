@@ -8,9 +8,9 @@ control Schedy's behaviour.
 * ``schedy_reschedule``: Trigger a re-scheduling of the value.
   Parameters are:
 
-  * ``room_name``: the name of the room to re-schedule as defined in
-    Schedy's configuration (not the ``friendly_name``) (default: ``null``,
-    which means all rooms)
+  * ``room``: the name (or list of names) of the room(s) to re-schedule
+    as defined in Schedy's configuration (not the ``friendly_name``)
+    (default: ``null``, which means all rooms)
 
   * ``mode``: There are two different re-scheduling modes you can choose
     from. (default: ``"reevaluate"``)
@@ -34,8 +34,8 @@ control Schedy's behaviour.
 * ``schedy_set_value``: Sets a given value for a room.
   Parameters are:
 
-  * ``room_name``: the name of the room as defined in Schedy's
-    configuration (not the ``friendly_name``)
+  * ``room``: the name (or list of names) of the room(s) as defined in
+    Schedy's configuration (not the ``friendly_name``)
   * ``value`` or ``v``: a plain value as it could also have been generated
     by a schedule, as a simple alternative to ``expression``
   * ``expression`` or ``x``: an expression as it could also have been
@@ -83,6 +83,6 @@ actor type and yourr app instance is named ``schedy_heating``, of course.
       - event: schedy_set_value
         event_data:
           app_name: schedy_heating
-          room_name: living
+          room: living
           v: 25.0
           rescheduling_delay: 60
