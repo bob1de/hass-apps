@@ -131,27 +131,23 @@ class SchedyApp(common.App):
             if isinstance(rescheduling_delay, (float, int)) and \
                rescheduling_delay < 0:
                 raise ValueError()
-            replacements = {"v":"value", "x":"expression"}
-            for key, replacement in replacements.items():
-                if key in data:
-                    data.setdefault(replacement, data[key])
-            if "expression" in data and "value" in data:
+            util.normalize_dict_key(data, "expression", "x")
+            expr = data.get("expression")
+            util.normalize_dict_key(data, "value", "v")
+            value = data.get("value")
+            if expr is not None and value is not None:
                 raise ValueError()
-            expr = None
-            value = None
-            if "expression" in data:
+            if expr is not None:
                 if not self.cfg["expressions_from_events"]:
-                    self.log("Received a schedy_set_value event with an "
-                             "expression, but expressions_from_events is "
-                             "not enabled in your config. Ignoring event.",
+                    self.log("Received a {} event with an expression, "
+                             "but expressions_from_events is not enabled "
+                             "in your config. Ignoring event."
+                             .format(event),
                              level="ERROR")
                     raise ValueError()
-                expr = data["expression"]
-            elif "value" in data:
-                value = data["value"]
-            else:
+            elif value is None:
                 raise ValueError()
-        except (KeyError, TypeError, ValueError):
+        except (TypeError, ValueError):
             self.log("Ignoring {} event with invalid data: {}"
                      .format(event, repr(data)),
                      level="WARNING")

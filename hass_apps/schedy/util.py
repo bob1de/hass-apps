@@ -49,47 +49,6 @@ class RangingSet(set):
         ))
 
 
-def deep_merge_dicts(source: dict, dest: dict) -> None:
-    """Inserts missing items from source into dest, descending into
-    child dictionaries as well."""
-
-    for key, value in source.items():
-        if isinstance(value, dict):
-            node = dest.setdefault(key, {})
-            if isinstance(node, dict):
-                deep_merge_dicts(value, node)
-        else:
-            dest.setdefault(key, value)
-
-def escape_var_name(name: str) -> str:
-    """Converts the given string to a valid Python variable name.
-    All unsupported characters are replaced by "_". If name would
-    start with a digit, "_" is put infront."""
-
-    name = INVALID_VAR_NAME_CHAR_PATTERN.sub("_", name)
-    digits = tuple([str(i) for i in range(10)])
-    if name.startswith(digits):
-        name = "_" + name
-    return name
-
-def expand_range_string(range_string: T.Union[float, int, str]) -> T.Set[int]:
-    """Expands strings of the form '1,2-4,9,11-12 to set(1,2,3,4,9,11,12).
-    Any whitespace is ignored. If a float or int is given instead of a
-    string, a set containing only that, converted to int, is returned."""
-
-    if isinstance(range_string, (float, int)):
-        return RangingSet([int(range_string)])
-
-    numbers = RangingSet()
-    for part in "".join(range_string.split()).split(","):
-        match = RANGE_PATTERN.match(part)
-        if match is not None:
-            for i in range(int(match.group(1)), int(match.group(2)) + 1):
-                numbers.add(i)
-        else:
-            numbers.add(int(part))
-    return numbers
-
 def build_date_from_constraint(
         constraint: T.Dict[str, int], default_date: datetime.date,
         direction: int = 0
@@ -141,6 +100,47 @@ def compile_expression(expr: str) -> types.CodeType:
         expr = "result = {}".format(expr)
     return compile(expr, "expr", "exec")
 
+def deep_merge_dicts(source: dict, dest: dict) -> None:
+    """Inserts missing items from source into dest, descending into
+    child dictionaries as well."""
+
+    for key, value in source.items():
+        if isinstance(value, dict):
+            node = dest.setdefault(key, {})
+            if isinstance(node, dict):
+                deep_merge_dicts(value, node)
+        else:
+            dest.setdefault(key, value)
+
+def escape_var_name(name: str) -> str:
+    """Converts the given string to a valid Python variable name.
+    All unsupported characters are replaced by "_". If name would
+    start with a digit, "_" is put infront."""
+
+    name = INVALID_VAR_NAME_CHAR_PATTERN.sub("_", name)
+    digits = tuple([str(i) for i in range(10)])
+    if name.startswith(digits):
+        name = "_" + name
+    return name
+
+def expand_range_string(range_string: T.Union[float, int, str]) -> T.Set[int]:
+    """Expands strings of the form '1,2-4,9,11-12 to set(1,2,3,4,9,11,12).
+    Any whitespace is ignored. If a float or int is given instead of a
+    string, a set containing only that, converted to int, is returned."""
+
+    if isinstance(range_string, (float, int)):
+        return RangingSet([int(range_string)])
+
+    numbers = RangingSet()
+    for part in "".join(range_string.split()).split(","):
+        match = RANGE_PATTERN.match(part)
+        if match is not None:
+            for i in range(int(match.group(1)), int(match.group(2)) + 1):
+                numbers.add(i)
+        else:
+            numbers.add(int(part))
+    return numbers
+
 def format_sensor_value(value: T.Any) -> str:
     """Formats values as strings for usage as HA sensor state.
     Floats are rounded to 2 decimal digits."""
@@ -165,6 +165,22 @@ def mixin_dict(dest: dict, mixin: dict) -> dict:
 
     dest.update(mixin)
     return dest
+
+def normalize_dict_key(
+        obj: dict, dest_key: T.Any, *alt_keys: T.Any,
+        keep_alt_keys: bool = False
+) -> None:
+    """If dest_key is missing in the dict obj but one of the alt_keys
+    is found instead, the value of the first alt_key is moved over
+    to dest_key.
+    All alt_keys are deleted from dict obj unless keep_alt_keys is True."""
+
+    for alt_key in alt_keys:
+        if alt_key in obj:
+            if dest_key not in obj:
+                obj[dest_key] = obj[alt_key]
+            if not keep_alt_keys:
+                del obj[alt_key]
 
 def parse_time_string(time_str: str) -> datetime.time:
     """Parses a string recognizable by TIME_REGEXP format into

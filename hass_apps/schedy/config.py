@@ -99,11 +99,8 @@ def schedule_rule_pre_hook(rule: dict) -> dict:
     """Copy value for the value key over from alternative names."""
 
     rule = rule.copy()
-    replacements = {"v":"value", "x":"expression"}
-    for key, replacement in replacements.items():
-        if key in rule:
-            rule.setdefault(replacement, rule[key])
-            del rule[key]
+    util.normalize_dict_key(rule, "expression", "x")
+    util.normalize_dict_key(rule, "value", "v")
     return rule
 
 def validate_rule_paths(sched: schedule.Schedule) -> schedule.Schedule:
