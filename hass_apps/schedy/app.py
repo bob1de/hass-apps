@@ -79,8 +79,8 @@ class SchedyApp(common.App):
         for room in rooms:
             # delay to avoid re-scheduling multiple times if multiple
             # events come in shortly
-            room.start_reschedule_timer(
-                reschedule_delay=datetime.timedelta(seconds=3),
+            room.start_rescheduling_timer(
+                delay=datetime.timedelta(seconds=3),
                 reset=bool(mode == "reset")
             )
 
@@ -104,13 +104,13 @@ class SchedyApp(common.App):
 
         try:
             room_name = data["room_name"]
-            reschedule_delay = data.get("reschedule_delay")
-            if isinstance(reschedule_delay, str):
-                reschedule_delay = float(reschedule_delay)
-            if not isinstance(reschedule_delay, (type(None), float, int)):
+            rescheduling_delay = data.get("rescheduling_delay")
+            if isinstance(rescheduling_delay, str):
+                rescheduling_delay = float(rescheduling_delay)
+            if not isinstance(rescheduling_delay, (type(None), float, int)):
                 raise TypeError()
-            if isinstance(reschedule_delay, (float, int)) and \
-               reschedule_delay < 0:
+            if isinstance(rescheduling_delay, (float, int)) and \
+               rescheduling_delay < 0:
                 raise ValueError()
             replacements = {"v":"value", "x":"expression"}
             for key, replacement in replacements.items():
@@ -148,7 +148,7 @@ class SchedyApp(common.App):
         room.notify_set_value_event(
             expr_raw=expr, value=value,
             force_resend=bool(data.get("force_resend")),
-            reschedule_delay=reschedule_delay
+            rescheduling_delay=rescheduling_delay
         )
 
     def get_room(self, room_name: str) -> T.Optional["Room"]:

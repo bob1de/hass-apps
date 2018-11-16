@@ -220,8 +220,8 @@ ROOM_SCHEMA = vol.Schema(vol.All(
     {
         "friendly_name": str,
         vol.Optional("replicate_changes", default=True): bool,
-        vol.Optional("reschedule_delay", default=0):
-            vol.All(int, vol.Range(min=0)),
+        vol.Optional("rescheduling_delay", default=0):
+            vol.All(vol.Any(float, int), vol.Range(min=0)),
         vol.Optional("actors", default=dict): DICTS_IN_DICT_SCHEMA,
         vol.Optional("schedule", default=list): vol.All(
             SCHEDULE_SCHEMA,

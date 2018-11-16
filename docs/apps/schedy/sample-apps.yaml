@@ -89,7 +89,7 @@ schedy:
       # two hours after you made the change.
       # 0 means not re-schedule before the next scheduled value change
       # occurs.
-      #reschedule_delay: 0
+      #rescheduling_delay: 0
 
       # All actors of this room go here.
       #actors:

@@ -31,7 +31,7 @@ class Room:
 
         self.wanted_value = None  # type: T.Any
         self.scheduled_value = None  # type: T.Any
-        self.reschedule_timer = None  # type: T.Optional[uuid.UUID]
+        self.rescheduling_data = None  # type: T.Optional[T.Tuple[datetime.datetime, uuid.UUID]]
 
     def __repr__(self) -> str:
         return "<Room {}>".format(str(self))
@@ -71,15 +71,15 @@ class Room:
            all([a.is_initialized for a in self.actors]):
             self.set_value(self.wanted_value, scheduled=False)
 
-    def _reschedule_timer_cb(self, kwargs: dict) -> None:
-        """Is called whenever a re-schedule timer fires.
+    def _rescheduling_timer_cb(self, kwargs: dict) -> None:
+        """Is called whenever a re-scheduling timer fires.
         reset may be given in kwargs and is passed to apply_schedule()."""
 
         reset = bool(kwargs.get("reset", False))
         self.log("Re-schedule timer fired. [reset={}]"
                  .format(reset),
                  level="DEBUG")
-        self.reschedule_timer = None
+        self.rescheduling_data = None
         self.apply_schedule(reset=reset)
 
     def _schedule_timer_cb(self, kwargs: dict) -> None:
@@ -129,9 +129,9 @@ class Room:
                  level="DEBUG")
 
         if reset:
-            self.cancel_reschedule_timer()
-        elif self.reschedule_timer:
-            self.log("Not scheduling now due to a running re-schedule "
+            self.cancel_rescheduling_timer()
+        elif self.rescheduling_data:
+            self.log("Not scheduling now due to a running re-scheduling "
                      "timer.",
                      level="DEBUG")
             return
@@ -163,16 +163,16 @@ class Room:
 
         self.set_value(value, scheduled=True, force_resend=force_resend)
 
-    def cancel_reschedule_timer(self) -> bool:
-        """Cancels the reschedule timer for this room, if one
+    def cancel_rescheduling_timer(self) -> bool:
+        """Cancels the re-scheduling timer for this room, if one
         exists. Returns whether a timer has been cancelled."""
 
-        timer = self.reschedule_timer
-        if timer is None:
+        data = self.rescheduling_data
+        if data is None:
             return False
 
-        self.app.cancel_timer(timer)
-        self.reschedule_timer = None
+        self.app.cancel_timer(data[1])
+        self.rescheduling_data = None
         self.log("Cancelled re-schedule timer.", level="DEBUG")
         return True
 
@@ -404,18 +404,20 @@ class Room:
     def notify_set_value_event(
             self, expr_raw: str = None, value: T.Any = None,
             force_resend: bool = False,
-            reschedule_delay: T.Union[float, int, None] = None
+            rescheduling_delay: T.Union[float, int, None] = None
     ) -> None:
         """Handles a schedy_set_value event for this room."""
 
-        self.log("schedy_set_value event received, {}"
+        self.log("schedy_set_value event received, [{}] "
+                 "[rescheduling_delay={}]"
                  .format("expression={}".format(repr(expr_raw)) \
                          if expr_raw is not None \
-                         else "value={}".format(repr(value))),
+                         else "value={}".format(repr(value)),
+                         rescheduling_delay),
                  prefix=common.LOG_PREFIX_INCOMING)
         self.set_value_manually(
             expr_raw=expr_raw, value=value, force_resend=force_resend,
-            reschedule_delay=reschedule_delay
+            rescheduling_delay=rescheduling_delay
         )
 
     def notify_value_changed(
@@ -429,10 +431,11 @@ class Room:
                      prefix=common.LOG_PREFIX_OUTGOING)
             self.set_value(value, scheduled=False)
 
-        if actor.values_equal(value, self.actor_wanted_values.get(actor)):
-            self.cancel_reschedule_timer()
-        elif self.cfg["reschedule_delay"]:
-            self.start_reschedule_timer(reset=True)
+        wanted = self.actor_wanted_values.get(actor)
+        if wanted is not None and actor.values_equal(value, wanted):
+            self.cancel_rescheduling_timer()
+        elif self.cfg["rescheduling_delay"]:
+            self.start_rescheduling_timer(reset=True)
 
     def set_value(
             self, value: T.Any, scheduled: bool = False,
@@ -467,12 +470,13 @@ class Room:
     def set_value_manually(
             self, expr_raw: str = None, value: T.Any = None,
             force_resend: bool = False,
-            reschedule_delay: T.Union[float, int, None] = None
+            rescheduling_delay: T.Union[float, int, None] = None
     ) -> None:
         """Evaluates the given expression or value and sets the result.
         An existing re-schedule timer is cancelled and a new one is
-        started if re-schedule timers are configured. reschedule_delay,
-        if given, overwrites the value configured for the room."""
+        started if re-scheduling timers are
+        configured. rescheduling_delay, if given, overwrites the value
+        configured for the room."""
 
         checks = (expr_raw is None, value is None)
         assert any(checks) and not all(checks), \
@@ -505,52 +509,50 @@ class Room:
             return
 
         self.set_value(value, scheduled=False, force_resend=force_resend)
-        if reschedule_delay:
-            self.start_reschedule_timer(
-                reschedule_delay=reschedule_delay, reset=True
-            )
+        if rescheduling_delay:
+            self.start_rescheduling_timer(delay=rescheduling_delay, reset=True)
         else:
-            self.cancel_reschedule_timer()
+            self.cancel_rescheduling_timer()
 
-    def start_reschedule_timer(
-            self, reschedule_delay: T.Union[
+    def start_rescheduling_timer(
+            self, delay: T.Union[
                 float, int, datetime.datetime, datetime.timedelta, None
             ] = None,
             reset: bool = False,
     ) -> bool:
-        """This method registers a re-schedule timer according to the
-        room's settings. reschedule_delay, if given, overwrites the value
+        """This method registers a re-scheduling timer according to the
+        room's settings. delay, if given, overwrites the rescheduling_delay
         configured for the room. If there is a timer running already,
         no new one is started unless reset is set.
         reset is passed through to apply_schedule() when the timer goes off.
         The return value tells whether a timer has been started or not."""
 
-        if self.reschedule_timer is not None:
+        if self.rescheduling_data:
             if reset:
-                self.cancel_reschedule_timer()
+                self.cancel_rescheduling_timer()
             else:
-                self.log("Re-schedule timer running already, starting no "
+                self.log("Re-scheduling timer running already, starting no "
                          "second one.",
                          level="DEBUG")
                 return False
 
-        if reschedule_delay is None:
-            reschedule_delay = self.cfg["reschedule_delay"]
+        if delay is None:
+            delay = self.cfg["rescheduling_delay"]
 
-        if isinstance(reschedule_delay, (float, int)):
-            delta = datetime.timedelta(minutes=reschedule_delay)
+        if isinstance(delay, (float, int)):
+            delta = datetime.timedelta(minutes=delay)
             when = self.app.datetime() + delta
-        elif isinstance(reschedule_delay, datetime.datetime):
-            delta = reschedule_delay - self.app.datetime()
-            when = reschedule_delay
-        elif isinstance(reschedule_delay, datetime.timedelta):
-            delta = reschedule_delay
-            when = self.app.datetime() + reschedule_delay
+        elif isinstance(delay, datetime.datetime):
+            delta = delay - self.app.datetime()
+            when = delay
+        elif isinstance(delay, datetime.timedelta):
+            delta = delay
+            when = self.app.datetime() + delay
 
         self.log("Re-scheduling not before {} (in {}). [reset={}]"
                  .format(util.format_time(when.time()), delta, reset))
-        self.reschedule_timer = self.app.run_at(
-            self._reschedule_timer_cb, when, reset=reset
+        self.rescheduling_data = when, self.app.run_at(
+            self._rescheduling_timer_cb, when, reset=reset
         )
 
         return True
