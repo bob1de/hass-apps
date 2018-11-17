@@ -76,7 +76,7 @@ name of the Schedy room the sensor belongs to.
     binary_sensor.kids_window:
       window_room: kids
 
-Now, a new rule which sets the temperature to ``OFF`` when a window
+Now, a new rule which overlais the temperature with ``OFF`` when a window
 in the current room is open is added. We place it at the top of the
 ``schedule_prepend`` configuration section to have it applied to all
 rooms as their first rule.
@@ -91,15 +91,16 @@ and can check whether one of them reports to be open.
     - x: |
         for s in state("binary_sensor"):
             if state(s, attribute="window_room") == room_name and is_on(s):
-                result = OFF
+                result = Mark(OFF, Mark.OVERLAY)
                 break
         else:
             result = Skip()
 
-Now, we add an automation to re-schedule when a window's state changes.
-Replace ``schedy_heating`` with the name of your instance of Schedy.
-In order to add more window sensors, just append them to the ``entity_id``
-list and set the ``window_room`` attribute in ``customize.yaml``.
+Now, we add an automation to re-evaluate the schedule when a window's
+state changes. Replace ``schedy_heating`` with the name of your
+instance of Schedy. In order to add more window sensors, just append
+them to the ``entity_id`` list and set the ``window_room`` attribute in
+``customize.yaml``.
 
 ::
 
@@ -117,6 +118,5 @@ list and set the ``window_room`` attribute in ``customize.yaml``.
         event_data_template:
           app_name: schedy_heating
           room: "{{ trigger.to_state.attributes['window_room'] }}"
-          mode: reset
 
 That's it. Don't forget to restart Home Assistant after editing the files.
