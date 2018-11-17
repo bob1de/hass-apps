@@ -153,6 +153,27 @@ class IncludeSchedule(ControlResult):
     def __repr__(self) -> str:
         return "IncludeSchedule({})".format(self.schedule)
 
+class Mark(ControlResult):
+    """A result with some markers applied."""
+
+    # available markers
+    OVERLAY = "overlay"
+
+    def __init__(self, result: T.Any, *markers: str) -> None:
+        self.markers = set(markers)
+        if isinstance(result, Mark):
+            self.markers.update(result.markers)
+            self.result = result.result  # type: T.Any
+        else:
+            self.result = result
+
+    def __eq__(self, other: T.Any) -> bool:
+        return super().__eq__(other) and self.result == other.result and \
+               self.markers == other.markers
+
+    def __repr__(self) -> str:
+        return "Mark({}, {})".format(repr(self.result), self.markers)
+
 class Skip(ControlResult):
     """Result of an expression which should be ignored."""
 

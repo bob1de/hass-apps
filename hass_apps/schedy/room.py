@@ -16,6 +16,9 @@ from .. import common
 from . import expression, schedule, util
 
 
+SchedulingResultType = T.Optional[T.Tuple[T.Any, T.Set[str], schedule.Rule]]
+
+
 class Room:
     """A room to be controlled by Schedy."""
 
@@ -31,7 +34,10 @@ class Room:
 
         self.wanted_value = None  # type: T.Any
         self.scheduled_value = None  # type: T.Any
-        self.rescheduling_data = None  # type: T.Optional[T.Tuple[datetime.datetime, uuid.UUID]]
+        self.overlaid_value = None  # type: T.Any
+        self.overlaid_scheduled_value = None  # type: T.Any
+        self.rescheduling_time = None  # type: T.Optional[datetime.datetime]
+        self.rescheduling_timer = None  # type: T.Optional[uuid.UUID]
 
     def __repr__(self) -> str:
         return "<Room {}>".format(str(self))
@@ -75,12 +81,10 @@ class Room:
         """Is called whenever a re-scheduling timer fires.
         reset may be given in kwargs and is passed to apply_schedule()."""
 
-        reset = bool(kwargs.get("reset", False))
-        self.log("Re-schedule timer fired. [reset={}]"
-                 .format(reset),
+        self.log("Re-scheduling timer fired.",
                  level="DEBUG")
-        self.rescheduling_data = None
-        self.apply_schedule(reset=reset)
+        self.rescheduling_time, self.rescheduling_timer = None, None
+        self.apply_schedule(reset=True)
 
     def _schedule_timer_cb(self, kwargs: dict) -> None:
         """Is called whenever a schedule timer fires."""
@@ -113,6 +117,7 @@ class Room:
             return None
         return value
 
+    @util.synchronized
     def apply_schedule(
             self, reset: bool = False, force_resend: bool = False,
     ) -> None:
@@ -128,14 +133,6 @@ class Room:
                  .format(reset, force_resend),
                  level="DEBUG")
 
-        if reset:
-            self.cancel_rescheduling_timer()
-        elif self.rescheduling_data:
-            self.log("Not scheduling now due to a running re-scheduling "
-                     "timer.",
-                     level="DEBUG")
-            return
-
         assert self.app.actor_type is not None
 
         result = self.get_scheduled_value()
@@ -144,13 +141,14 @@ class Room:
                      level="DEBUG")
             return
 
-        value = result[0]
+        value, markers = result[:2]
         if self.app.actor_type.values_equal(value, self.scheduled_value) and \
            not reset and not force_resend:
             self.log("Result didn't change, not setting it again.",
                      level="DEBUG")
             return
 
+        previous_scheduled_value = self.scheduled_value
         self.scheduled_value = value
         try:
             self._set_sensor(
@@ -161,19 +159,55 @@ class Room:
                      .format(err),
                      level="ERROR")
 
+        if reset:
+            self.cancel_rescheduling_timer()
+        elif expression.Mark.OVERLAY in markers:
+            if self.overlaid_value is None:
+                self.overlaid_value = self.wanted_value
+                self.overlaid_scheduled_value = previous_scheduled_value
+                self.cancel_rescheduling_timer(reset=False)
+        elif self.overlaid_value is not None:
+            overlaid_value = self.overlaid_value
+            equal = self.app.actor_type.values_equal(
+                value, self.overlaid_scheduled_value
+            )
+            self.overlaid_value = None
+            self.overlaid_scheduled_value = None
+            delay = None  # type: T.Union[None, int, datetime.datetime]
+            if self.rescheduling_time:
+                if self.rescheduling_time < self.app.datetime():
+                    delay = self.rescheduling_time
+            elif equal:
+                delay = 0
+            if delay is not None:
+                self.set_value_manually(
+                    overlaid_value, rescheduling_delay=delay
+                )
+                return
+        elif self.rescheduling_timer:
+            self.log("Not scheduling now due to a running re-scheduling "
+                     "timer.",
+                     level="DEBUG")
+            return
+
         self.set_value(value, scheduled=True, force_resend=force_resend)
 
-    def cancel_rescheduling_timer(self) -> bool:
+    def cancel_rescheduling_timer(self, reset: bool = True) -> bool:
         """Cancels the re-scheduling timer for this room, if one
-        exists. Returns whether a timer has been cancelled."""
+        exists.
+        When reset is unset, the planned rescheduling time is not wiped
+        upon timer cancellation.
+        Returns whether a timer has been cancelled."""
 
-        data = self.rescheduling_data
-        if data is None:
+        timer = self.rescheduling_timer
+        if timer is None:
             return False
 
-        self.app.cancel_timer(data[1])
-        self.rescheduling_data = None
-        self.log("Cancelled re-schedule timer.", level="DEBUG")
+        self.app.cancel_timer(timer)
+        self.rescheduling_timer = None
+        if reset:
+            self.rescheduling_time = None
+        self.log("Cancelled re-scheduling timer.", level="DEBUG")
         return True
 
     def eval_expr(
@@ -200,10 +234,10 @@ class Room:
 
     def eval_schedule(  # pylint: disable=too-many-locals
             self, sched: schedule.Schedule, when: datetime.datetime
-    ) -> T.Optional[T.Tuple[T.Any, schedule.Rule]]:
+    ) -> SchedulingResultType:
         """Evaluates a schedule, computing the value for the time the
-        given datetime object represents. The resulting value and the
-        matched rule are returned.
+        given datetime object represents. The resulting value, a set of
+        markers applied to the value and the matched rule are returned.
         If no value could be found in the schedule (e.g. all rules
         evaluate to Skip()), None is returned."""
 
@@ -239,8 +273,9 @@ class Room:
                  .format(len(rules), len(sched.rules), sched),
                  level="DEBUG")
 
-        pre_results = []
         expr_cache = {}  # type: T.Dict[types.CodeType, T.Any]
+        markers = set()
+        pre_results = []
         paths = []  # type: T.List[schedule.RulePath]
         insert_paths(paths, 0, schedule.RulePath(sched), rules)
         path_idx = 0
@@ -279,6 +314,10 @@ class Room:
                         path, level="DEBUG")
                 if result is not None:
                     break
+
+            if isinstance(result, expression.Mark):
+                markers.update(result.markers)
+                result = result.result
 
             if result is None:
                 if rules_with_expr_or_value:
@@ -344,17 +383,14 @@ class Room:
                     break
                 self.log("Final result: {}".format(repr(result)),
                          level="DEBUG")
-                return result, last_rule
+                return result, markers, last_rule
 
         self.log("Found no result.", level="DEBUG")
         return None
 
-    def get_scheduled_value(self) -> T.Optional[T.Tuple[T.Any, schedule.Rule]]:
+    def get_scheduled_value(self) -> SchedulingResultType:
         """Computes and returns the value that is configured for the
-        current date and time. The second return value is the rule which
-        generated the result.
-        If no value could be found in the schedule (e.g. all rules
-        evaluate to Skip()), None is returned."""
+        current date and time."""
 
         if self.schedule is None:
             return None
@@ -435,7 +471,7 @@ class Room:
         if wanted is not None and actor.values_equal(value, wanted):
             self.cancel_rescheduling_timer()
         elif self.cfg["rescheduling_delay"]:
-            self.start_rescheduling_timer(reset=True)
+            self.start_rescheduling_timer()
 
     def set_value(
             self, value: T.Any, scheduled: bool = False,
@@ -470,7 +506,9 @@ class Room:
     def set_value_manually(
             self, expr_raw: str = None, value: T.Any = None,
             force_resend: bool = False,
-            rescheduling_delay: T.Union[float, int, None] = None
+            rescheduling_delay: T.Union[
+                float, int, datetime.datetime, datetime.timedelta, None
+            ] = None
     ) -> None:
         """Evaluates the given expression or value and sets the result.
         An existing re-schedule timer is cancelled and a new one is
@@ -509,32 +547,22 @@ class Room:
             return
 
         self.set_value(value, scheduled=False, force_resend=force_resend)
-        if rescheduling_delay:
-            self.start_rescheduling_timer(delay=rescheduling_delay, reset=True)
-        else:
+        if rescheduling_delay is None:
             self.cancel_rescheduling_timer()
+        else:
+            self.start_rescheduling_timer(delay=rescheduling_delay)
 
     def start_rescheduling_timer(
             self, delay: T.Union[
                 float, int, datetime.datetime, datetime.timedelta, None
-            ] = None,
-            reset: bool = False,
-    ) -> bool:
+            ] = None
+    ) -> None:
         """This method registers a re-scheduling timer according to the
         room's settings. delay, if given, overwrites the rescheduling_delay
         configured for the room. If there is a timer running already,
-        no new one is started unless reset is set.
-        reset is passed through to apply_schedule() when the timer goes off.
-        The return value tells whether a timer has been started or not."""
+        it's replaced by a new one."""
 
-        if self.rescheduling_data:
-            if reset:
-                self.cancel_rescheduling_timer()
-            else:
-                self.log("Re-scheduling timer running already, starting no "
-                         "second one.",
-                         level="DEBUG")
-                return False
+        self.cancel_rescheduling_timer()
 
         if delay is None:
             delay = self.cfg["rescheduling_delay"]
@@ -549,15 +577,9 @@ class Room:
             delta = delay
             when = self.app.datetime() + delay
 
-        if reset:
-            self.log("Re-applying the schedule not before {} (in {})."
-                     .format(util.format_time(when.time()), delta))
-        else:
-            self.log("Re-evaluating the schedule at {} (in {})."
-                     .format(util.format_time(when.time()), delta))
+        self.log("Re-applying the schedule not before {} (in {})."
+                 .format(util.format_time(when.time()), delta))
 
-        self.rescheduling_data = when, self.app.run_at(
-            self._rescheduling_timer_cb, when, reset=reset
+        self.rescheduling_time, self.rescheduling_timer = when, self.app.run_at(
+            self._rescheduling_timer_cb, when
         )
-
-        return True

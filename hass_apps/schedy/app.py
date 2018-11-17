@@ -8,7 +8,6 @@ if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     from .room import Room
 
-import datetime
 import importlib
 
 from .. import common
@@ -95,19 +94,15 @@ class SchedyApp(common.App):
             return
 
         rooms = self._get_event_rooms(event, data.get("room"))
-
-        self.log("Re-schedule event received for: {} [mode={}]"
+        self.log("Re-schedule event received for: {} [mode={}, delay=3sec]"
                  .format(", ".join([str(room) for room in rooms]),
                          repr(mode)),
                  prefix=common.LOG_PREFIX_INCOMING)
 
         for room in rooms:
-            # delay to avoid re-scheduling multiple times if multiple
-            # events come in shortly
-            room.start_rescheduling_timer(
-                delay=datetime.timedelta(seconds=3),
-                reset=bool(mode == "reset")
-            )
+            # delay for some seconds to have the state fully updated
+            gen = lambda func, reset: lambda *a, **kw: func(reset=reset)
+            self.run_in(gen(room.apply_schedule, bool(mode == "reset")), 3)  # type: ignore
 
     def _set_value_event_cb(
             self, event: str, data: dict, kwargs: dict
