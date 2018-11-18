@@ -16,20 +16,23 @@ control Schedy's behaviour.
     from. (default: ``"reevaluate"``)
 
     * ``"reevaluate"``: Re-evaluate the schedule and, if the result has
-      changed compared to the previous evaluation, set the new value to
-      all actors in the room. If a re-scheduling timer is already running,
+      changed compared to the previous evaluation, apply the new value to
+      all actors in the room. If a re-scheduling timer is running,
       nothing is done until that timer goes off.
       This is the mode you normally want when notifying Schedy about
       state changes of entities used in your schedule.
+      You can trigger a ``schedy_reschedule`` event in this mode as
+      often as you like without worrying about loosing manual value
+      changes early.
     * ``"reset"``: Re-evaluate the schedule and set the resulting value
-      to all actors in the room, no matter if it has changed or not. This
-      mode also cancels an eventually running re-scheduling timer and
-      performs the re-scheduling immediately.
+      to all actors in the room, no matter if it has changed or not.
+      This mode also discardss a re-scheduling eventually planned for
+      the future and instead performs one immediately.
       Use this mode in order to discard any manual adjustment at one of
       the actors, e.g. when presence state has changed or a master switch
-      was tripped and you want to ensure all actors are updated.
-      This is exactly what the built-in automatic re-scheduling does after
-      manual adjustments when configured.
+      was toggled and you want to ensure all actors are updated.
+      This is exactly what the built-in delayed re-scheduling does after
+      manual adjustments when enabled.
 
 * ``schedy_set_value``: Sets a given value for a room.
   Parameters are:
