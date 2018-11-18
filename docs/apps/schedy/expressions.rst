@@ -143,36 +143,6 @@ The following markers are available:
   <tips-and-tricks.html#open-door-or-window-detection>`_.
 
 
-Expressions and Sub-Schedules
------------------------------
-
-.. include:: advanced-topic.rst.inc
-
-In general, there is no difference between using plain values and advanced
-expressions in both rules with a sub-schedule attached to them (so-called
-sub-schedule rules) and the rules contained in these sub-schedules. But
-with expressions, you gain a lot more flexibility.
-
-As you know from the `chapter about sub-schedules
-<writing-schedules.html#rules-with-sub-schedules>`_, rules of
-sub-schedules inherit their ``v`` parameter from the nearest anchestor
-rule having it defined, should they miss an own one.
-
-With an expression as the ``x`` value of the rule having a sub-schedule,
-you get the flexibility to dynamically overwrite the anchestor's value or
-expression. Should an expression return ``None``, the next anchestor's
-value or expression is tried to be used. When compared to plain values,
-returning ``None`` is the equivalent of omitting the ``v`` parameter
-completely, but with the benefit of deciding dynamically about whether
-to omit it or not.
-
-The whole process can be described as follows. To find the result for
-a particular rule inside a sub-schedule, the ``v``/``x`` parameters of
-the rule and it's anchestor rules are evaluated from inside to outside
-(from right to left when looking at the indentation of the YAML syntax)
-until one results in something different than ``None``.
-
-
 Expressions vs. Statements
 --------------------------
 
@@ -209,6 +179,36 @@ You may in fact write  arbitrary Python code in such a script, including
 import statements and class or function definitions. The only requirement
 is that at the end of the execution, the final result is stored in the
 global ``result`` variable.
+
+
+Expressions and Sub-Schedules
+-----------------------------
+
+.. include:: advanced-topic.rst.inc
+
+In general, there is no difference between using plain values and advanced
+expressions in both rules with a sub-schedule attached to them (so-called
+sub-schedule rules) and the rules contained in these sub-schedules. But
+with expressions, you gain a lot more flexibility.
+
+As you know from the `chapter about sub-schedules
+<writing-schedules.html#rules-with-sub-schedules>`_, rules of
+sub-schedules inherit their ``v`` parameter from the nearest anchestor
+rule having it defined, should they miss an own one.
+
+With an expression as the ``x`` value of the rule having a sub-schedule,
+you get the flexibility to dynamically overwrite the anchestor's value or
+expression. Should an expression return ``None``, the next anchestor's
+value or expression is tried to be used. When compared to plain values,
+returning ``None`` is the equivalent of omitting the ``v`` parameter
+completely, but with the benefit of deciding dynamically about whether
+to omit it or not.
+
+The whole process can be described as follows. To find the result for
+a particular rule inside a sub-schedule, the ``v``/``x`` parameters of
+the rule and it's anchestor rules are evaluated from inside to outside
+(from right to left when looking at the indentation of the YAML syntax)
+until one results in something different than ``None``.
 
 
 Examples
