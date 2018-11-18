@@ -1,7 +1,7 @@
 Generic Actor
 =============
 
-.. include:: ../../advanced-topic.rst.snippet
+.. include:: ../../advanced-topic.rst.inc
 
 The ``generic`` actor can be used for controlling different types of
 entities such as switches, lights, numbers and media players.
@@ -14,7 +14,7 @@ a wildcard for undefined states, this is a quite powerful mechanism.
 Configuration
 -------------
 
-.. include:: ../config-intro.rst.snippet
+.. include:: ../config-intro.rst.inc
 
 .. literalinclude:: config.yaml
    :language: yaml
