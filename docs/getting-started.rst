@@ -8,8 +8,30 @@ In order to use hass-apps in the hass.io ecosystem, you first need
 to set up an AppDaemon add-on. The recommended add-on is `this one
 <https://github.com/hassio-addons/addon-appdaemon3>`_.
 
-Then, follow the steps for the `Installation in Docker <#id1>`_, because
-that's what the add-on is build ontop of.
+1. When you have the official AppDaemon add-on up and running, add one
+   of the following to the ``python_packages`` add-on setting.
+
+   a) To always have the latest stable version of hass-apps installed
+      when AppDaemon starts:
+
+      ::
+
+          "hass-apps"
+
+   b) To install a specific version of hass-apps (e.g. v0.20181005.0):
+
+   ::
+
+       "hass-apps==0.20181005.0"
+
+   c) To always have the latest development version installed (don't do
+      this unless you know what you're doing):
+
+   ::
+
+       "https://github.com/efficiosoft/hass-apps/archive/master.zip"
+
+3. Continue with the `configuration <#id2>`_ as normal.
 
 
 Installation in Docker
