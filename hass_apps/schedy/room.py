@@ -112,14 +112,25 @@ class Room:
         self.app.set_state(entity_id, state=state)
 
     def _store_for_overlaying(self, scheduled_value: T.Any) -> bool:
-        """Stores the scheduled and wanted value and the re-scheduling time.
-        A running re-scheduling timer is cancelled.
-        This method is called before a value overlay is put into place.
+        """This method is called before a value overlay is put into place.
+        When a re-scheduling timer is running or the scheduled and
+        wanted values differ, this method stores the scheduled and wanted
+        value together with the re-scheduling time to later be able to
+        re-set it.
         Everything except scheduled_value is fetched from self._*.
+        A running re-scheduling timer is cancelled.
         If there already is an overlaid value stored, this does nothing.
         Returns whether values have been stored."""
 
-        if self._overlaid_wanted_value is None:
+        assert self.app.actor_type is not None
+        values_differ = not self.app.actor_type.values_equal(
+            scheduled_value, self._wanted_value
+        )
+        if self._overlaid_wanted_value is None and \
+           (values_differ or self._rescheduling_timer):
+            self.log("Storing currently wanted value {} before an overlay "
+                     "is applied."
+                     .format(repr(self._wanted_value)))
             self._overlaid_wanted_value = self._wanted_value
             self._overlaid_scheduled_value = scheduled_value
             self._overlaid_rescheduling_time = self._rescheduling_time
@@ -195,12 +206,13 @@ class Room:
             )
             delay = None  # type: T.Union[None, int, datetime.datetime]
             if self._overlaid_rescheduling_time:
-                if self._overlaid_rescheduling_time < self.app.datetime():
+                if self._overlaid_rescheduling_time > self.app.datetime():
                     delay = self._overlaid_rescheduling_time
             elif equal:
                 delay = 0
             self._clear_overlay()
             if delay is not None:
+                self.log("Restoring overlaid value.")
                 self.set_value_manually(
                     value=overlaid_wanted_value, rescheduling_delay=delay
                 )
@@ -528,10 +540,10 @@ class Room:
             ] = None
     ) -> None:
         """Evaluates the given expression or value and sets the result.
-        An existing re-schedule timer is cancelled and a new one is
-        started if re-scheduling timers are
-        configured. rescheduling_delay, if given, overwrites the value
-        configured for the room."""
+        An existing re-scheduling timer is cancelled and a new one is
+        started if re-scheduling timers are configured.
+        rescheduling_delay, if given, overwrites the value configured
+        for the room. Passing 0 disables re-scheduling."""
 
         checks = (expr_raw is None, value is None)
         assert any(checks) and not all(checks), \
@@ -573,10 +585,10 @@ class Room:
             self._store_for_overlaying(self._scheduled_value)
 
         self.set_value(value, scheduled=False, force_resend=force_resend)
-        if rescheduling_delay is None:
-            self.cancel_rescheduling_timer()
-        else:
+        if rescheduling_delay:
             self.start_rescheduling_timer(delay=rescheduling_delay)
+        else:
+            self.cancel_rescheduling_timer()
 
     def start_rescheduling_timer(
             self, delay: T.Union[
