@@ -13,7 +13,7 @@ import datetime
 
 
 __all__ = [
-    "Abort", "Break", "IncludeSchedule", "Skip",
+    "Abort", "Break", "Mark", "IncludeSchedule", "Skip",
     "Add", "And", "Multiply", "Negate", "Or",
 ]
 
