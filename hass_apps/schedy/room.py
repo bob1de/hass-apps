@@ -29,16 +29,16 @@ class Room:
         self.cfg = cfg
         self.app = app
         self.actors = []  # type: T.List[ActorBase]
-        self.actor_wanted_values = {}  # type: T.Dict[ActorBase, T.Any]
         self.schedule = None  # type: T.Optional[schedule.Schedule]
 
-        self.wanted_value = None  # type: T.Any
-        self.scheduled_value = None  # type: T.Any
-        self.rescheduling_time = None  # type: T.Optional[datetime.datetime]
-        self.rescheduling_timer = None  # type: T.Optional[uuid.UUID]
-        self.overlaid_value = None  # type: T.Any
-        self.overlaid_scheduled_value = None  # type: T.Any
-        self.overlaid_rescheduling_time = None  # type: T.Optional[datetime.datetime]
+        self._actor_wanted_values = {}  # type: T.Dict[ActorBase, T.Any]
+        self._wanted_value = None  # type: T.Any
+        self._scheduled_value = None  # type: T.Any
+        self._rescheduling_time = None  # type: T.Optional[datetime.datetime]
+        self._rescheduling_timer = None  # type: T.Optional[uuid.UUID]
+        self._overlaid_value = None  # type: T.Any
+        self._overlaid_scheduled_value = None  # type: T.Any
+        self._overlaid_rescheduling_time = None  # type: T.Optional[datetime.datetime]
 
     def __repr__(self) -> str:
         return "<Room {}>".format(str(self))
@@ -74,9 +74,9 @@ class Room:
         actor.events.on(
             "value_changed", self.notify_value_changed
         )
-        if self.wanted_value is not None and \
+        if self._wanted_value is not None and \
            all([a.is_initialized for a in self.actors]):
-            self.set_value(self.wanted_value, scheduled=False)
+            self.set_value(self._wanted_value, scheduled=False)
 
     def _rescheduling_timer_cb(self, kwargs: dict) -> None:
         """Is called whenever a re-scheduling timer fires.
@@ -84,7 +84,7 @@ class Room:
 
         self.log("Re-scheduling timer fired.",
                  level="DEBUG")
-        self.rescheduling_time, self.rescheduling_timer = None, None
+        self._rescheduling_time, self._rescheduling_timer = None, None
         self.apply_schedule(reset=True)
 
     def _schedule_timer_cb(self, kwargs: dict) -> None:
@@ -143,14 +143,14 @@ class Room:
             return
 
         value, markers = result[:2]
-        if self.app.actor_type.values_equal(value, self.scheduled_value) and \
+        if self.app.actor_type.values_equal(value, self._scheduled_value) and \
            not reset and not force_resend:
             self.log("Result didn't change, not setting it again.",
                      level="DEBUG")
             return
 
-        previous_scheduled_value = self.scheduled_value
-        self.scheduled_value = value
+        previous_scheduled_value = self._scheduled_value
+        self._scheduled_value = value
         try:
             self._set_sensor(
                 "scheduled_value", self.app.actor_type.serialize_value(value)
@@ -163,23 +163,23 @@ class Room:
         if reset:
             self.cancel_rescheduling_timer()
         elif expression.Mark.OVERLAY in markers:
-            if self.overlaid_value is None:
-                self.overlaid_value = self.wanted_value
-                self.overlaid_scheduled_value = previous_scheduled_value
-                self.overlaid_rescheduling_time = self.rescheduling_time
+            if self._overlaid_value is None:
+                self._overlaid_value = self._wanted_value
+                self._overlaid_scheduled_value = previous_scheduled_value
+                self._overlaid_rescheduling_time = self._rescheduling_time
                 self.cancel_rescheduling_timer()
-        elif self.overlaid_value is not None:
-            overlaid_value = self.overlaid_value
+        elif self._overlaid_value is not None:
+            overlaid_value = self._overlaid_value
             equal = self.app.actor_type.values_equal(
-                value, self.overlaid_scheduled_value
+                value, self._overlaid_scheduled_value
             )
-            self.overlaid_value = None
-            self.overlaid_scheduled_value = None
+            self._overlaid_value = None
+            self._overlaid_scheduled_value = None
             delay = None  # type: T.Union[None, int, datetime.datetime]
-            if self.overlaid_rescheduling_time:
-                if self.overlaid_rescheduling_time < self.app.datetime():
-                    delay = self.overlaid_rescheduling_time
-                self.overlaid_rescheduling_time = None
+            if self._overlaid_rescheduling_time:
+                if self._overlaid_rescheduling_time < self.app.datetime():
+                    delay = self._overlaid_rescheduling_time
+                self._overlaid_rescheduling_time = None
             elif equal:
                 delay = 0
             if delay is not None:
@@ -187,7 +187,7 @@ class Room:
                     overlaid_value, rescheduling_delay=delay
                 )
                 return
-        elif self.rescheduling_timer:
+        elif self._rescheduling_timer:
             self.log("Not scheduling now due to a running re-scheduling "
                      "timer.",
                      level="DEBUG")
@@ -200,12 +200,12 @@ class Room:
         exists.
         Returns whether a timer has been cancelled."""
 
-        timer = self.rescheduling_timer
+        timer = self._rescheduling_timer
         if timer is None:
             return False
 
         self.app.cancel_timer(timer)
-        self.rescheduling_time, self.rescheduling_timer = None, None
+        self._rescheduling_time, self._rescheduling_timer = None, None
         self.log("Cancelled re-scheduling timer.", level="DEBUG")
         return True
 
@@ -231,7 +231,7 @@ class Room:
                      level="ERROR")
             return err
 
-    def eval_schedule(  # pylint: disable=too-many-locals
+    def eval_schedule(  # pylint: disable=too-many-branches,too-many-locals
             self, sched: schedule.Schedule, when: datetime.datetime
     ) -> SchedulingResultType:
         """Evaluates a schedule, computing the value for the time the
@@ -406,7 +406,7 @@ class Room:
         _scheduled_value = self._get_sensor("scheduled_value")
         assert self.app.actor_type is not None
         try:
-            self.scheduled_value = self.app.actor_type.validate_value(
+            self._scheduled_value = self.app.actor_type.validate_value(
                 self.app.actor_type.deserialize_value(_scheduled_value)
             )
         except ValueError:
@@ -414,7 +414,7 @@ class Room:
                      level="DEBUG")
         else:
             self.log("Last scheduled value was {}."
-                     .format(repr(self.scheduled_value)),
+                     .format(repr(self._scheduled_value)),
                      level="DEBUG")
 
         for actor in self.actors:
@@ -466,7 +466,7 @@ class Room:
                      prefix=common.LOG_PREFIX_OUTGOING)
             self.set_value(value, scheduled=False)
 
-        wanted = self.actor_wanted_values.get(actor)
+        wanted = self._actor_wanted_values.get(actor)
         if wanted is not None and actor.values_equal(value, wanted):
             self.cancel_rescheduling_timer()
         elif self.cfg["rescheduling_delay"]:
@@ -486,11 +486,11 @@ class Room:
                          ", force re-sending" if force_resend else ""),
                  level="DEBUG")
 
-        self.wanted_value = value
+        self._wanted_value = value
 
         changed = False
         for actor in filter(lambda a: a.is_initialized, self.actors):
-            _changed, self.actor_wanted_values[actor] = actor.set_value(
+            _changed, self._actor_wanted_values[actor] = actor.set_value(
                 value, force_resend=force_resend
             )
             if _changed:
@@ -579,6 +579,6 @@ class Room:
         self.log("Re-applying the schedule not before {} (in {})."
                  .format(util.format_time(when.time()), delta))
 
-        self.rescheduling_time, self.rescheduling_timer = when, self.app.run_at(
+        self._rescheduling_time, self._rescheduling_timer = when, self.app.run_at(
             self._rescheduling_timer_cb, when
         )
