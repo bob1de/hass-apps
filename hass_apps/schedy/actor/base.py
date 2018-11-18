@@ -48,7 +48,7 @@ class ActorBase:
         attrs.update((attrs or {}).get("attributes", {}))
         return attrs
 
-    def _resend_cb(self, kwargs: dict) -> None:
+    def _resending_cb(self, kwargs: dict) -> None:
         """This callback triggers the actual sending of a value to the
         actor. Expected members of kwargs are:
         - left_tries (after this round)"""
@@ -69,7 +69,7 @@ class ActorBase:
                  .format(interval),
                  level="DEBUG")
         self._resending_timer = self.app.run_in(
-            self._resend_cb, interval, left_tries=left_tries - 1
+            self._resending_cb, interval, left_tries=left_tries - 1
         )
 
     def _state_cb(
@@ -87,7 +87,7 @@ class ActorBase:
             return
 
         if self.values_equal(new_value, self._wanted_value):
-            self.cancel_resend_timer()
+            self.cancel_resending_timer()
 
         if not self.values_equal(new_value, previous_value):
             self.log("Received value of {}."
@@ -101,8 +101,8 @@ class ActorBase:
 
         pass
 
-    def cancel_resend_timer(self) -> None:
-        """Cancels the re-send timer for this actor, if one exists."""
+    def cancel_resending_timer(self) -> None:
+        """Cancels the re-sending timer for this actor, if one exists."""
 
         timer = self._resending_timer
         if timer is None:
@@ -231,8 +231,8 @@ class ActorBase:
                      level="DEBUG")
             return False, value
 
-        self.cancel_resend_timer()
-        self._resend_cb({"left_tries": self.cfg["send_retries"] - 1})
+        self.cancel_resending_timer()
+        self._resending_cb({"left_tries": self.cfg["send_retries"] - 1})
 
         return True, value
 
