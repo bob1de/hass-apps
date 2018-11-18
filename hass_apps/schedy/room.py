@@ -34,10 +34,11 @@ class Room:
 
         self.wanted_value = None  # type: T.Any
         self.scheduled_value = None  # type: T.Any
-        self.overlaid_value = None  # type: T.Any
-        self.overlaid_scheduled_value = None  # type: T.Any
         self.rescheduling_time = None  # type: T.Optional[datetime.datetime]
         self.rescheduling_timer = None  # type: T.Optional[uuid.UUID]
+        self.overlaid_value = None  # type: T.Any
+        self.overlaid_scheduled_value = None  # type: T.Any
+        self.overlaid_rescheduling_time = None  # type: T.Optional[datetime.datetime]
 
     def __repr__(self) -> str:
         return "<Room {}>".format(str(self))
@@ -165,7 +166,8 @@ class Room:
             if self.overlaid_value is None:
                 self.overlaid_value = self.wanted_value
                 self.overlaid_scheduled_value = previous_scheduled_value
-                self.cancel_rescheduling_timer(reset=False)
+                self.overlaid_rescheduling_time = self.rescheduling_time
+                self.cancel_rescheduling_timer()
         elif self.overlaid_value is not None:
             overlaid_value = self.overlaid_value
             equal = self.app.actor_type.values_equal(
@@ -174,9 +176,10 @@ class Room:
             self.overlaid_value = None
             self.overlaid_scheduled_value = None
             delay = None  # type: T.Union[None, int, datetime.datetime]
-            if self.rescheduling_time:
-                if self.rescheduling_time < self.app.datetime():
-                    delay = self.rescheduling_time
+            if self.overlaid_rescheduling_time:
+                if self.overlaid_rescheduling_time < self.app.datetime():
+                    delay = self.overlaid_rescheduling_time
+                self.overlaid_rescheduling_time = None
             elif equal:
                 delay = 0
             if delay is not None:
@@ -192,11 +195,9 @@ class Room:
 
         self.set_value(value, scheduled=True, force_resend=force_resend)
 
-    def cancel_rescheduling_timer(self, reset: bool = True) -> bool:
+    def cancel_rescheduling_timer(self) -> bool:
         """Cancels the re-scheduling timer for this room, if one
         exists.
-        When reset is unset, the planned rescheduling time is not wiped
-        upon timer cancellation.
         Returns whether a timer has been cancelled."""
 
         timer = self.rescheduling_timer
@@ -204,9 +205,7 @@ class Room:
             return False
 
         self.app.cancel_timer(timer)
-        self.rescheduling_timer = None
-        if reset:
-            self.rescheduling_time = None
+        self.rescheduling_time, self.rescheduling_timer = None, None
         self.log("Cancelled re-scheduling timer.", level="DEBUG")
         return True
 
