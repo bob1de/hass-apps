@@ -202,7 +202,7 @@ class Room:
             self._clear_overlay()
             if delay is not None:
                 self.set_value_manually(
-                    overlaid_wanted_value, rescheduling_delay=delay
+                    value=overlaid_wanted_value, rescheduling_delay=delay
                 )
                 return
         elif self._rescheduling_timer:
