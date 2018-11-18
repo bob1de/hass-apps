@@ -36,7 +36,7 @@ class Room:
         self._scheduled_value = None  # type: T.Any
         self._rescheduling_time = None  # type: T.Optional[datetime.datetime]
         self._rescheduling_timer = None  # type: T.Optional[uuid.UUID]
-        self._overlaid_value = None  # type: T.Any
+        self._overlaid_wanted_value = None  # type: T.Any
         self._overlaid_scheduled_value = None  # type: T.Any
         self._overlaid_rescheduling_time = None  # type: T.Optional[datetime.datetime]
 
@@ -45,6 +45,13 @@ class Room:
 
     def __str__(self) -> str:
         return "R:{}".format(self.cfg.get("friendly_name", self.name))
+
+    def _clear_overlay(self) -> None:
+        """Removes all stored overlay state."""
+
+        self._overlaid_wanted_value = None
+        self._overlaid_scheduled_value = None
+        self._overlaid_rescheduling_time = None
 
     def _get_sensor(self, param: str) -> T.Any:
         """Returns the state value of the sensor for given parameter in HA."""
@@ -87,10 +94,10 @@ class Room:
         self._rescheduling_time, self._rescheduling_timer = None, None
         self.apply_schedule(reset=True)
 
-    def _schedule_timer_cb(self, kwargs: dict) -> None:
-        """Is called whenever a schedule timer fires."""
+    def _scheduling_timer_cb(self, kwargs: dict) -> None:
+        """Is called whenever a scheduling timer fires."""
 
-        self.log("Schedule timer fired.",
+        self.log("Scheduling timer fired.",
                  level="DEBUG")
         self.apply_schedule()
 
@@ -103,6 +110,22 @@ class Room:
                  .format(repr(entity_id), repr(state)),
                  level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
         self.app.set_state(entity_id, state=state)
+
+    def _store_for_overlaying(self, scheduled_value: T.Any) -> bool:
+        """Stores the scheduled and wanted value and the re-scheduling time.
+        A running re-scheduling timer is cancelled.
+        This method is called before a value overlay is put into place.
+        Everything except scheduled_value is fetched from self._*.
+        If there already is an overlaid value stored, this does nothing.
+        Returns whether values have been stored."""
+
+        if self._overlaid_wanted_value is None:
+            self._overlaid_wanted_value = self._wanted_value
+            self._overlaid_scheduled_value = scheduled_value
+            self._overlaid_rescheduling_time = self._rescheduling_time
+            self.cancel_rescheduling_timer()
+            return True
+        return False
 
     def _validate_value(self, value: T.Any) -> T.Any:
         """A wrapper around self.app.actor_type.validate_value() that
@@ -162,34 +185,29 @@ class Room:
 
         if reset:
             self.cancel_rescheduling_timer()
+            self._clear_overlay()
         elif expression.Mark.OVERLAY in markers:
-            if self._overlaid_value is None:
-                self._overlaid_value = self._wanted_value
-                self._overlaid_scheduled_value = previous_scheduled_value
-                self._overlaid_rescheduling_time = self._rescheduling_time
-                self.cancel_rescheduling_timer()
-        elif self._overlaid_value is not None:
-            overlaid_value = self._overlaid_value
+            self._store_for_overlaying(previous_scheduled_value)
+        elif self._overlaid_wanted_value is not None:
+            overlaid_wanted_value = self._overlaid_wanted_value
             equal = self.app.actor_type.values_equal(
                 value, self._overlaid_scheduled_value
             )
-            self._overlaid_value = None
-            self._overlaid_scheduled_value = None
             delay = None  # type: T.Union[None, int, datetime.datetime]
             if self._overlaid_rescheduling_time:
                 if self._overlaid_rescheduling_time < self.app.datetime():
                     delay = self._overlaid_rescheduling_time
-                self._overlaid_rescheduling_time = None
             elif equal:
                 delay = 0
+            self._clear_overlay()
             if delay is not None:
                 self.set_value_manually(
-                    overlaid_value, rescheduling_delay=delay
+                    overlaid_wanted_value, rescheduling_delay=delay
                 )
                 return
         elif self._rescheduling_timer:
-            self.log("Not scheduling now due to a running re-scheduling "
-                     "timer.",
+            self.log("Not applying the schedule now due to a running "
+                     "re-scheduling timer.",
                      level="DEBUG")
             return
 
@@ -426,7 +444,7 @@ class Room:
                      .format(", ".join([str(_time) for _time in times])),
                      level="DEBUG")
             for _time in times:
-                self.app.run_daily(self._schedule_timer_cb, _time)
+                self.app.run_daily(self._scheduling_timer_cb, _time)
         else:
             self.log("No schedule configured.", level="DEBUG")
 
@@ -519,12 +537,17 @@ class Room:
         assert any(checks) and not all(checks), \
             "specify exactly one of expr_raw and value"
 
+        markers = set()
         if expr_raw is not None:
             expr = util.compile_expression(expr_raw)
             result = self.eval_expr(expr)
             self.log("Evaluated expression {} to {}."
                      .format(repr(expr_raw), repr(result)),
                      level="DEBUG")
+
+            if isinstance(result, expression.Mark):
+                markers.update(result.markers)
+                result = result.result
 
             not_allowed_result_types = (
                 expression.ControlResult, expression.PreliminaryResult,
@@ -535,8 +558,9 @@ class Room:
                 _result = self.eval_schedule(result.schedule, self.app.datetime())
                 if _result is not None:
                     value = _result[0]
+                    markers.update(_result[1])
             elif not isinstance(result, not_allowed_result_types):
-                value = result.value
+                value = result
 
         if value is not None:
             value = self._validate_value(value)
@@ -544,6 +568,9 @@ class Room:
         if value is None:
             self.log("Ignoring value.")
             return
+
+        if expression.Mark.OVERLAY in markers:
+            self._store_for_overlaying(self._scheduled_value)
 
         self.set_value(value, scheduled=False, force_resend=force_resend)
         if rescheduling_delay is None:
