@@ -6,7 +6,6 @@ import typing as T
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     import uuid
-    from ..room import Room
 
 import copy
 import json
@@ -14,6 +13,7 @@ import observable
 import voluptuous as vol
 
 from ... import common
+from ..room import Room, sync_proxy
 
 
 class ActorBase:
@@ -48,6 +48,7 @@ class ActorBase:
         attrs.update((attrs or {}).get("attributes", {}))
         return attrs
 
+    @sync_proxy
     def _resending_cb(self, kwargs: dict) -> None:
         """This callback triggers the actual sending of a value to the
         actor. Expected members of kwargs are:
@@ -72,6 +73,7 @@ class ActorBase:
             self._resending_cb, interval, left_tries=left_tries - 1
         )
 
+    @sync_proxy
     def _state_cb(
             self, entity: str, attr: str,
             old: T.Optional[dict], new: T.Optional[dict],

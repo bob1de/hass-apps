@@ -7,9 +7,7 @@ import typing as T
 
 import collections
 import datetime
-import functools
 import re
-import threading
 
 
 # matches any character that is not allowed in Python variable names
@@ -195,16 +193,3 @@ def parse_time_string(time_str: str) -> datetime.time:
                          .format(repr(time_str)))
     components = [int(comp) for comp in match.groups() if comp is not None]
     return datetime.time(*components)  # type: ignore
-
-@functools.wraps
-def synchronized(wrapped: T.Callable) -> T.Callable:
-    """Decorator to ensure a function is never called more than once at
-    a time using a threading.Lock."""
-
-    def wrapper(*args: T.Any, **kwargs: T.Any) -> T.Any:
-        with wrapper.__lock__:  # type: ignore
-            return wrapped(*args, **kwargs)
-
-    wrapper.__lock__ = threading.Lock()  # type: ignore
-
-    return wrapper

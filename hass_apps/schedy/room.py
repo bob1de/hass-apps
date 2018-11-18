@@ -11,9 +11,38 @@ if T.TYPE_CHECKING:
     from .actor.base import ActorBase
 
 import datetime
+import functools
+import threading
 
 from .. import common
 from . import expression, schedule, util
+
+
+def sync_proxy(handler: T.Callable) -> T.Callable:
+    """A decorator for wrapping event and state handlers.
+    It can be applied to members of Room or of objects having a Room
+    object as their "room" attribute.
+    It ensures all handlers are executed synchronously by acquiring a
+    re-entrant lock stored in the Room object.
+    Room._update_state() is called after each handler."""
+
+    @functools.wraps(handler)
+    def wrapper(self: T.Any, *args: T.Any, **kwargs: T.Any) -> T.Any:
+        """Wrapper around the event handler."""
+
+        # pylint: disable=protected-access
+
+        if isinstance(self, Room):
+            room = self
+        else:
+            room = self.room
+
+        with room._sync_proxy_lock:
+            result = handler(self, *args, **kwargs)
+            room._update_state()
+            return result
+
+    return wrapper
 
 
 class Room:
@@ -36,6 +65,10 @@ class Room:
         self._overlaid_wanted_value = None  # type: T.Any
         self._overlaid_scheduled_value = None  # type: T.Any
         self._overlaid_rescheduling_time = None  # type: T.Optional[datetime.datetime]
+
+        self._last_state = None  # type: T.Optional[T.Tuple[str, T.Dict[str, T.Any]]]
+
+        self._sync_proxy_lock = threading.RLock()
 
     def __repr__(self) -> str:
         return "<Room {}>".format(str(self))
@@ -63,6 +96,7 @@ class Room:
                  level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
         return state
 
+    @sync_proxy
     def _initialize_actor_cb(self, kwargs: dict) -> None:
         """Is called for each actor until it's initialized successfully."""
 
@@ -82,6 +116,7 @@ class Room:
            all([a.is_initialized for a in self.actors]):
             self.set_value(self._wanted_value, scheduled=False)
 
+    @sync_proxy
     def _rescheduling_timer_cb(self, kwargs: dict) -> None:
         """Is called whenever a re-scheduling timer fires.
         reset may be given in kwargs and is passed to apply_schedule()."""
@@ -91,6 +126,7 @@ class Room:
         self._rescheduling_time, self._rescheduling_timer = None, None
         self.apply_schedule(reset=True)
 
+    @sync_proxy
     def _scheduling_timer_cb(self, kwargs: dict) -> None:
         """Is called whenever a scheduling timer fires."""
 
@@ -135,6 +171,42 @@ class Room:
             return True
         return False
 
+    def _update_state(self) -> None:
+        """Update the room's state in Home Assistant."""
+
+        D = T.TypeVar("D")
+        def serialize(value: T.Any, default: D) -> T.Union[str, D]:
+            """Return the serialized value or the default, if value is None."""
+
+            if value is None:
+                return default
+
+            assert self.app.actor_type is not None
+            return self.app.actor_type.serialize_value(value)
+
+        self.log("Updating state in Home Assistant.",
+                 level="DEBUG")
+
+        state = serialize(self._wanted_value, "")
+
+        attrs = {
+            "overlaid": self._overlaid_wanted_value is not None,
+            "scheduled_value": serialize(self._scheduled_value, None),
+            "rescheduling_time": self._rescheduling_time,
+        }
+
+        self.log("State is: state={}, attributes={}"
+                 .format(repr(state), attrs),
+                 level="DEBUG")
+        if (state, attrs) == self._last_state:
+            self.log("State didn't change, not sending it again.",
+                     level="DEBUG")
+            return
+        self._last_state = (state, attrs)
+
+        entity_id = "schedy.{}_{}".format(self.app.name, self.name)
+        self.app.set_state(entity_id, state=state, **attrs)
+
     def _validate_value(self, value: T.Any) -> T.Any:
         """A wrapper around self.app.actor_type.validate_value() that
         sanely logs validation errors and returns None in that case."""
@@ -149,7 +221,7 @@ class Room:
             return None
         return value
 
-    @util.synchronized
+    @sync_proxy
     def apply_schedule(
             self, reset: bool = False, force_resend: bool = False,
     ) -> None:
@@ -416,6 +488,7 @@ class Room:
         self.log("Found no result.", level="DEBUG")
         return None
 
+    @sync_proxy
     def initialize(self) -> None:
         """Should be called after all schedules and actors have been
         added in order to register state listeners and timers."""
@@ -508,7 +581,6 @@ class Room:
         elif self.cfg["rescheduling_delay"] and not was_wanted:
             self.start_rescheduling_timer()
 
-    @util.synchronized
     def set_value(
             self, value: T.Any, scheduled: bool = False,
             force_resend: bool = False
