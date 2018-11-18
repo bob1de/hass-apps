@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   [here](getting-started.html#installation-on-hass-io).
 
 ### Deprecated
+* The motion_light app will be removed at the end of 2018. Schedy can
+  control lights much more flexibly.
 
 ### Removed
 
