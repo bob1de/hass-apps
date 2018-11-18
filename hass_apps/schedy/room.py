@@ -491,17 +491,33 @@ class Room:
         """Should be called when the value has been changed externally
         by manual adjustment at an actor."""
 
-        if self.cfg["replicate_changes"] and len(self.actors) > 1:
-            self.log("Propagating the change to all actors in the room.",
-                     prefix=common.LOG_PREFIX_OUTGOING)
-            self.set_value(value, scheduled=False)
+        if actor.is_sending:
+            self.log("Not respecting value change from a sending actor.",
+                     level="DEBUG")
+            return
 
         wanted = self._actor_wanted_values.get(actor)
-        if wanted is not None and actor.values_equal(value, wanted):
+        was_wanted = wanted is not None and actor.values_equal(value, wanted)
+        if self.cfg["replicate_changes"] and not was_wanted:
+            if len(self.actors) > 1:
+                self.log("Propagating the change to all actors in the room.")
+            self.set_value(value, scheduled=False)
+
+        tracking_schedule = \
+            self._scheduled_value is not None and \
+            self._wanted_value is not None and \
+            actor.values_equal(
+                self._scheduled_value, self._wanted_value
+            )
+        is_scheduled = actor.values_equal(value, self._scheduled_value)
+        replicating = (self.cfg["replicate_changes"] or len(self.actors) == 1)
+        if tracking_schedule and was_wanted or \
+           replicating and is_scheduled:
             self.cancel_rescheduling_timer()
-        elif self.cfg["rescheduling_delay"]:
+        elif self.cfg["rescheduling_delay"] and not was_wanted:
             self.start_rescheduling_timer()
 
+    @util.synchronized
     def set_value(
             self, value: T.Any, scheduled: bool = False,
             force_resend: bool = False
@@ -519,7 +535,12 @@ class Room:
         self._wanted_value = value
 
         changed = False
-        for actor in filter(lambda a: a.is_initialized, self.actors):
+        for actor in self.actors:
+            if not actor.is_initialized:
+                self.log("Skipping uninitialized {}.".format(repr(actor)),
+                         level="DEBUG")
+                continue
+
             _changed, self._actor_wanted_values[actor] = actor.set_value(
                 value, force_resend=force_resend
             )
@@ -536,7 +557,7 @@ class Room:
             self, expr_raw: str = None, value: T.Any = None,
             force_resend: bool = False,
             rescheduling_delay: T.Union[
-                float, int, datetime.datetime, datetime.timedelta, None
+                float, int, datetime.datetime, datetime.timedelta
             ] = None
     ) -> None:
         """Evaluates the given expression or value and sets the result.
@@ -585,14 +606,14 @@ class Room:
             self._store_for_overlaying(self._scheduled_value)
 
         self.set_value(value, scheduled=False, force_resend=force_resend)
-        if rescheduling_delay:
+        if rescheduling_delay != 0:
             self.start_rescheduling_timer(delay=rescheduling_delay)
         else:
             self.cancel_rescheduling_timer()
 
     def start_rescheduling_timer(
             self, delay: T.Union[
-                float, int, datetime.datetime, datetime.timedelta, None
+                float, int, datetime.datetime, datetime.timedelta
             ] = None
     ) -> None:
         """This method registers a re-scheduling timer according to the

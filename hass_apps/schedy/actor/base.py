@@ -144,6 +144,12 @@ class ActorBase:
         return value
 
     @property
+    def is_sending(self) -> bool:
+        """Tells whether the actor is currently waiting for a receipt."""
+
+        return self._resending_timer is not None
+
+    @property
     def is_synced(self) -> bool:
         """Tells whether the actor's current value is the wanted one and
         no re-sending is in progress."""
