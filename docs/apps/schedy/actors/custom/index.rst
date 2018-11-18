@@ -1,6 +1,8 @@
 Custom Actor
 ============
 
+.. include:: ../../advanced-topic.rst.snippet
+
 The ``custom`` actor can be used if maximum control and flexibility
 is required, as it allows you to write custom hooks (pieces of
 Python code) that link schedule results to entity states. In fact,

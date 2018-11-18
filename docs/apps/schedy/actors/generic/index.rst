@@ -1,6 +1,8 @@
 Generic Actor
 =============
 
+.. include:: ../../advanced-topic.rst.snippet
+
 The ``generic`` actor can be used for controlling different types of
 entities such as switches, lights, numbers and media players.
 
