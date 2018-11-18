@@ -131,6 +131,10 @@ you write
 
 to mark the result ``21`` with the ``OVERLAY`` marker.
 
+The actual syntax is ``Mark(result, marker1, ..., markerN)``, so you
+can add multiple markers ad once. Markers can be applied to preliminary
+results as well, but they will be used for the final result.
+
 The following markers are available:
 
 * ``OVERLAY``: Overwrite manual value adjustments even when a configured
