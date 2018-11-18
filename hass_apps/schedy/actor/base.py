@@ -90,10 +90,10 @@ class ActorBase:
             self.cancel_resending_timer()
 
         if not self.values_equal(new_value, previous_value):
-            self.log("Received value of {}."
-                     .format(repr(self._current_value)),
-                     level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
             self._current_value = new_value
+            self.log("Received value of {}."
+                     .format(repr(new_value)),
+                     level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
             self.events.trigger("value_changed", self, new_value)
 
     def after_initialization(self) -> None:
