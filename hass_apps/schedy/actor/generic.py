@@ -56,15 +56,15 @@ class GenericActor(ActorBase):
             return self.cfg["states"].get("_other_")
 
     def do_send(self) -> None:
-        """Executes the service configured for self.wanted_value."""
+        """Executes the service configured for self._wanted_value."""
 
-        cfg = self._get_state_cfg(self.wanted_value)
+        cfg = self._get_state_cfg(self._wanted_value)
         service = cfg["service"]
         service_data = cfg["service_data"].copy()
         if cfg["include_entity_id"]:
             service_data.setdefault("entity_id", self.entity_id)
         if cfg["value_param"] is not None:
-            service_data.setdefault(cfg["value_param"], self.wanted_value)
+            service_data.setdefault(cfg["value_param"], self._wanted_value)
 
         self.log("Calling service {}, data = {}."
                  .format(repr(service), repr(service_data)),
@@ -99,7 +99,7 @@ class GenericActor(ActorBase):
             return None
 
         state = str(state)
-        if not self.values_equal(state, self.current_value):
+        if not self.values_equal(state, self._current_value):
             self.log("Received state of {}."
                      .format(repr(state)),
                      prefix=common.LOG_PREFIX_INCOMING)

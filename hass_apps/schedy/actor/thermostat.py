@@ -263,9 +263,9 @@ class ThermostatActor(ActorBase):
         return ThermostatActor.validate_value(value)
 
     def do_send(self) -> None:
-        """Sends self.wanted_value to the thermostat."""
+        """Sends self._wanted_value to the thermostat."""
 
-        target_temp = self.wanted_value
+        target_temp = self._wanted_value
         if target_temp.is_off:
             opmode = self.cfg["opmode_off"]
             temp = None
@@ -378,7 +378,7 @@ class ThermostatActor(ActorBase):
                         "current_temp_changed", self, current_temp
                     )
 
-        if target_temp != self.current_value:
+        if target_temp != self._current_value:
             self.log("Received target temperature of {}."
                      .format(str(target_temp)),
                      prefix=common.LOG_PREFIX_INCOMING)

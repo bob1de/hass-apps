@@ -60,11 +60,11 @@ class CustomActor(ActorBase):
         return env.get("result")
 
     def do_send(self) -> None:
-        """Executes the configured send script for self.wanted_value."""
+        """Executes the configured send script for self._wanted_value."""
 
         self.log("Executing send script.",
                  level="DEBUG")
-        env = {"value": self.wanted_value}
+        env = {"value": self._wanted_value}
         self._exec_script(self.cfg["send_hook"], env)
 
     def filter_set_value(self, value: T.Any) -> T.Any:
@@ -94,7 +94,7 @@ class CustomActor(ActorBase):
             self.log("Ignoring value of None.", level="DEBUG")
             return None
 
-        if value != self.current_value:
+        if value != self._current_value:
             self.log("Received value of {}."
                      .format(repr(value)),
                      prefix=common.LOG_PREFIX_INCOMING)

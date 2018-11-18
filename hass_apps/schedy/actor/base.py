@@ -1,5 +1,5 @@
 """
-This module implements the Thermostat class.
+This module implements the ActorBase parent class.
 """
 
 import typing as T
@@ -27,11 +27,12 @@ class ActorBase:
         self.cfg = cfg
         self.room = room
         self.app = room.app
-        self.is_initialized = False
-        self.current_value = None  # type: T.Any
-        self.wanted_value = None  # type: T.Any
-        self.resend_timer = None  # type: T.Optional[uuid.UUID]
         self.events = observable.Observable()  # type: observable.Observable
+        self.is_initialized = False
+
+        self._current_value = None  # type: T.Any
+        self._wanted_value = None  # type: T.Any
+        self._resending_timer = None  # type: T.Optional[uuid.UUID]
 
     def __repr__(self) -> str:
         return "<Actor {}>".format(str(self))
@@ -52,11 +53,11 @@ class ActorBase:
         actor. Expected members of kwargs are:
         - left_tries (after this round)"""
 
-        self.resend_timer = None
+        self._resending_timer = None
 
         left_tries = kwargs["left_tries"]
         self.log("Setting value {} (left tries = {})."
-                 .format(self.wanted_value, left_tries),
+                 .format(self._wanted_value, left_tries),
                  level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
         self.do_send()
 
@@ -67,7 +68,7 @@ class ActorBase:
         self.log("Re-sending in {} seconds."
                  .format(interval),
                  level="DEBUG")
-        self.resend_timer = self.app.run_in(
+        self._resending_timer = self.app.run_in(
             self._resend_cb, interval, left_tries=left_tries - 1
         )
 
@@ -80,19 +81,19 @@ class ActorBase:
 
         attrs = self._preprocess_state(new)
 
-        previous_value = self.current_value
+        previous_value = self._current_value
         new_value = self.notify_state_changed(attrs)  # pylint: disable=assignment-from-none
         if new_value is None:
             return
 
-        if self.values_equal(new_value, self.wanted_value):
+        if self.values_equal(new_value, self._wanted_value):
             self.cancel_resend_timer()
 
         if not self.values_equal(new_value, previous_value):
             self.log("Received value of {}."
-                     .format(repr(self.current_value)),
+                     .format(repr(self._current_value)),
                      level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
-            self.current_value = new_value
+            self._current_value = new_value
             self.events.trigger("value_changed", self, new_value)
 
     def after_initialization(self) -> None:
@@ -103,10 +104,10 @@ class ActorBase:
     def cancel_resend_timer(self) -> None:
         """Cancels the re-send timer for this actor, if one exists."""
 
-        timer = self.resend_timer
+        timer = self._resending_timer
         if timer is None:
             return
-        self.resend_timer = None
+        self._resending_timer = None
         self.app.cancel_timer(timer)
         self.log("Cancelled re-sending timer.", level="DEBUG")
 
@@ -130,7 +131,7 @@ class ActorBase:
 
     def do_send(self) -> None:
         """This method should implement the actual sending of
-        self.wanted_value to the actor."""
+        self._wanted_value to the actor."""
 
         pass
 
@@ -147,8 +148,8 @@ class ActorBase:
         """Tells whether the actor's current value is the wanted one and
         no re-sending is in progress."""
 
-        return self.resend_timer is None and \
-               self.values_equal(self.current_value, self.wanted_value)
+        return self._resending_timer is None and \
+               self.values_equal(self._current_value, self._wanted_value)
 
     def log(self, msg: str, *args: T.Any, **kwargs: T.Any) -> None:
         """Prefixes the actor to log messages."""
@@ -180,7 +181,7 @@ class ActorBase:
                      level="WARNING")
             return False
         self.check_config_plausibility(self._preprocess_state(state))
-        # populate self.current_value etc. by simulating a
+        # populate self._current_value etc. by simulating a
         # state change
         self._state_cb(self.entity_id, "all", state, state, {})
 
@@ -221,9 +222,9 @@ class ActorBase:
 
         value = self.filter_set_value(value)
         if value is None:
-            return False, self.wanted_value
+            return False, self._wanted_value
 
-        self.wanted_value = value
+        self._wanted_value = value
         if not force_resend and self.is_synced:
             self.log("Not sending value {} redundantly."
                      .format(repr(value)),
