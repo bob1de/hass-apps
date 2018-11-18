@@ -82,9 +82,9 @@ schedy:
       #replicate_changes: true
 
       # Set this value to a number of minutes and Schedy will
-      # automatically re-schedule the value after a manual change has
-      # been made. If you, for instance, use the thermostat actor type
-      # and change the target temperature at one of your thermostats and
+      # automatically again apply the schedule after a manual change has
+      # been made. If you, for instance, use the thermostat actor type,
+      # change the target temperature at one of your thermostats and
       # this value is set to 120, Schedy will again apply the schedule
       # two hours after you made the change.
       # 0 means not re-schedule before the next scheduled value change
