@@ -16,9 +16,6 @@ from .. import common
 from . import expression, schedule, util
 
 
-SchedulingResultType = T.Optional[T.Tuple[T.Any, T.Set[str], schedule.Rule]]
-
-
 class Room:
     """A room to be controlled by Schedy."""
 
@@ -170,7 +167,9 @@ class Room:
 
         assert self.app.actor_type is not None
 
-        result = self.get_scheduled_value()
+        result = None
+        if self.schedule:
+            result = self.eval_schedule(self.schedule, self.app.datetime())
         if result is None:
             self.log("No suitable value found in schedule.",
                      level="DEBUG")
@@ -263,7 +262,7 @@ class Room:
 
     def eval_schedule(  # pylint: disable=too-many-branches,too-many-locals
             self, sched: schedule.Schedule, when: datetime.datetime
-    ) -> SchedulingResultType:
+    ) -> T.Optional[T.Tuple[T.Any, T.Set[str], schedule.Rule]]:
         """Evaluates a schedule, computing the value for the time the
         given datetime object represents. The resulting value, a set of
         markers applied to the value and the matched rule are returned.
@@ -416,14 +415,6 @@ class Room:
 
         self.log("Found no result.", level="DEBUG")
         return None
-
-    def get_scheduled_value(self) -> SchedulingResultType:
-        """Computes and returns the value that is configured for the
-        current date and time."""
-
-        if self.schedule is None:
-            return None
-        return self.eval_schedule(self.schedule, self.app.datetime())
 
     def initialize(self) -> None:
         """Should be called after all schedules and actors have been
