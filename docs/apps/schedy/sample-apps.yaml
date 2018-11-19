@@ -10,7 +10,7 @@ schedy:
 
   # By default, Schedy tries to restore its previous state at startup
   # from the records stored in Home Assistant. This includes scheduled
-  # values, manual adjustments and re-scheduling times - simply anything.
+  # values, manual adjustments and re-scheduling times - just everything.
   # When this behaviour is not desired, change this setting to true
   # and Schedy will just apply the schedules at startup, no matter what
   # the previous actor states were.
