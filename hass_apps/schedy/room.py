@@ -539,6 +539,9 @@ class Room:
                     break
                 self.log("Final result: {}".format(repr(result)),
                          level="DEBUG")
+                if markers:
+                    self.log("Result markers: {}".format(markers),
+                             level="DEBUG")
                 return result, markers, last_rule
 
         self.log("Found no result.", level="DEBUG")
