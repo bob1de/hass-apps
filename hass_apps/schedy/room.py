@@ -38,10 +38,16 @@ def sync_proxy(handler: T.Callable) -> T.Callable:
             room = self.room
 
         with room._sync_proxy_lock:
-            result = handler(self, *args, **kwargs)
-            # only update the state when this is the outmost acquirer
-            if room._sync_proxy_lock._count == 1:  # type: ignore
-                room._update_state()
+            first = not room._sync_proxy_running
+            try:
+                if first:
+                    room._sync_proxy_running = True
+                result = handler(self, *args, **kwargs)
+                if first:
+                    room._update_state()
+            finally:
+                if first:
+                    room._sync_proxy_running = False
             return result
 
     return wrapper
@@ -71,6 +77,7 @@ class Room:
         self._last_state = None  # type: T.Optional[T.Tuple[str, T.Dict[str, T.Any]]]
 
         self._sync_proxy_lock = threading._RLock()  # pylint: disable=protected-access
+        self._sync_proxy_running = False
 
     def __repr__(self) -> str:
         return "<Room {}>".format(str(self))
