@@ -143,8 +143,8 @@ The following markers are available:
   the ``OVERLAY`` marker set, the previous value is restored, no matter
   if that was the scheduled or a manually set one. Even a previous
   re-scheduling time is restored.
-  An occasion for using this marker is `Open Door or Window Detection
-  <tips-and-tricks.html#open-door-or-window-detection>`_.
+  An occasion for using this marker is
+  :ref:`schedy/tips-and-tricks/open-door-or-window-detection`.
 
 
 Expressions vs. Statements
@@ -195,10 +195,9 @@ expressions in both rules with a sub-schedule attached to them (so-called
 sub-schedule rules) and the rules contained in these sub-schedules. But
 with expressions, you gain a lot more flexibility.
 
-As you know from the `chapter about sub-schedules
-<writing-schedules.html#rules-with-sub-schedules>`_, rules of
-sub-schedules inherit their ``v`` parameter from the nearest anchestor
-rule having it defined, should they miss an own one.
+As you know from :ref:`schedy/writing-schedules/rules-with-sub-schedules`,
+rules of sub-schedules inherit their ``v`` parameter from the nearest
+anchestor rule having it defined, should they miss an own one.
 
 With an expression as the ``x`` value of the rule having a sub-schedule,
 you get the flexibility to dynamically overwrite the anchestor's value or
@@ -312,10 +311,10 @@ on the state of entities or is reused in multiple rooms.
 
 .. note::
 
-   If you just want to prevent yourself from repeating the same
-   static constraints for multiple rules that are used only
-   once in your configuration, use the `sub-schedule feature
-   <writing-schedules.html#rules-with-sub-schedules>`_ of the normal
+   If you just want to prevent yourself from repeating the same static
+   constraints over and over for multiple consecutive rules that are used
+   only once in your configuration, use the :ref:`sub-schedule feature
+   <schedy/writing-schedules/rules-with-sub-schedules>` of the normal
    rule syntax instead.
 
 You can reference any schedule defined under ``schedule_snippets`` in

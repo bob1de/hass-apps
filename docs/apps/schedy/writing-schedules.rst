@@ -169,6 +169,8 @@ no decimal values.
 All constraints you define need to be fulfilled for the rule to match.
 
 
+.. _schedy/writing-schedules/rules-with-sub-schedules:
+
 Rules with Sub-Schedules
 ------------------------
 

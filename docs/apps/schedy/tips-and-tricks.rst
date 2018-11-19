@@ -51,6 +51,8 @@ always hold the scheduled value for the room. Reacting to changes of
 it's value is possible with normal Home Assistant automations.
 
 
+.. _schedy/tips-and-tricks/open-door-or-window-detection:
+
 Open Door or Window Detection
 -----------------------------
 
