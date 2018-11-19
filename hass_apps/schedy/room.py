@@ -259,17 +259,17 @@ class Room:
             ),
         }
 
-        self.log("Updating state in HA: state={}, attributes={}"
-                 .format(repr(state), attrs),
+        unchanged = (state, attrs) == self._last_state
+        self.log("{} HA state: state={}, attributes={}"
+                 .format("Unchanged" if unchanged else "Sending new",
+                         repr(state), attrs),
                  level="DEBUG")
-        if (state, attrs) == self._last_state:
-            self.log("State is unchanged, not re-sending it.",
-                     level="DEBUG")
+        if unchanged:
             return
-        self._last_state = (state, attrs)
 
         entity_id = "schedy.{}_{}".format(self.app.name, self.name)
         self.app.set_state(entity_id, state=state, attributes=attrs)
+        self._last_state = (state, attrs)
 
     def _validate_value(self, value: T.Any) -> T.Any:
         """A wrapper around self.app.actor_type.validate_value() that
