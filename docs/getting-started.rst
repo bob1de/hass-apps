@@ -14,7 +14,8 @@ When you have that up and running, head over to
 :ref:`getting-started/installation-in-docker` and choose a hass-apps
 version to install, but instead of storing the chosen string in a
 ``requirements.txt`` file, you add it to the ``python_packages`` setting
-of the AppDaemon add-on. It should look like this:
+of the AppDaemon add-on using hass.io's web interface. It should look
+like this:
 
 ::
 
