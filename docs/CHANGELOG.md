@@ -14,8 +14,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 
 ### Changed
-* Installation on hass.io is now a lot simpler, see
-  [here](getting-started.html#installation-on-hass-io).
+* Installation in hass.io is now a lot simpler, see
+  [here](getting-started.html#installation-in-hass-io).
+* Installation in Docker is now a lot simpler, see
+  [here](getting-started.html#installation-in-docker).
 
 ### Deprecated
 * The motion_light app will be removed at the end of 2018. Schedy can

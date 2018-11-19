@@ -1,38 +1,29 @@
 Getting Started
 ===============
 
-Installation on Hass.io
+.. _getting-started/installation-in-hassio:
+
+Installation in Hass.io
 -----------------------
 
 In order to use hass-apps in the hass.io ecosystem, you first need
 to set up an AppDaemon add-on. The recommended add-on is `this one
 <https://github.com/hassio-addons/addon-appdaemon3>`_.
 
-1. When you have the official AppDaemon add-on up and running, add one
-   of the following to the ``python_packages`` add-on setting.
+When you have that up and running, head over to
+:ref:`getting-started/installation-in-docker` and choose a hass-apps
+version to install, but instead of storing the chosen string in a
+``requirements.txt`` file, you add it to the ``python_packages`` setting
+of the AppDaemon add-on. It should look like this:
 
-   a) To always have the latest stable version of hass-apps installed
-      when AppDaemon starts:
+::
 
-      ::
+    "python_packages": [
+        "hass-apps"
+    ]
 
-          "hass-apps"
 
-   b) To install a specific version of hass-apps (e.g. v0.20181005.0):
-
-   ::
-
-       "hass-apps==0.20181005.0"
-
-   c) To always have the latest development version installed (don't do
-      this unless you know what you're doing):
-
-   ::
-
-       "https://github.com/efficiosoft/hass-apps/archive/master.zip"
-
-3. Continue with the `configuration <#id2>`_ as normal.
-
+.. _getting-started/installation-in-docker:
 
 Installation in Docker
 ----------------------
@@ -67,7 +58,7 @@ Installation in Docker
 
        https://github.com/efficiosoft/hass-apps/archive/master.zip
 
-3. Continue with the `configuration <#id2>`_ as normal.
+3. Continue with the :ref:`getting-started/configuration` as normal.
 
 
 Installation on GNU/Linux
@@ -88,6 +79,8 @@ installed, run ``python3 --version``. If your version of Python is recent
 enough, you may continue with installing.
 
 
+.. _getting-started/auto-install-assistant:
+
 Auto-Install Assistant
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -103,6 +96,8 @@ run AppDaemon later, doing this as root is strictly dissuaded from.
 Once the script has been downloaded, it'll run automatically. Follow
 the instructions on screen.
 
+
+.. _getting-started/manual-installation:
 
 Manual Installation
 ~~~~~~~~~~~~~~~~~~~
@@ -170,6 +165,8 @@ process.
           cd hass-apps
           pip install . --upgrade
 
+
+.. _getting-started/configuration:
 
 Configuration
 -------------
