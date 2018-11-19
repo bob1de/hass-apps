@@ -39,7 +39,9 @@ def sync_proxy(handler: T.Callable) -> T.Callable:
 
         with room._sync_proxy_lock:
             result = handler(self, *args, **kwargs)
-            room._update_state()
+            # only update the state when this is the outmost acquirer
+            if room._sync_proxy_lock._count == 1:  # type: ignore
+                room._update_state()
             return result
 
     return wrapper
@@ -68,7 +70,7 @@ class Room:
 
         self._last_state = None  # type: T.Optional[T.Tuple[str, T.Dict[str, T.Any]]]
 
-        self._sync_proxy_lock = threading.RLock()
+        self._sync_proxy_lock = threading._RLock()  # pylint: disable=protected-access
 
     def __repr__(self) -> str:
         return "<Room {}>".format(str(self))
@@ -82,19 +84,6 @@ class Room:
         self._overlaid_wanted_value = None
         self._overlaid_scheduled_value = None
         self._overlaid_rescheduling_time = None
-
-    def _get_sensor(self, param: str) -> T.Any:
-        """Returns the state value of the sensor for given parameter in HA."""
-
-        entity_id = "sensor.schedy_{}_room_{}_{}" \
-                    .format(self.app.name, self.name, param)
-        self.log("Querying state of {}."
-                 .format(repr(entity_id)),
-                 level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
-        state = self.app.get_state(entity_id)
-        self.log("= {}".format(repr(state)),
-                 level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
-        return state
 
     @sync_proxy
     def _initialize_actor_cb(self, kwargs: dict) -> None:
@@ -114,7 +103,72 @@ class Room:
         )
         if self._wanted_value is not None and \
            all([a.is_initialized for a in self.actors]):
-            self.set_value(self._wanted_value, scheduled=False)
+            assert self.app.actor_type is not None
+            self.set_value(
+                self._wanted_value,
+                scheduled=self.app.actor_type.values_equal(
+                    self._wanted_value, self._scheduled_value
+                )
+            )
+
+    def _restore_state(self) -> None:
+        """Restores a stored state from Home Assistant and.applies it.
+        If no state was found, the schedule is just applied."""
+
+        def deserialize(value: T.Any) -> T.Any:
+            """Return the deserialized value or None, if value is None
+            or serialization fails."""
+
+            if value is None:
+                return None
+
+            assert self.app.actor_type is not None
+            return self.app.actor_type.deserialize_value(value)
+
+        def deserialize_dt(value: T.Any) -> T.Optional[datetime.datetime]:
+            """Return the datetime object for the given timestamp or None,
+            if it is None."""
+
+            if not isinstance(value, (float, int)):
+                return None
+
+            return datetime.datetime.fromtimestamp(value)
+
+        entity_id = "schedy.{}_{}".format(self.app.name, self.name)
+        self.log("Loading state of {} from Home Assistant."
+                 .format(repr(entity_id)),
+                 level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
+        state = self.app.get_state(entity_id, attribute="all")
+        self.log("  = {}".format(repr(state)),
+                 level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
+
+        if isinstance(state, dict):
+            attrs = state.get("attributes", {})
+            self._wanted_value = deserialize(state.get("state") or None)
+            self._scheduled_value = deserialize(attrs.get("scheduled_value"))
+            self._rescheduling_time = deserialize_dt(
+                attrs.get("rescheduling_time")
+            )
+            self._overlaid_wanted_value = deserialize(
+                attrs.get("overlaid_wanted_value")
+            )
+            self._overlaid_scheduled_value = deserialize(
+                attrs.get("overlaid_scheduled_value")
+            )
+            self._overlaid_rescheduling_time = deserialize_dt(
+                attrs.get("overlaid_rescheduling_time")
+            )
+
+            if self._rescheduling_time and \
+               self._rescheduling_time > self.app.datetime():
+                self.set_value_manually(
+                    value=self._wanted_value,
+                    rescheduling_delay=self._rescheduling_time
+                )
+            else:
+                self._rescheduling_time = None
+
+        self.apply_schedule()
 
     @sync_proxy
     def _rescheduling_timer_cb(self, kwargs: dict) -> None:
@@ -133,16 +187,6 @@ class Room:
         self.log("Scheduling timer fired.",
                  level="DEBUG")
         self.apply_schedule()
-
-    def _set_sensor(self, param: str, state: T.Any) -> None:
-        """Updates the sensor for given parameter in HA."""
-
-        entity_id = "sensor.schedy_{}_room_{}_{}" \
-                    .format(self.app.name, self.name, param)
-        self.log("Setting state of {} to {}."
-                 .format(repr(entity_id), repr(state)),
-                 level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
-        self.app.set_state(entity_id, state=state)
 
     def _store_for_overlaying(self, scheduled_value: T.Any) -> bool:
         """This method is called before a value overlay is put into place.
@@ -184,28 +228,41 @@ class Room:
             assert self.app.actor_type is not None
             return self.app.actor_type.serialize_value(value)
 
-        self.log("Updating state in Home Assistant.",
-                 level="DEBUG")
+        def serialize_dt(
+                value: T.Optional[datetime.datetime]
+        ) -> T.Optional[float]:
+            """Return the timestamp of the given datetime or None,
+            if it is None."""
+
+            if value is None:
+                return None
+
+            return value.timestamp()
 
         state = serialize(self._wanted_value, "")
-
         attrs = {
-            "overlaid": self._overlaid_wanted_value is not None,
             "scheduled_value": serialize(self._scheduled_value, None),
-            "rescheduling_time": self._rescheduling_time,
+            "rescheduling_time": serialize_dt(self._rescheduling_time),
+            "overlaid_wanted_value":
+                serialize(self._overlaid_wanted_value, None),
+            "overlaid_scheduled_value":
+                serialize(self._overlaid_scheduled_value, None),
+            "overlaid_rescheduling_time": serialize_dt(
+                self._overlaid_rescheduling_time
+            ),
         }
 
-        self.log("State is: state={}, attributes={}"
+        self.log("Updating state in HA: state={}, attributes={}"
                  .format(repr(state), attrs),
                  level="DEBUG")
         if (state, attrs) == self._last_state:
-            self.log("State didn't change, not sending it again.",
+            self.log("State is unchanged, not re-sending it.",
                      level="DEBUG")
             return
         self._last_state = (state, attrs)
 
         entity_id = "schedy.{}_{}".format(self.app.name, self.name)
-        self.app.set_state(entity_id, state=state, **attrs)
+        self.app.set_state(entity_id, state=state, attributes=attrs)
 
     def _validate_value(self, value: T.Any) -> T.Any:
         """A wrapper around self.app.actor_type.validate_value() that
@@ -256,14 +313,6 @@ class Room:
 
         previous_scheduled_value = self._scheduled_value
         self._scheduled_value = value
-        try:
-            self._set_sensor(
-                "scheduled_value", self.app.actor_type.serialize_value(value)
-            )
-        except ValueError as err:
-            self.log("Can't store scheduling result in HA: {}"
-                     .format(err),
-                     level="ERROR")
 
         if reset:
             self.cancel_rescheduling_timer()
@@ -489,27 +538,15 @@ class Room:
         return None
 
     @sync_proxy
-    def initialize(self) -> None:
+    def initialize(self, reset: bool = False) -> None:
         """Should be called after all schedules and actors have been
-        added in order to register state listeners and timers."""
+        added in order to register state listeners and timers.
+        If reset is True, the previous state won't be restored from Home
+        Assistant and the schedule will be applied instead."""
 
         self.log("Initializing room (name={})."
                  .format(repr(self.name)),
                  level="DEBUG")
-
-        _scheduled_value = self._get_sensor("scheduled_value")
-        assert self.app.actor_type is not None
-        try:
-            self._scheduled_value = self.app.actor_type.validate_value(
-                self.app.actor_type.deserialize_value(_scheduled_value)
-            )
-        except ValueError:
-            self.log("Last scheduled value is unknown.",
-                     level="DEBUG")
-        else:
-            self.log("Last scheduled value was {}."
-                     .format(repr(self._scheduled_value)),
-                     level="DEBUG")
 
         for actor in self.actors:
             self._initialize_actor_cb({"actor": actor})
@@ -523,6 +560,11 @@ class Room:
                 self.app.run_daily(self._scheduling_timer_cb, _time)
         else:
             self.log("No schedule configured.", level="DEBUG")
+
+        if reset:
+            self.apply_schedule(reset=True)
+        else:
+            self._restore_state()
 
     def log(self, msg: str, *args: T.Any, **kwargs: T.Any) -> None:
         """Prefixes the room to log messages."""

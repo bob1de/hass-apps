@@ -191,7 +191,7 @@ class SchedyApp(common.App):
                 self.expression_modules[as_name] = mod
 
         for room in self.rooms:
-            room.initialize()
+            room.initialize(reset=self.cfg["reset_at_startup"])
 
         self.log("Listening for schedy_reschedule event.",
                  level="DEBUG")
@@ -200,6 +200,3 @@ class SchedyApp(common.App):
         self.log("Listening for schedy_set_value event.",
                  level="DEBUG")
         self.listen_event(self._set_value_event_cb, "schedy_set_value")
-
-        for room in self.rooms:
-            room.apply_schedule(reset=self.cfg["reset_at_startup"])
