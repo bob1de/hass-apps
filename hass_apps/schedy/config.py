@@ -69,7 +69,8 @@ def config_post_hook(cfg: dict) -> dict:
                         .format(repr(template_name))
                     )
                 templates.append(template)
-            templates.append(cfg["actor_templates"].get("default", {}))
+            if not templates:
+                templates.append(cfg["actor_templates"].get("default", {}))
 
             util.deep_merge_dicts(actor_type.config_defaults, actor_data)
             for template in reversed(templates):

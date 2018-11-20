@@ -104,6 +104,8 @@ schedy:
 
           # Choose the template this actor should inherit its settings
           # from.
+          # By default, an actor inherits its settings from the "default"
+          # template, given that you defined it.
           #template: default
 
           # We could, for instance, overwrite the delta defined in the
