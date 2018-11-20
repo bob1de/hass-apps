@@ -12,7 +12,7 @@ from .. import util
 from .base import ActorBase
 
 
-CONFIG_SCHEMA = vol.Schema({
+CONFIG_SCHEMA_DICT = {
     vol.Required("send_hook"): vol.All(
         str,
         util.compile_expression,
@@ -29,14 +29,14 @@ CONFIG_SCHEMA = vol.Schema({
         lambda v: v or {},
         dict,
     ),
-}, extra=True)
+}
 
 
 class CustomActor(ActorBase):
     """A fully customizable actor for Schedy."""
 
     name = "custom"
-    config_schema = CONFIG_SCHEMA
+    config_schema_dict = CONFIG_SCHEMA_DICT
 
     def _exec_script(
             self, expr: types.CodeType, env: T.Dict[str, T.Any]

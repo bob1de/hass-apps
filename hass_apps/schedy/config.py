@@ -66,9 +66,12 @@ def config_post_hook(cfg: dict) -> dict:
                     "No template named {} has been defined."
                     .format(repr(template_name))
                 )
+            util.deep_merge_dicts(actor_type.config_defaults, actor_data)
             util.deep_merge_dicts(template, actor_data)
-            actor_data = ACTOR_SCHEMA(actor_data)
-            actor_data = actor_type.config_schema(actor_data)
+            actor_data.pop("template", None)
+            schema_dict = ACTOR_SCHEMA_DICT.copy()
+            schema_dict.update(actor_type.config_schema_dict)
+            actor_data = vol.Schema(schema_dict, extra=True)(actor_data)
             actors[actor_name] = actor_data
 
         # complete the room's schedule.
@@ -162,16 +165,13 @@ EXPRESSION_MODULES_SCHEMA = vol.Schema(vol.All(
 
 ########## ACTORS
 
-ACTOR_SCHEMA = vol.Schema(vol.All(
-    lambda v: v or {},
-    vol.Schema({
-        "friendly_name": str,
-        vol.Optional("send_retries", default=10):
-            vol.All(int, vol.Range(min=-1)),
-        vol.Optional("send_retry_interval", default=30):
-            vol.All(int, vol.Range(min=1)),
-    }, extra=True),
-))
+ACTOR_SCHEMA_DICT = {
+    "friendly_name": str,
+    vol.Optional("send_retries", default=10):
+        vol.All(int, vol.Range(min=-1)),
+    vol.Optional("send_retry_interval", default=30):
+        vol.All(int, vol.Range(min=1)),
+}
 
 
 ########## SCHEDULES

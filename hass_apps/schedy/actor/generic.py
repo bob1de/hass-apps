@@ -30,21 +30,21 @@ WILDCARD_STATE_NAME_SCHEMA = vol.Schema(vol.All(
     str, str.lower, "_other_",
 ))
 
-CONFIG_SCHEMA = vol.Schema({
+CONFIG_SCHEMA_DICT = {
     vol.Optional("state_attr", default="state"): vol.Any(str, None),
     vol.Optional("states", default=dict): vol.All(
         lambda v: v or {},
         {vol.Any(WILDCARD_STATE_NAME_SCHEMA, vol.Extra): STATE_DEF_SCHEMA},
         lambda v: {str(key): val for key, val in v.items()},
     ),
-}, extra=True)
+}
 
 
 class GenericActor(ActorBase):
     """A configurable, generic actor for Schedy."""
 
     name = "generic"
-    config_schema = CONFIG_SCHEMA
+    config_schema_dict = CONFIG_SCHEMA_DICT
 
     def _get_state_cfg(self, state: str) -> T.Any:
         """Returns the state configuration for given state or None,

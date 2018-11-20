@@ -10,7 +10,6 @@ if T.TYPE_CHECKING:
 import copy
 import json
 import observable
-import voluptuous as vol
 
 from ... import common
 from ..room import Room, sync_proxy
@@ -20,7 +19,8 @@ class ActorBase:
     """An actor to be controlled by Schedy."""
 
     name = "actor"
-    config_schema = vol.Schema(object)
+    config_defaults = {}  # type: T.Dict[T.Any, T.Any]
+    config_schema_dict = {}  # type: T.Dict[T.Any, T.Any]
 
     def __init__(self, entity_id: str, cfg: dict, room: "Room") -> None:
         self.entity_id = entity_id

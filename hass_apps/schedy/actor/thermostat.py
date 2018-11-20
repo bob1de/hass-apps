@@ -149,7 +149,7 @@ TEMP_SCHEMA = vol.Schema(vol.All(
     lambda v: Temp(v),  # pylint: disable=unnecessary-lambda
 ))
 
-CONFIG_SCHEMA = vol.Schema({
+CONFIG_SCHEMA_DICT = {
     vol.Optional("delta", default=0):
         vol.All(TEMP_SCHEMA, vol.NotIn([Temp(OFF)])),
     vol.Optional("min_temp", default=None): vol.Any(
@@ -183,14 +183,14 @@ CONFIG_SCHEMA = vol.Schema({
     vol.Optional(
         "current_temp_state_attr", default="current_temperature"
     ): vol.Any(str, None),
-}, extra=True)
+}
 
 
 class ThermostatActor(ActorBase):
     """A thermostat to be controlled by Schedy."""
 
     name = "thermostat"
-    config_schema = CONFIG_SCHEMA
+    config_schema_dict = CONFIG_SCHEMA_DICT
 
     def __init__(self, *args: T.Any, **kwargs: T.Any) -> None:
         super().__init__(*args, **kwargs)
