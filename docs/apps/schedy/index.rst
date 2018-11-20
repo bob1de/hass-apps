@@ -9,11 +9,19 @@ facilitating manual intervention at any time.
 These key features are implemented in Schedy. More are added continuously.
 
 * Schedules (based on time, days of week/month, month, year and more)
-* Separate schedule and settings for each room (multi-room)
-* Dynamic values based on expressions written in Python
+* Multiple schedules for different purposes, occasions or seasons
+* One schedule can control a group of actors at once
+* Unlimited number of actor groups (Schedy calls them rooms), each having
+  its own schedule
+* Optional synchronization of manual changes among all actors in a room
+* Dynamic values based on expressions written in Python, allowing for
+  arbitrarily complex rules that can consider any information available
+  to Home Assistant
+* Event-driven system enables external control by ordinary Home Assistant
+  events
 * Configurable re-scheduling after manual adjustments
-* Re-sending until actors report the change back (for unreliable networks)
-* Logging
+* Re-sending until actors report a change back (for unreliable networks)
+* Configurable logging
 
 This documentation is written for both beginners that want to get
 started with Schedy and advanced users needing a reference book for
