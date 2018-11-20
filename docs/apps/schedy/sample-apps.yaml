@@ -41,14 +41,18 @@ schedy:
   # In the following config block, you may define templates with
   # settings that affect multiple actors in your setup. These can then be
   # used as a starting point for the configuration of individual actors.
+  # Nested inclusion of templates is possible as well.
   actor_templates:
 
     # Each template needs to have a name.
-    # The "default" template is always present, no matter if you define
-    # it or not. Of course it will be empty by default.
-    default:
+    #my_template:
+
+      # Optionally have this template based on another one.
+      #template: other_template
 
       # Actor type-specific settings can be found in the documentation.
+      #foo: bar
+      #...
 
 
   # Add schedule rules you want to have prepended to each room's schedule

@@ -58,17 +58,22 @@ def config_post_hook(cfg: dict) -> dict:
 
         # copy defaults from templates and validate the actors
         for actor_name, actor_data in room_data["actors"].items():
-            template_name = actor_data.get("template", "default")
-            try:
-                template = cfg["actor_templates"][template_name]
-            except KeyError:
-                raise vol.ValueInvalid(
-                    "No template named {} has been defined."
-                    .format(repr(template_name))
-                )
+            templates = []
+            while "template" in actor_data:
+                template_name = actor_data.pop("template")
+                try:
+                    template = cfg["actor_templates"][template_name]
+                except KeyError:
+                    raise vol.ValueInvalid(
+                        "No template named {} has been defined."
+                        .format(repr(template_name))
+                    )
+                templates.append(template)
+            templates.append(cfg["actor_templates"].get("default", {}))
+
             util.deep_merge_dicts(actor_type.config_defaults, actor_data)
-            util.deep_merge_dicts(template, actor_data)
-            actor_data.pop("template", None)
+            for template in reversed(templates):
+                util.deep_merge_dicts(template, actor_data)
             schema_dict = ACTOR_SCHEMA_DICT.copy()
             schema_dict.update(actor_type.config_schema_dict)
             actor_data = vol.Schema(schema_dict, extra=True)(actor_data)
@@ -240,10 +245,7 @@ CONFIG_SCHEMA = vol.Schema(vol.All(
             vol.Any(*map(lambda a: a.name, actor.get_actor_types())),
             lambda n: {a.name: a for a in actor.get_actor_types()}[n],
         ),
-        vol.Optional("actor_templates", default=dict): vol.All(
-            DICTS_IN_DICT_SCHEMA,
-            lambda v: v.setdefault("default", {}) and False or v,
-        ),
+        vol.Optional("actor_templates", default=dict): DICTS_IN_DICT_SCHEMA,
         vol.Optional("schedule_prepend", default=list): vol.All(
             SCHEDULE_SCHEMA,
             validate_rule_paths,
