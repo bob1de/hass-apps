@@ -24,7 +24,8 @@ def sync_proxy(handler: T.Callable) -> T.Callable:
     object as their "room" attribute.
     It ensures all handlers are executed synchronously by acquiring a
     re-entrant lock stored in the Room object.
-    Room._update_state() is called after each handler."""
+    Room._update_state() is called after the outmost handler wrapped
+    with this decorator finishes."""
 
     @functools.wraps(handler)
     def wrapper(self: T.Any, *args: T.Any, **kwargs: T.Any) -> T.Any:
@@ -642,8 +643,7 @@ class Room:
             )
         is_scheduled = actor.values_equal(value, self._scheduled_value)
         replicating = (self.cfg["replicate_changes"] or len(self.actors) == 1)
-        if tracking_schedule and was_wanted or \
-           replicating and is_scheduled:
+        if tracking_schedule and was_wanted or replicating and is_scheduled:
             self.cancel_rescheduling_timer()
         elif self.cfg["rescheduling_delay"] and not was_wanted:
             self.start_rescheduling_timer()
