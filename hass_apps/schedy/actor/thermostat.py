@@ -11,6 +11,7 @@ import functools
 import voluptuous as vol
 
 from ... import common
+from .. import stats
 from .base import ActorBase
 
 
@@ -186,15 +187,54 @@ CONFIG_SCHEMA_DICT = {
 }
 
 
+class TempDeltaParameter(
+        stats.ActorValueCollectorMixin, stats.MinAvgMaxParameter
+):
+    """The difference between target and current temperature."""
+
+    name = "temp_delta"
+    config_schema_dict = {
+        **stats.ActorValueCollectorMixin.config_schema_dict,
+        **stats.MinAvgMaxParameter.config_schema_dict,
+        vol.Optional("off_value", default=0): vol.Any(float, int, None),
+    }
+    round_places = 2
+
+    def collect_actor_value(self, actor: ActorBase) -> T.Optional[float]:
+        """Collects the difference between target and current temperature."""
+
+        assert isinstance(actor, ThermostatActor)
+        current = actor.current_temp
+        target = actor.current_value
+        if current is None or target is None or \
+           current.is_off or target.is_off:
+            off_value = self.cfg["off_value"]
+            if off_value is None:
+                # thermostats that are off should be excluded
+                return None
+            return float(off_value)
+        return float(target - current)
+
+    def initialize_actor_listeners(self, actor: ActorBase) -> None:
+        """Listens for changes of current and target temperature."""
+
+        self.log("Listening for temperature changes of {} in {}."
+                 .format(actor, actor.room),
+                 level="DEBUG")
+        actor.events.on("current_temp_changed", self.update_handler)
+        actor.events.on("value_changed", self.update_handler)
+
+
 class ThermostatActor(ActorBase):
     """A thermostat to be controlled by Schedy."""
 
     name = "thermostat"
     config_schema_dict = CONFIG_SCHEMA_DICT
+    stats_param_types = [TempDeltaParameter]
 
     def __init__(self, *args: T.Any, **kwargs: T.Any) -> None:
         super().__init__(*args, **kwargs)
-        self.current_temp = None  # type: T.Optional[Temp]
+        self._current_temp = None  # type: T.Optional[Temp]
 
     def check_config_plausibility(self, state: dict) -> None:
         """Is called during initialization to warn the user about some
@@ -255,6 +295,12 @@ class ThermostatActor(ActorBase):
                          "Please check your config!"
                          .format(opmode, allowed_opmodes),
                          level="WARNING")
+
+    @property
+    def current_temp(self) -> T.Optional[Temp]:
+        """Returns the current temperature as measured by the thermostat."""
+
+        return self._current_temp
 
     @staticmethod
     def deserialize_value(value: str) -> Temp:
@@ -372,8 +418,8 @@ class ThermostatActor(ActorBase):
                 self.log("Invalid current temperature, not updating it.",
                          level="ERROR")
             else:
-                if current_temp != self.current_temp:
-                    self.current_temp = current_temp
+                if current_temp != self._current_temp:
+                    self._current_temp = current_temp
                     self.events.trigger(
                         "current_temp_changed", self, current_temp
                     )

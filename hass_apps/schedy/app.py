@@ -7,6 +7,7 @@ import types  # pylint: disable=unused-import
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     from .room import Room
+    from .stats import StatisticalParameter
 
 import importlib
 
@@ -30,6 +31,7 @@ class SchedyApp(common.App):
     def __init__(self, *args: T.Any, **kwargs: T.Any) -> None:
         self.actor_type = None  # type: T.Optional[T.Type[ActorBase]]
         self.rooms = []  # type: T.List[Room]
+        self.stats_params = []  # type: T.List[StatisticalParameter]
         self.expression_modules = {}  # type: T.Dict[str, types.ModuleType]
         super().__init__(*args, **kwargs)
 
@@ -200,3 +202,6 @@ class SchedyApp(common.App):
         self.log("Listening for schedy_set_value event.",
                  level="DEBUG")
         self.listen_event(self._set_value_event_cb, "schedy_set_value")
+
+        for stats_param in self.stats_params:
+            stats_param.initialize()

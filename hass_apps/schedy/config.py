@@ -51,7 +51,7 @@ def config_post_hook(cfg: dict) -> dict:
 
     actor_type = cfg["actor_type"]
 
-    # Build room objects.
+    # Build Room objects.
     rooms = []
     for room_name, room_data in cfg["rooms"].items():
         actors = {}
@@ -75,9 +75,11 @@ def config_post_hook(cfg: dict) -> dict:
             util.deep_merge_dicts(actor_type.config_defaults, actor_data)
             for template in reversed(templates):
                 util.deep_merge_dicts(template, actor_data)
-            schema_dict = ACTOR_SCHEMA_DICT.copy()
-            schema_dict.update(actor_type.config_schema_dict)
-            actor_data = vol.Schema(schema_dict, extra=True)(actor_data)
+            schema_dict = {
+                **ACTOR_SCHEMA_DICT,
+                **actor_type.config_schema_dict,
+            }
+            actor_data = vol.Schema(schema_dict)(actor_data)
             actors[actor_name] = actor_data
 
         # complete the room's schedule.
@@ -100,7 +102,31 @@ def config_post_hook(cfg: dict) -> dict:
 
     del cfg["rooms"], cfg["schedule_prepend"], cfg["schedule_append"]
     cfg["_app"].actor_type = actor_type
-    cfg["_app"].rooms = rooms
+    cfg["_app"].rooms.extend(rooms)
+
+    # Build StatisticalParameter objects.
+    stats_params = []
+    param_types = {t.name: t for t in actor_type.stats_param_types}
+    for param_name, param_data in cfg["statistics"].items():
+        try:
+            param_type = param_types[param_data["type"]]
+        except KeyError:
+            raise ValueError(
+                "statistical parameter {} is not available for this actor type"
+                .format(param_data["type"])
+            )
+
+        util.deep_merge_dicts(param_type.config_defaults, actor_data)
+        schema_dict = {
+            **STATISTICAL_PARAMETER_SCHEMA_DICT,
+            **param_type.config_schema_dict,
+        }
+        param_data = vol.Schema(schema_dict)(param_data)
+
+        param = param_type(param_name, param_data, cfg["_app"])
+        stats_params.append(param)
+
+    cfg["_app"].stats_params.extend(stats_params)
 
     return cfg
 
@@ -234,6 +260,13 @@ ROOM_SCHEMA = vol.Schema(vol.All(
 ))
 
 
+########## STATISTICS
+
+STATISTICAL_PARAMETER_SCHEMA_DICT = {
+    vol.Required("type"): str,
+}
+
+
 ########## MAIN CONFIG SCHEMA
 
 CONFIG_SCHEMA = vol.Schema(vol.All(
@@ -261,6 +294,7 @@ CONFIG_SCHEMA = vol.Schema(vol.All(
             lambda v: v or {},
             {vol.Extra: ROOM_SCHEMA},
         ),
+        vol.Optional("statistics", default=dict): DICTS_IN_DICT_SCHEMA,
     }, extra=True),
     config_post_hook,
 ))

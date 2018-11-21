@@ -110,4 +110,21 @@ schedy:
 
           # We could, for instance, overwrite the delta defined in the
           # template, if any, for this particular thermostat only.
-          delta: 1.0
+          #delta: 1.0
+
+
+    # Configure statistical parameters to be collected
+
+    statistics:
+
+      # pick an arbitrary name for the parameter instance
+      #upstairs_temp_delta:
+        # the type of parameter as found in the actor'S documentation
+        #type: temp_delta
+        # more parameter-specific settings:
+        #rooms:
+        #  living:
+        #  kidsroom:
+        #...
+
+      # more parameter instances...

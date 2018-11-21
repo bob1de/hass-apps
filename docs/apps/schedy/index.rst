@@ -40,5 +40,6 @@ concept <concept.html>`_ first and then proceed to the following pages.
    writing-schedules
    expressions
    events
+   statistics/index
    tips-and-tricks
    CHANGELOG

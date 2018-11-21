@@ -60,3 +60,29 @@ of expressions is the string ``"OFF"`` (case-insensitive).
    When working with the ``Add()`` preliminary result type and the final
    result is ``OFF``, it will stay ``OFF``, no matter what's being added
    to it.
+
+
+Statistical Parameters
+----------------------
+
+.. include:: ../statistics-intro.rst.inc
+
+
+``temp_delta``
+~~~~~~~~~~~~~~
+
+This parameter measures the difference between target and current
+temperature for all thermostats in the associated rooms. It can be used
+to control a source of heating energy, such as a fuel oven, with Home
+Assistant automations.
+
+Options provided because this is a ``TempDeltaParameter``:
+
+* ``off_value``: Specify how to handle thermostats which are turned
+  off. Specify either the number to assume as the delta or ``null``, which
+  causes the thermostat to be excluded from statistics collection. The
+  default value is ``0``.
+
+.. include:: ../../statistics/actor-value-collector.rst.inc
+
+.. include:: ../../statistics/min-avg-max-parameter.rst.inc

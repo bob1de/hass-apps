@@ -141,7 +141,7 @@ class Room:
 
             return datetime.datetime.fromtimestamp(value)
 
-        entity_id = "schedy.{}_{}".format(self.app.name, self.name)
+        entity_id = self._state_entity_id
         self.log("Loading state of {} from Home Assistant."
                  .format(repr(entity_id)),
                  level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
@@ -194,6 +194,12 @@ class Room:
         self.log("Scheduling timer fired.",
                  level="DEBUG")
         self.apply_schedule()
+
+    @property
+    def _state_entity_id(self) -> str:
+        """Generates the entity id for storing this room's state as."""
+
+        return "schedy_room.{}_{}".format(self.app.name, self.name)
 
     def _store_for_overlaying(self, scheduled_value: T.Any) -> bool:
         """This method is called before a value overlay is put into place.
@@ -260,14 +266,16 @@ class Room:
         }
 
         unchanged = (state, attrs) == self._last_state
-        self.log("{} HA state: state={}, attributes={}"
-                 .format("Unchanged" if unchanged else "Sending new",
-                         repr(state), attrs),
-                 level="DEBUG")
         if unchanged:
+            self.log("Unchanged HA state: state={}, attributes={}"
+                     .format(repr(state), attrs),
+                     level="DEBUG")
             return
+        self.log("Sending state to HA: state={}, attributes={}"
+                 .format(repr(state), attrs),
+                 level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
 
-        entity_id = "schedy.{}_{}".format(self.app.name, self.name)
+        entity_id = self._state_entity_id
         self.app.set_state(entity_id, state=state, attributes=attrs)
         self._last_state = (state, attrs)
 
@@ -582,6 +590,7 @@ class Room:
         msg = "[{}] {}".format(self, msg)
         self.app.log(msg, *args, **kwargs)
 
+    @sync_proxy
     def notify_set_value_event(
             self, expr_raw: str = None, value: T.Any = None,
             force_resend: bool = False,
