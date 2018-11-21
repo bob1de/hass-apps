@@ -3,11 +3,10 @@ Custom Actor
 
 .. include:: ../../advanced-topic.rst.inc
 
-The ``custom`` actor can be used if maximum control and flexibility
-is required, as it allows you to write custom hooks (pieces of
-Python code) that link schedule results to entity states. In fact,
-you could even implement advanced types like the `thermostat actor
-<../thermostat/index.html>`_ with this one.
+The ``custom`` actor can be used if maximum control and flexibility is
+required, as it allows you to write custom hooks (pieces of Python code)
+that link schedule results to entity states. In fact, you could even
+implement advanced types like :doc:`../thermostat/index` with this one.
 
 While this actor is probably not for daily use, it gives you the power
 you need when implementing something really fancy.
@@ -46,10 +45,10 @@ returned from a schedule, would cause that state to be achieved. This
 is handled by the ``state`` hook. It gets all state attributes of the
 watched entity and must return the value this state is caused by.
 
-These two hooks, the ``send`` and the ``state`` hook,
-are executed similarly to the `expressions used in schedules
-<../../expressions.html>`_. Both simple expressions (single-line) and
-whole statements (multi-line) are possible. When using whole statements,
+These two hooks, the ``send`` and the ``state`` hook, are
+executed similarly to the :doc:`expressions used in schedules
+<../../expressions>`. Both simple expressions (single-line) and whole
+statements (multi-line) are possible. When using whole statements,
 the result has to be stored in the global ``result`` variable as usual.
 
 Inside the hooks, the following variables are available for you to

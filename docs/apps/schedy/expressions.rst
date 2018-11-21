@@ -217,8 +217,10 @@ until one results in something different than ``None``.
 Examples
 --------
 
-Example: Inlining Expressions into Schedules
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _schedy/expressions/examples/inlining-expressions-into-schedules:
+
+Inlining Expressions into Schedules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Let's say we use the thermostat actor type and have a switch
 that should prepare our bathroom for taking a bath. It's name is
@@ -234,7 +236,7 @@ that should prepare our bathroom for taking a bath. It's name is
 Last step is to write a simple Home Assistant automation to emit
 a re-schedule event whenever the state of ``switch.take_a_bath``
 changes. More about the available events and how to emit them is explained
-in `this chapter <events.html>`_.
+in the chapter :doc:`events`.
 
 ::
 
@@ -259,8 +261,8 @@ If that happens, the second rule is processed, which always evaluates
 to 19 degrees.
 
 
-Example: Use of ``Add()`` and ``Skip()``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Use of ``Add()`` and ``Skip()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is a rule I once used in my own heating configuration at home:
 
@@ -301,8 +303,8 @@ dynamic throttling that slowly decreases as you near with almost zero
 configuration effort.
 
 
-Example: Including Schedules Dynamically with ``IncludeSchedule()``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Including Schedules Dynamically with ``IncludeSchedule()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``IncludeSchedule()`` result type for expressions can be used to
 insert a set of schedule rules right at the position of the current
@@ -355,8 +357,8 @@ based on external criteria, such as weather sensors or presence detection.
    readable as they grow.
 
 
-Example: What to Use ``Break()`` for
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+What to Use ``Break()`` for
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When in a sub-schedule, returning ``Break()`` from an expression will
 skip the remaining rules of that sub-schedule and continue evaluation
@@ -394,8 +396,8 @@ top-level schedule and hence abort the entire schedule evaluation.
    returning ``Abort()``.
 
 
-Example: What to Use ``Abort()`` for
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+What to Use ``Abort()`` for
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``Abort`` return type is most useful for disabling Schedy's
 scheduling mechanism depending on the state of entities. You might

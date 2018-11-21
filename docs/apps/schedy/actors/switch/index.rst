@@ -2,8 +2,8 @@ Switch
 ======
 
 The ``switch`` actor is used to control binary on/off
-switches. Internally, it's a `generic actor <../generic/index.html>`_,
-but with a much simpler configuration, namely none at all.
+switches. Internally, it's a :doc:`../generic/index`, but with a much
+simpler configuration, namely none at all.
 
 .. note::
 

@@ -29,8 +29,8 @@ at the next rule, as always.
 
 There is still one thing missing in order to make this work properly. You
 need to notify Schedy about state changes of the used entities by firing
-an event. How that's done is described at the end of `this example
-<expressions.html#example-inlining-expressions-into-schedules>`_.
+an event. How that's done is described at the end of :ref:`this example
+<schedy/expressions/examples/inlining-expressions-into-schedules>`.
 
 You could now make the temperature configurable via an
 ``input_number.day_temperature`` entity as well.
