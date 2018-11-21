@@ -264,6 +264,8 @@ class Room:
                 self._overlaid_rescheduling_time
             ),
         }
+        if "friendly_name" in self.cfg:
+            attrs["friendly_name"] = self.cfg["friendly_name"]
 
         unchanged = (state, attrs) == self._last_state
         if unchanged:
