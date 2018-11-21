@@ -21,6 +21,8 @@ These key features are implemented in Schedy. More are added continuously.
   events
 * Configurable re-scheduling after manual adjustments
 * Re-sending until actors report a change back (for unreliable networks)
+* Collection of individually configurable statistical parameters regarding
+  Schedy's operation
 * Configurable logging
 
 This documentation is written for both beginners that want to get
