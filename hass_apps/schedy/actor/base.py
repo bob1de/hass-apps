@@ -32,6 +32,8 @@ class ActorBase:
 
         self._current_value = None  # type: T.Any
         self._wanted_value = None  # type: T.Any
+
+        self._gave_up_sending = False
         self._resending_timer = None  # type: T.Optional[uuid.UUID]
 
     def __repr__(self) -> str:
@@ -63,6 +65,7 @@ class ActorBase:
         self.do_send()
 
         if not left_tries:
+            self._gave_up_sending = True
             return
 
         interval = self.cfg["send_retry_interval"]
@@ -72,6 +75,7 @@ class ActorBase:
         self._resending_timer = self.app.run_in(
             self._resending_cb, interval, left_tries=left_tries - 1
         )
+        self._gave_up_sending = False
 
     @sync_proxy
     def _state_cb(
@@ -90,6 +94,7 @@ class ActorBase:
 
         if self.values_equal(new_value, self._wanted_value):
             self.cancel_resending_timer()
+            self._gave_up_sending = False
 
         if not self.values_equal(new_value, previous_value):
             self._current_value = new_value
@@ -144,6 +149,13 @@ class ActorBase:
         if nothing should be sent."""
 
         return value
+
+    @property
+    def gave_up_sending(self) -> bool:
+        """Tells whether the actor gave up sending and is still waiting
+        for a receipt."""
+
+        return self._gave_up_sending
 
     @property
     def is_sending(self) -> bool:

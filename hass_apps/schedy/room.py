@@ -604,11 +604,15 @@ class Room:
     def notify_value_changed(
             self, actor: "ActorBase", value: T.Any
     ) -> None:
-        """Should be called when the value has been changed externally
-        by manual adjustment at an actor."""
+        """Should be called when an actor reports a value change."""
 
         if actor.is_sending:
             self.log("Not respecting value change from a sending actor.",
+                     level="DEBUG")
+            return
+        if actor.gave_up_sending:
+            self.log("Not respecting value change from an actor that "
+                     "gave up sending.",
                      level="DEBUG")
             return
 
