@@ -24,9 +24,7 @@ class StatisticalParameter:
 
     name = "dummy"
     config_defaults = {}  # type: T.Dict[T.Any, T.Any]
-    config_schema_dict = {
-        "friendly_name": str,
-    }
+    config_schema_dict = {}  # type: T.Dict[T.Any, T.Any]
 
     # number of decimal places to round numeric values to,
     # None disables rounding
@@ -46,7 +44,7 @@ class StatisticalParameter:
         return "<StatisticalParameter {}>".format(self.name)
 
     def __str__(self) -> str:
-        return "SP:{}".format(self.cfg.get("friendly_name", self.name))
+        return "SP:{}".format(self.name)
 
     def generate_entries(self) -> T.Dict[str, StatisticalValueType]:  # pylint: disable=no-self-use
         """Should generate the entries to be added to the parameter."""
