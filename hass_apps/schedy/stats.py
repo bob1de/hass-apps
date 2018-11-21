@@ -136,7 +136,7 @@ class RoomBasedParameter(StatisticalParameter):
         **StatisticalParameter.config_schema_dict,
         vol.Optional("rooms", default=dict): vol.All(
             lambda v: v or {},
-            {vol.Extra: vol.Schema(vol.All(
+            {util.CONF_STR_KEY: vol.Schema(vol.All(
                 lambda v: v or {},
                 {
                     # no settings yet
@@ -238,13 +238,13 @@ class MinAvgMaxParameter(AbstractValueCollectorMixin, StatisticalParameter):
         **StatisticalParameter.config_schema_dict,
         vol.Optional("factors", default=dict): vol.All(
             lambda v: v or {},
-            {vol.Extra: vol.All(
+            {util.CONF_STR_KEY: vol.All(
                 vol.Any(float, int), vol.Range(min=0, min_included=False),
             )},
         ),
         vol.Optional("weights", default=dict): vol.All(
             lambda v: v or {},
-            {vol.Extra: vol.All(vol.Any(float, int), vol.Range(min=0))},
+            {util.CONF_STR_KEY: vol.All(vol.Any(float, int), vol.Range(min=0))},
         ),
     }
 

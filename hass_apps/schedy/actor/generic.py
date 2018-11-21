@@ -7,6 +7,7 @@ import typing as T
 import voluptuous as vol
 
 from ... import common
+from .. import util
 from .base import ActorBase
 
 
@@ -27,14 +28,17 @@ STATE_DEF_SCHEMA = vol.Schema(vol.All(
 ))
 
 WILDCARD_STATE_NAME_SCHEMA = vol.Schema(vol.All(
-    str, str.lower, "_other_",
+    vol.Coerce(str), str.lower, "_other_",
 ))
 
 CONFIG_SCHEMA_DICT = {
     vol.Optional("state_attr", default="state"): vol.Any(str, None),
     vol.Optional("states", default=dict): vol.All(
         lambda v: v or {},
-        {vol.Any(WILDCARD_STATE_NAME_SCHEMA, vol.Extra): STATE_DEF_SCHEMA},
+        {
+            vol.Any(WILDCARD_STATE_NAME_SCHEMA, util.CONF_STR_KEY):
+                STATE_DEF_SCHEMA,
+        },
         lambda v: {str(key): val for key, val in v.items()},
     ),
 }

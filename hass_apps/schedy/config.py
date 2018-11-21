@@ -178,7 +178,7 @@ TIME_SCHEMA = vol.Schema(vol.All(
 # it just ensures a dictionary containing dictionaries is returned.
 DICTS_IN_DICT_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
-    {vol.Extra: vol.All(lambda v: v or {}, dict)},
+    {util.CONF_STR_KEY: vol.All(lambda v: v or {}, dict)},
 ))
 
 EXPRESSION_MODULE_SCHEMA = vol.Schema(vol.All(
@@ -189,9 +189,7 @@ EXPRESSION_MODULE_SCHEMA = vol.Schema(vol.All(
 ))
 EXPRESSION_MODULES_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
-    {
-        vol.Extra: EXPRESSION_MODULE_SCHEMA,
-    },
+    {util.CONF_STR_KEY: EXPRESSION_MODULE_SCHEMA},
 ))
 
 
@@ -238,7 +236,7 @@ SCHEDULE_SCHEMA = vol.Schema(vol.All(
 
 SCHEDULE_SNIPPETS_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
-    {vol.Extra: SCHEDULE_SCHEMA},
+    {util.CONF_STR_KEY: SCHEDULE_SCHEMA},
 ))
 
 
@@ -292,7 +290,7 @@ CONFIG_SCHEMA = vol.Schema(vol.All(
             SCHEDULE_SNIPPETS_SCHEMA,
         vol.Optional("rooms", default=dict): vol.All(
             lambda v: v or {},
-            {vol.Extra: ROOM_SCHEMA},
+            {util.CONF_STR_KEY: ROOM_SCHEMA},
         ),
         vol.Optional("statistics", default=dict): DICTS_IN_DICT_SCHEMA,
     }, extra=True),

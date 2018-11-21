@@ -8,6 +8,7 @@ import typing as T
 import collections
 import datetime
 import re
+import voluptuous as vol
 
 
 # matches any character that is not allowed in Python variable names
@@ -19,6 +20,9 @@ TIME_FORMAT = "%H:%M:%S"
 # regular expression for time formats, group 1 is hours, group 2 is minutes,
 # optional group 3 is seconds
 TIME_REGEXP = re.compile(r"^ *([01]?\d|2[0-3]) *\: *([0-5]\d) *(?:\: *([0-5]\d) *)?$")
+
+# used instead of vol.Extra to ensure keys are strings
+CONF_STR_KEY = vol.Coerce(str)
 
 
 class RangingSet(set):
