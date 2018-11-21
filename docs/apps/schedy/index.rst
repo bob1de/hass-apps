@@ -29,6 +29,7 @@ The scenarios for which you might need a scheduler are numerous. Here
 are just some ideas:
 
 * advanced heating setup based on day, time, presence etc.
+* motion, daylight and time-triggered lights
 * controlling roller shutters based on time, sun and wind conditions
 * morning and good night routines for different weekdays
 * ... and much more
