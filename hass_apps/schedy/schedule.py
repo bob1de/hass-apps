@@ -93,7 +93,10 @@ class Rule:
             ))
 
         if self.expr_raw is not None:
-            tokens.append("x={}".format(repr(self.expr_raw)))
+            if len(self.expr_raw) > 43:
+                tokens.append("x={}...".format(repr(self.expr_raw[:40])))
+            else:
+                tokens.append("x={}".format(repr(self.expr_raw)))
 
         if self.value is not None:
             tokens.append("v={}".format(repr(self.value)))
