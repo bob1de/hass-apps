@@ -113,18 +113,13 @@ schedy:
           #delta: 1.0
 
 
-    # Configure statistical parameters to be collected
-
+    # Configure statistical parameters to be collected.
     statistics:
 
-      # pick an arbitrary name for the parameter instance
-      #upstairs_temp_delta:
-        # the type of parameter as found in the actor'S documentation
-        #type: temp_delta
-        # more parameter-specific settings:
-        #rooms:
-        #  living:
-        #  kidsroom:
-        #...
+      # Pick an arbitrary name for the parameter instance.
+      #some_name:
+        # The type of parameter as found in the actor'S documentation.
+        #type: <required>
+        # More parameter-specific settings ...
 
-      # more parameter instances...
+      # More parameter instances ...

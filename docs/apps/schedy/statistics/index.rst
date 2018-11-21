@@ -24,17 +24,15 @@ type, might look as follows:
 ::
 
     statistics:
-      # pick an arbitrary name for the parameter instance
+      # Pick an arbitrary name for the parameter instance.
       upstairs_temp_delta:
-        # the type of parameter as found in the actor'S documentation
+        # The type of parameter as found in the actor'S documentation.
         type: temp_delta
-        # more parameter-specific settings:
+        # More parameter-specific settings:
         rooms:
           bathroom:
           kidsroom:
         #...
-
-      # more parameter instances...
 
 Given that the name of your Schedy app instance is ``heating``, this
 would create an entity named ``schedy_stats.heating_upstairs_temp_delta``
