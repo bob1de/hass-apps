@@ -25,12 +25,21 @@ These key features are implemented in Schedy. More are added continuously.
   Schedy's operation
 * Configurable logging
 
+The scenarios for which you might need a scheduler are numerous. Here
+are just some ideas:
+
+* advanced heating setup based on day, time, presence etc.
+* controlling roller shutters based on time, sun and wind conditions
+* morning and good night routines for different weekdays
+* ... and much more
+
 This documentation is written for both beginners that want to get
 started with Schedy and advanced users needing a reference book for
 implementing complex scenarios.
 
 In order to get started, it is recommended to read the :doc:`chapter about
 the concept <concept>` first and then proceed to the following pages.
+
 
 .. toctree::
    :caption: Contents:

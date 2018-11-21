@@ -5,7 +5,8 @@ What is Schedy?
 ---------------
 
 Schedy is a multi-purpose scheduler for Home Assistant. Scheduling here
-basically means linking time frames to the state of entities.
+basically means linking time frames and/or state conditions to the state
+of actors.
 
 You may now ask: Why should I use a third-party solution when I have
 automations in Home Assistant right at hand? Well, that's a legitimate
@@ -14,17 +15,6 @@ maintainable heating schedule with automations? If not, believe me,
 that's no fun and will get really confusing sooner than later. Don't
 get me wrong, automations are great and Schedy doesn't try to obsolete
 them, but they simply aren't suited well for scheduling.
-
-
-What can Schedy be used for?
-----------------------------
-
-The scenarios for which you might need a scheduler are numerous. Here
-are just some ideas:
-
-* advanced heating setup based on day, time, presence etc.
-* morning and good night routines for different weekdays
-* ... and much more
 
 
 How it Works
