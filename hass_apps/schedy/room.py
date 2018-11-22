@@ -66,7 +66,7 @@ class Room:
         self.actors = []  # type: T.List[ActorBase]
         self.schedule = None  # type: T.Optional[schedule.Schedule]
 
-        self._actor_wanted_values = {}  # type: T.Dict[ActorBase, T.Any]
+        self._actor_wanted_values = {}  # type: T.Dict[str, T.Any]
         self._wanted_value = None  # type: T.Any
         self._scheduled_value = None  # type: T.Any
         self._rescheduling_time = None  # type: T.Optional[datetime.datetime]
@@ -146,6 +146,12 @@ class Room:
 
         if isinstance(state, dict):
             attrs = state.get("attributes", {})
+            self._actor_wanted_values.clear()
+            actor_wanted_values = attrs.get("actor_wanted_values", {})
+            for entity_id, value in actor_wanted_values.items():
+                value = deserialize(value)
+                if value is not None:
+                    self._actor_wanted_values[entity_id] = value
             self._wanted_value = deserialize(state.get("state") or None)
             self._scheduled_value = deserialize(attrs.get("scheduled_value"))
             self._rescheduling_time = deserialize_dt(
@@ -163,10 +169,9 @@ class Room:
 
             if self._rescheduling_time and \
                self._rescheduling_time > self.app.datetime():
-                self.set_value_manually(
-                    value=self._wanted_value,
-                    rescheduling_delay=self._rescheduling_time
-                )
+                if self.cfg["replicate_changes"]:
+                    self.set_value(self._wanted_value)
+                self.start_rescheduling_timer(self._rescheduling_time)
             else:
                 self._rescheduling_time = None
 
@@ -249,6 +254,10 @@ class Room:
 
         state = serialize(self._wanted_value, "")
         attrs = {
+            "actor_wanted_values": {
+                entity_id: serialize(value, None)
+                for entity_id, value in self._actor_wanted_values.items()
+            },
             "scheduled_value": serialize(self._scheduled_value, None),
             "rescheduling_time": serialize_dt(self._rescheduling_time),
             "overlaid_wanted_value":
@@ -623,15 +632,22 @@ class Room:
                      level="DEBUG")
             return
 
-        actor_wanted = self._actor_wanted_values.get(actor)
+        actor_wanted = self._actor_wanted_values.get(actor.entity_id)
         was_actor_wanted = actor_wanted is not None and \
                            actor.values_equal(value, actor_wanted)
         replicating = self.cfg["replicate_changes"]
         single_actor = len([a.is_initialized for a in self.actors]) == 1
 
         if was_actor_wanted:
-            synced = all(not a.is_initialized or a.is_synced
-                         for a in self.actors)
+            synced = True
+            for _actor in self.actors:
+                _actor_wanted = self._actor_wanted_values.get(_actor.entity_id)
+                synced &= _actor.is_initialized and \
+                          _actor_wanted is not None and _actor.values_equal(
+                              _actor_wanted, _actor.current_value
+                          )
+                if not synced:
+                    break
             if self.tracking_schedule and synced:
                 self.cancel_rescheduling_timer()
         else:
@@ -682,9 +698,8 @@ class Room:
                          level="DEBUG")
                 continue
 
-            _changed, self._actor_wanted_values[actor] = actor.set_value(
-                value, force_resend=force_resend
-            )
+            _changed, self._actor_wanted_values[actor.entity_id] = \
+                actor.set_value(value, force_resend=force_resend)
             if _changed:
                 changed = True
 
