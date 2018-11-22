@@ -81,6 +81,13 @@ schedy:
       # An alternative friendly name to display in logs.
       #friendly_name: ...
 
+      # When you disable this setting, Schedy won't allow actors to
+      # change their value to something different from the scheduled
+      # one or the one set by a schedy_set_value event. Actors
+      # that change their value are then set back to the wanted one
+      # immediately.
+      #allow_manual_changes: true
+
       # This setting controls whether changes reported by one actor
       # should automatically be replicated to the other ones in this
       # particular room.

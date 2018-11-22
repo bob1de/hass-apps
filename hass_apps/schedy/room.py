@@ -628,24 +628,36 @@ class Room:
                      level="DEBUG")
             return
 
-        wanted = self._actor_wanted_values.get(actor)
-        was_wanted = wanted is not None and actor.values_equal(value, wanted)
-        if self.cfg["replicate_changes"] and not was_wanted:
-            if len(self.actors) > 1:
-                self.log("Propagating the change to all actors in the room.")
-            self.set_value(value, scheduled=False)
+        actor_wanted = self._actor_wanted_values.get(actor)
+        was_actor_wanted = \
+            actor_wanted is not None and actor.values_equal(value, actor_wanted)
+        single_actor = len(self.actors) == 1
+        replicating = single_actor or self.cfg["replicate_changes"]
+
+        if not was_actor_wanted:
+            if not self.cfg["allow_manual_changes"]:
+                if self._wanted_value is None:
+                    self.log("Not rejecting manual value change by {} to "
+                             "{} because we don't know what else to set."
+                             .format(actor, repr(value)))
+                else:
+                    self.log("Rejecting manual value change by {} to {}."
+                             .format(actor, repr(value)))
+                    self.set_value(self._wanted_value)
+                return
+
+            if replicating:
+                if not single_actor:
+                    self.log("Propagating the change to all actors in the room.")
+                self.set_value(value, scheduled=False)
 
         tracking_schedule = \
             self._scheduled_value is not None and \
             self._wanted_value is not None and \
-            actor.values_equal(
-                self._scheduled_value, self._wanted_value
-            )
-        is_scheduled = actor.values_equal(value, self._scheduled_value)
-        replicating = (self.cfg["replicate_changes"] or len(self.actors) == 1)
-        if tracking_schedule and was_wanted or replicating and is_scheduled:
+            actor.values_equal(self._scheduled_value, self._wanted_value)
+        if replicating and tracking_schedule:
             self.cancel_rescheduling_timer()
-        elif self.cfg["rescheduling_delay"] and not was_wanted:
+        elif not was_actor_wanted and self.cfg["rescheduling_delay"]:
             self.start_rescheduling_timer()
 
     def set_value(

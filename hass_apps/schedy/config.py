@@ -246,6 +246,7 @@ ROOM_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
     {
         "friendly_name": str,
+        vol.Optional("allow_manual_changes", default=True): bool,
         vol.Optional("replicate_changes", default=True): bool,
         vol.Optional("rescheduling_delay", default=0):
             vol.All(vol.Any(float, int), vol.Range(min=0)),
