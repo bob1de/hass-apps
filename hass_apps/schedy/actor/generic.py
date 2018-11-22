@@ -45,7 +45,6 @@ class GenericActor(ActorBase):
                 vol.Any(WILDCARD_STATE_NAME_SCHEMA, util.CONF_STR_KEY):
                     STATE_DEF_SCHEMA,
             },
-            lambda v: {str(key): val for key, val in v.items()},
         ),
     }
 
