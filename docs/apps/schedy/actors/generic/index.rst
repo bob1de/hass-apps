@@ -14,10 +14,7 @@ a wildcard for undefined states, this is a quite powerful mechanism.
 Configuration
 -------------
 
-.. include:: ../config-intro.rst.inc
-
-.. literalinclude:: config.yaml
-   :language: yaml
+.. include:: ../config.rst.inc
 
 
 Supported Values

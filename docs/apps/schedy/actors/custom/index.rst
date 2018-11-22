@@ -74,7 +74,4 @@ work with:
 Configuration
 -------------
 
-.. include:: ../config-intro.rst.inc
-
-.. literalinclude:: config.yaml
-   :language: yaml
+.. include:: ../config.rst.inc
