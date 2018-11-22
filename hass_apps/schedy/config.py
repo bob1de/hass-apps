@@ -77,11 +77,7 @@ def config_post_hook(cfg: dict) -> dict:
             }
             for template in reversed(templates):
                 util.deep_merge_dicts(template, _actor_data)
-            schema_dict = {
-                **ACTOR_SCHEMA_DICT,
-                **actor_type.config_schema_dict,
-            }
-            actor_data = vol.Schema(schema_dict)(_actor_data)
+            actor_data = vol.Schema(actor_type.config_schema_dict)(_actor_data)
             actors[actor_name] = actor_data
 
         # complete the room's schedule.
@@ -194,17 +190,6 @@ EXPRESSION_MODULES_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
     {util.CONF_STR_KEY: EXPRESSION_MODULE_SCHEMA},
 ))
-
-
-########## ACTORS
-
-ACTOR_SCHEMA_DICT = {
-    "friendly_name": str,
-    vol.Optional("send_retries", default=10):
-        vol.All(int, vol.Range(min=-1)),
-    vol.Optional("send_retry_interval", default=30):
-        vol.All(int, vol.Range(min=1)),
-}
 
 
 ########## SCHEDULES

@@ -150,42 +150,6 @@ TEMP_SCHEMA = vol.Schema(vol.All(
     lambda v: Temp(v),  # pylint: disable=unnecessary-lambda
 ))
 
-CONFIG_SCHEMA_DICT = {
-    vol.Optional("delta", default=0):
-        vol.All(TEMP_SCHEMA, vol.NotIn([Temp(OFF)])),
-    vol.Optional("min_temp", default=None): vol.Any(
-        vol.All(TEMP_SCHEMA, vol.NotIn([Temp(OFF)])),
-        None,
-    ),
-    vol.Optional("max_temp", default=None): vol.Any(
-        vol.All(TEMP_SCHEMA, vol.NotIn([Temp(OFF)])),
-        None,
-    ),
-    vol.Optional("off_temp", default=OFF): TEMP_SCHEMA,
-    vol.Optional("supports_opmodes", default=True): bool,
-    vol.Optional("opmode_on", default="heat"): str,
-    vol.Optional("opmode_off", default="off"): str,
-    vol.Optional(
-        "opmode_on_service", default="climate/set_operation_mode"
-    ): vol.All(str, lambda v: v.replace(".", "/")),
-    vol.Optional(
-        "opmode_off_service", default="climate/set_operation_mode"
-    ): vol.All(str, lambda v: v.replace(".", "/")),
-    vol.Optional("opmode_on_service_attr", default="operation_mode"):
-        vol.Any(str, None),
-    vol.Optional("opmode_off_service_attr", default="operation_mode"):
-        vol.Any(str, None),
-    vol.Optional("opmode_state_attr", default="operation_mode"): str,
-    vol.Optional(
-        "target_temp_service", default="climate/set_temperature"
-    ): vol.All(str, lambda v: v.replace(".", "/")),
-    vol.Optional("target_temp_service_attr", default="temperature"): str,
-    vol.Optional("target_temp_state_attr", default="temperature"): str,
-    vol.Optional(
-        "current_temp_state_attr", default="current_temperature"
-    ): vol.Any(str, None),
-}
-
 
 class TempDeltaParameter(
         stats.ActorValueCollectorMixin, stats.MinAvgMaxParameter
@@ -229,7 +193,43 @@ class ThermostatActor(ActorBase):
     """A thermostat to be controlled by Schedy."""
 
     name = "thermostat"
-    config_schema_dict = CONFIG_SCHEMA_DICT
+    config_schema_dict = {
+        **ActorBase.config_schema_dict,
+        vol.Optional("delta", default=0):
+            vol.All(TEMP_SCHEMA, vol.NotIn([Temp(OFF)])),
+        vol.Optional("min_temp", default=None): vol.Any(
+            vol.All(TEMP_SCHEMA, vol.NotIn([Temp(OFF)])),
+            None,
+        ),
+        vol.Optional("max_temp", default=None): vol.Any(
+            vol.All(TEMP_SCHEMA, vol.NotIn([Temp(OFF)])),
+            None,
+        ),
+        vol.Optional("off_temp", default=OFF): TEMP_SCHEMA,
+        vol.Optional("supports_opmodes", default=True): bool,
+        vol.Optional("opmode_on", default="heat"): str,
+        vol.Optional("opmode_off", default="off"): str,
+        vol.Optional(
+            "opmode_on_service", default="climate/set_operation_mode"
+        ): vol.All(str, lambda v: v.replace(".", "/")),
+        vol.Optional(
+            "opmode_off_service", default="climate/set_operation_mode"
+        ): vol.All(str, lambda v: v.replace(".", "/")),
+        vol.Optional("opmode_on_service_attr", default="operation_mode"):
+            vol.Any(str, None),
+        vol.Optional("opmode_off_service_attr", default="operation_mode"):
+            vol.Any(str, None),
+        vol.Optional("opmode_state_attr", default="operation_mode"): str,
+        vol.Optional(
+            "target_temp_service", default="climate/set_temperature"
+        ): vol.All(str, lambda v: v.replace(".", "/")),
+        vol.Optional("target_temp_service_attr", default="temperature"): str,
+        vol.Optional("target_temp_state_attr", default="temperature"): str,
+        vol.Optional(
+            "current_temp_state_attr", default="current_temperature"
+        ): vol.Any(str, None),
+    }
+
     stats_param_types = [TempDeltaParameter]
 
     def __init__(self, *args: T.Any, **kwargs: T.Any) -> None:

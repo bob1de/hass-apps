@@ -12,31 +12,29 @@ from .. import util
 from .base import ActorBase
 
 
-CONFIG_SCHEMA_DICT = {
-    vol.Required("send_hook"): vol.All(
-        str,
-        util.compile_expression,
-    ),
-    "state_hook": vol.All(
-        str,
-        util.compile_expression,
-    ),
-    "filter_value_hook": vol.All(
-        str,
-        util.compile_expression,
-    ),
-    vol.Optional("config", default=dict): vol.All(
-        lambda v: v or {},
-        dict,
-    ),
-}
-
-
 class CustomActor(ActorBase):
     """A fully customizable actor for Schedy."""
 
     name = "custom"
-    config_schema_dict = CONFIG_SCHEMA_DICT
+    config_schema_dict = {
+        **ActorBase.config_schema_dict,
+        vol.Required("send_hook"): vol.All(
+            str,
+            util.compile_expression,
+        ),
+        "state_hook": vol.All(
+            str,
+            util.compile_expression,
+        ),
+        "filter_value_hook": vol.All(
+            str,
+            util.compile_expression,
+        ),
+        vol.Optional("config", default=dict): vol.All(
+            lambda v: v or {},
+            dict,
+        ),
+    }
 
     def _exec_script(
             self, expr: types.CodeType, env: T.Dict[str, T.Any]

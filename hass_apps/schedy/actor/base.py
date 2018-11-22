@@ -11,6 +11,7 @@ if T.TYPE_CHECKING:
 import copy
 import json
 import observable
+import voluptuous as vol
 
 from ... import common
 from ..room import Room, sync_proxy
@@ -21,7 +22,14 @@ class ActorBase:
 
     name = "actor"
     config_defaults = {}  # type: T.Dict[T.Any, T.Any]
-    config_schema_dict = {}  # type: T.Dict[T.Any, T.Any]
+    config_schema_dict = {
+        "friendly_name": str,
+        vol.Optional("send_retries", default=10):
+            vol.All(int, vol.Range(min=-1)),
+        vol.Optional("send_retry_interval", default=30):
+            vol.All(int, vol.Range(min=1)),
+    }
+
     stats_param_types = []  # type: T.List[T.Type[StatisticalParameter]]
 
     def __init__(self, entity_id: str, cfg: dict, room: "Room") -> None:
