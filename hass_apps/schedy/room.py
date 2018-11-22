@@ -111,13 +111,7 @@ class Room:
         )
         if self._wanted_value is not None and \
            all([a.is_initialized for a in self.actors]):
-            assert self.app.actor_type is not None
-            self.set_value(
-                self._wanted_value,
-                scheduled=self.app.actor_type.values_equal(
-                    self._wanted_value, self._scheduled_value
-                )
-            )
+            self.set_value(self._wanted_value)
 
     def _restore_state(self) -> None:
         """Restores a stored state from Home Assistant and.applies it.
@@ -361,7 +355,7 @@ class Room:
                      level="DEBUG")
             return
 
-        self.set_value(value, scheduled=True, force_resend=force_resend)
+        self.set_value(value, force_resend=force_resend)
 
     def cancel_rescheduling_timer(self) -> bool:
         """Cancels the re-scheduling timer for this room, if one
@@ -649,7 +643,7 @@ class Room:
             if replicating:
                 if not single_actor:
                     self.log("Propagating the change to all actors in the room.")
-                self.set_value(value, scheduled=False)
+                self.set_value(value)
 
         tracking_schedule = \
             self._scheduled_value is not None and \
@@ -661,12 +655,16 @@ class Room:
             self.start_rescheduling_timer()
 
     def set_value(
-            self, value: T.Any, scheduled: bool = False,
-            force_resend: bool = False
+            self, value: T.Any, force_resend: bool = False
     ) -> None:
         """Sets the given value for all actors in the room.
         Values won't be send to actors redundantly unless force_resend
         is True."""
+
+        assert self.app.actor_type is not None
+        scheduled = \
+            self._scheduled_value is not None and \
+            self.app.actor_type.values_equal(value, self._scheduled_value)
 
         self.log("Setting value to {}.  [{}{}]"
                  .format(repr(value),
@@ -747,7 +745,7 @@ class Room:
         if expression.Mark.OVERLAY in markers:
             self._store_for_overlaying(self._scheduled_value)
 
-        self.set_value(value, scheduled=False, force_resend=force_resend)
+        self.set_value(value, force_resend=force_resend)
         if rescheduling_delay != 0:
             self.start_rescheduling_timer(delay=rescheduling_delay)
         else:
