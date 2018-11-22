@@ -105,16 +105,19 @@ def compile_expression(expr: str) -> types.CodeType:
     return compile(expr, "expr", "exec")
 
 def deep_merge_dicts(source: dict, dest: dict) -> None:
-    """Inserts missing items from source into dest, descending into
-    child dictionaries as well."""
+    """Updates items of dest with those of source, descending into and
+    merging child dictionaries as well. Child lists are combined as
+    well so that the items of a list from source are appended to the
+    list found in dest under the same name."""
 
     for key, value in source.items():
-        if isinstance(value, dict):
-            node = dest.setdefault(key, {})
-            if isinstance(node, dict):
-                deep_merge_dicts(value, node)
+        dest_value = dest.get(key)
+        if isinstance(value, dict) and isinstance(dest_value, dict):
+            deep_merge_dicts(value, dest[key])
+        elif isinstance(value, list) and isinstance(dest_value, list):
+            dest_value.extend(value)
         else:
-            dest.setdefault(key, value)
+            dest[key] = value
 
 def escape_var_name(name: str) -> str:
     """Converts the given string to a valid Python variable name.

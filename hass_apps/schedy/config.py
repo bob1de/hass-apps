@@ -58,28 +58,30 @@ def config_post_hook(cfg: dict) -> dict:
 
         # copy defaults from templates and validate the actors
         for actor_name, actor_data in room_data["actors"].items():
-            templates = []
-            while "template" in actor_data:
-                template_name = actor_data.pop("template")
+            if "default" in cfg["actor_templates"]:
+                actor_data.setdefault("template", "default")
+            templates = [actor_data]
+            while "template" in templates[-1]:
+                template_name = templates[-1].pop("template")
                 try:
-                    template = cfg["actor_templates"][template_name]
+                    template = cfg["actor_templates"][template_name].copy()
                 except KeyError:
                     raise vol.ValueInvalid(
                         "No template named {} has been defined."
                         .format(repr(template_name))
                     )
                 templates.append(template)
-            if not templates:
-                templates.append(cfg["actor_templates"].get("default", {}))
 
-            util.deep_merge_dicts(actor_type.config_defaults, actor_data)
+            _actor_data = {
+                **actor_type.config_defaults,
+            }
             for template in reversed(templates):
-                util.deep_merge_dicts(template, actor_data)
+                util.deep_merge_dicts(template, _actor_data)
             schema_dict = {
                 **ACTOR_SCHEMA_DICT,
                 **actor_type.config_schema_dict,
             }
-            actor_data = vol.Schema(schema_dict)(actor_data)
+            actor_data = vol.Schema(schema_dict)(_actor_data)
             actors[actor_name] = actor_data
 
         # complete the room's schedule.
@@ -108,20 +110,21 @@ def config_post_hook(cfg: dict) -> dict:
     stats_params = []
     param_types = {t.name: t for t in actor_type.stats_param_types}
     for param_name, param_data in cfg["statistics"].items():
+        param_data = STATISTICAL_PARAMETER_BASE_SCHEMA(param_data)
+        param_type_name = param_data.pop("type")
         try:
-            param_type = param_types[param_data["type"]]
+            param_type = param_types[param_type_name]
         except KeyError:
             raise ValueError(
                 "statistical parameter {} is not available for this actor type"
-                .format(param_data["type"])
+                .format(param_type_name)
             )
 
-        util.deep_merge_dicts(param_type.config_defaults, actor_data)
-        schema_dict = {
-            **STATISTICAL_PARAMETER_SCHEMA_DICT,
-            **param_type.config_schema_dict,
+        _param_data = {
+            **param_type.config_defaults,
         }
-        param_data = vol.Schema(schema_dict)(param_data)
+        util.deep_merge_dicts(param_data, _param_data)
+        param_data = vol.Schema(param_type.config_schema_dict)(_param_data)
 
         param = param_type(param_name, param_data, cfg["_app"])
         stats_params.append(param)
@@ -261,9 +264,9 @@ ROOM_SCHEMA = vol.Schema(vol.All(
 
 ########## STATISTICS
 
-STATISTICAL_PARAMETER_SCHEMA_DICT = {
+STATISTICAL_PARAMETER_BASE_SCHEMA = vol.Schema({
     vol.Required("type"): str,
-}
+}, extra=True)
 
 
 ########## MAIN CONFIG SCHEMA
