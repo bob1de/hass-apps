@@ -610,7 +610,8 @@ class Room:
     def notify_value_changed(
             self, actor: "ActorBase", value: T.Any
     ) -> None:
-        """Should be called when an actor reports a value change."""
+        """Should be called when an actor reports a value change.
+        Handles change replication and re-scheduling timers."""
 
         if actor.is_sending:
             self.log("Not respecting value change from a sending actor.",
@@ -623,12 +624,17 @@ class Room:
             return
 
         actor_wanted = self._actor_wanted_values.get(actor)
-        was_actor_wanted = \
-            actor_wanted is not None and actor.values_equal(value, actor_wanted)
-        single_actor = len(self.actors) == 1
-        replicating = single_actor or self.cfg["replicate_changes"]
+        was_actor_wanted = actor_wanted is not None and \
+                           actor.values_equal(value, actor_wanted)
+        replicating = self.cfg["replicate_changes"]
+        single_actor = len([a.is_initialized for a in self.actors]) == 1
 
-        if not was_actor_wanted:
+        if was_actor_wanted:
+            synced = all(not a.is_initialized or a.is_synced
+                         for a in self.actors)
+            if self.tracking_schedule and synced:
+                self.cancel_rescheduling_timer()
+        else:
             if not self.cfg["allow_manual_changes"]:
                 if self._wanted_value is None:
                     self.log("Not rejecting manual value change by {} to "
@@ -645,14 +651,9 @@ class Room:
                     self.log("Propagating the change to all actors in the room.")
                 self.set_value(value)
 
-        tracking_schedule = \
-            self._scheduled_value is not None and \
-            self._wanted_value is not None and \
-            actor.values_equal(self._scheduled_value, self._wanted_value)
-        if replicating and tracking_schedule:
-            self.cancel_rescheduling_timer()
-        elif not was_actor_wanted and self.cfg["rescheduling_delay"]:
-            self.start_rescheduling_timer()
+            if self.cfg["rescheduling_delay"] and \
+               not (replicating and self.tracking_schedule):
+                self.start_rescheduling_timer()
 
     def set_value(
             self, value: T.Any, force_resend: bool = False
@@ -782,3 +783,15 @@ class Room:
         self._rescheduling_time, self._rescheduling_timer = when, self.app.run_at(
             self._rescheduling_timer_cb, when
         )
+
+    @property
+    def tracking_schedule(self) -> bool:
+        """Returns whether the value wanted by this room is the scheduled
+        one."""
+
+        assert self.app.actor_type is not None
+        return self._scheduled_value is not None and \
+               self._wanted_value is not None and \
+               self.app.actor_type.values_equal(
+                   self._scheduled_value, self._wanted_value
+               )
