@@ -6,6 +6,10 @@ scheduler for Home Assistant that controls different types of actors
 such as switches and thermostats based on powerful rules while still
 facilitating manual intervention at any time.
 
+The goal is to provide an easily usable solution for basic scheduling,
+while leaving advanced users plenty of room for customization with
+arbitrarily complex rules.
+
 These key features are implemented in Schedy. More are added continuously.
 
 * Schedules (based on time, days of week/month, month, year and more)
