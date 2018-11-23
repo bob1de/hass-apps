@@ -182,9 +182,11 @@ class ActorBase:
     @property
     def is_synced(self) -> bool:
         """Tells whether the actor's current value is the wanted one and
-        no re-sending is in progress."""
+        re-sending neither is in progress nor has failed."""
 
-        return self._resending_timer is None and \
+        return not self._resending_timer and not self._gave_up_sending and \
+               self._current_value is not None and \
+               self._wanted_value is not None and \
                self.values_equal(self._current_value, self._wanted_value)
 
     def log(self, msg: str, *args: T.Any, **kwargs: T.Any) -> None:
@@ -293,3 +295,11 @@ class ActorBase:
         """Returns the value currently wanted for this actor."""
 
         return self._wanted_value
+
+    @wanted_value.setter
+    def wanted_value(self, value: T.Any) -> None:
+        """Validates and manually sets the value wanted by this actor."""
+
+        if value is not None:
+            value = self.validate_value(value)
+        self._wanted_value = value
