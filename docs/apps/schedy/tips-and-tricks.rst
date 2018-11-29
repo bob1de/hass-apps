@@ -128,3 +128,72 @@ them to the ``entity_id`` list and set the ``window_room`` attribute in
           room: "{{ trigger.to_state.attributes['window_room'] }}"
 
 That's it. Don't forget to restart Home Assistant after editing the files.
+
+
+Motion-Triggered Lights
+-----------------------
+
+Scheduling lights is really easy with the ``switch`` actor
+type. Even associating motion sensors isn't too complicated
+with just a single automation and an additional schedule
+rule. This is very similar to the procedure used for
+:ref:`schedy/tips-and-tricks/open-door-or-window-detection`.
+
+Let's assume the following:
+
+1. You've got a room named ``entrance`` configured in Schedy with one
+   or more light actors.
+
+2. There'S a motion sensor ``binary_sensor.entrance_motion`` that switches
+   to ``on`` when motion is detected.
+
+3. You've got a ``binary_sensor.dark`` configured in Home Assistant that,
+   if it's on, should enable motion triggering.
+
+Ok, let's get started.
+
+1. Add a custom ``motion_room: entrance`` attribute to the
+   ``binary_sensor.entrance_motion`` entity via ``customize.yaml``
+   to tie the motion sensor to the Schedy room it belongs to.
+
+2. Now, a new rule which overlais the value with ``"on"`` while a
+   motion sensor of the current room reports motion is added. We place
+   it at the top of the ``schedule_prepend`` configuration section to
+   have it applied to all rooms as their first rule.
+   This code checks all ``binary_sensor`` entities found in Home Assistant
+   for a ``motion_room`` attribute and, if present, compares the value
+   of that attribute to the name of the room for which the expression
+   is evaluated. This way it finds all motion sensors for the current
+   room and can check whether one of them reports motion.
+
+   ::
+
+       - x: |
+           result = Skip()
+           if is_on("binary_sensor.dark"):
+               for s in state("binary_sensor"):
+                   if state(s, attribute="motion_room") == room_name and is_on(s):
+                       result = Mark("on", Mark.OVERLAY)
+                       break
+
+3. Create an automation.
+
+   ::
+
+       - trigger:
+         - platform: state
+           entity_id:
+           - binary_sensor.entrance_motion
+           # add all motion sensors of all rooms here
+         condition:
+         - condition: template
+           value_template: "{{ trigger.from_state.state != trigger.to_state.state }}"
+         action:
+         - event: schedy_reschedule
+           event_data_template:
+             app_name: schedy_light
+             room: "{{ trigger.to_state.attributes['motion_room'] }}"
+
+Try it out. As long as at least one of the motion sensors in a room
+reports motion, the lights in that room should stay on. You could change
+the ``binary_sensor.dark`` to always be ``true`` to simulate darkness.
