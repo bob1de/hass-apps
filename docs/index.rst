@@ -47,7 +47,7 @@ Currently, the following enhancements are planned.
 Donations
 ---------
 
-I work on this project in my spare time, as most free software developers
+I work on this project in my spare time, as many free software developers
 do. And of course, I enjoy this work a lot. There is no and will never be
 a need to pay anything for using this software.
 
