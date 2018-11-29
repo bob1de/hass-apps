@@ -57,9 +57,14 @@ more, that would be awesome. If you decide doing so, I want to thank you
 very much! But please be assured that I'm not presuming anybody to donate,
 it's entirely your choice.
 
-|paypal|
+Support the continuous development with a small monthly donation: |paypal-recurring|
 
-.. |paypal| image:: https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif
+.. |paypal-recurring| image:: https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif
+   :target: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=PZPNNAJ93TVTQ&source=url
+
+Or make an one-time donation: |paypal-once|
+
+.. |paypal-once| image:: https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif
    :target: https://www.paypal.me/RSchindler
 
 | ETH: 0xa424975a19903F7A6253bA00D5C3F28fACff3C6B
