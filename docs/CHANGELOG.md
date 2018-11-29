@@ -20,6 +20,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   [here](getting-started.html#installation-in-docker).
 
 ### Deprecated
+* The heaty app is now obsolete because of Schedy and won't receive
+  new updates. Please migrate to Schedy. Heaty will however stay there
+  for the foreseeable future.
 * The motion_light app will be removed at the end of 2018. Schedy can
   control lights much more flexibly.
 

@@ -43,6 +43,10 @@ class HeatyApp(common.App):
         event callbacks and sets temperatures in all rooms according
         to the configured schedules."""
 
+        self.log("Heaty is deprecated in favour of Schedy. Please consult "
+                 "the documentation for further information.",
+                 level="WARNING")
+
         heaty_id = self.cfg["heaty_id"]
         self.log("Heaty id is: {}".format(repr(heaty_id)))
         heaty_id_kwargs = {}

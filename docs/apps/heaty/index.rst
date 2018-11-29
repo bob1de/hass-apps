@@ -1,6 +1,14 @@
 Heaty
 =====
 
+.. warning::
+
+   Heaty is deprecated in favour of :doc:`/apps/schedy/index`, which is
+   much more sophisticated, general-purpose and future-proof. Please
+   migrate your existing Heaty configuration over to Schedy, you'll
+   feel right home there. Heaty won't receive future updates, except
+   for really critical things.
+
 A highly-configurable, comfortable to use Home Assistant / appdaemon app
 that controls thermostats based on a schedule while still facilitating
 manual intervention at any time.
