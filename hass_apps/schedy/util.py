@@ -11,10 +11,10 @@ import re
 import voluptuous as vol
 
 
-# matches any character that is not allowed in Python variable names
-INVALID_VAR_NAME_CHAR_PATTERN = re.compile(r"[^0-9A-Za-z_]")
-# regexp pattern matching a range like 3-7 without spaces
-RANGE_PATTERN = re.compile(r"^(\d+)\-(\d+)$")
+# matches any character not allowed in Python variable names
+INVALID_VAR_NAME_CHAR_PATTERN = re.compile(r"[^0-9a-z_]", re.I)
+# regexp pattern matching a range like 5, 3-7 or */5 without spaces
+RANGE_PATTERN = re.compile(r"^(?:(\*)|(\d+)(?:\-(\d+))?)(?:\/([1-9]\d*))?$")
 # strftime-compatible format string for military time
 TIME_FORMAT = "%H:%M:%S"
 # regular expression for time formats, group 1 is hours, group 2 is minutes,
@@ -130,22 +130,44 @@ def escape_var_name(name: str) -> str:
         name = "_" + name
     return name
 
-def expand_range_string(range_string: T.Union[float, int, str]) -> T.Set[int]:
-    """Expands strings of the form '1,2-4,9,11-12 to set(1,2,3,4,9,11,12).
+def expand_range_string(
+        range_string: T.Union[float, int, str], min_value: int, max_value: int
+) -> T.Set[int]:
+    """Expands strings matching the range string definition to RangingSet
+    objects containing the specified values.
     Any whitespace is ignored. If a float or int is given instead of a
-    string, a set containing only that, converted to int, is returned."""
+    string, a set containing only that, converted to int, is returned.
+    The min_value and max_value are required to support the * specifier."""
 
     if isinstance(range_string, (float, int)):
-        return RangingSet([int(range_string)])
+        range_string = str(range_string)
 
     numbers = RangingSet()
     for part in "".join(range_string.split()).split(","):
         match = RANGE_PATTERN.match(part)
-        if match is not None:
-            for i in range(int(match.group(1)), int(match.group(2)) + 1):
-                numbers.add(i)
+        if match is None:
+            raise ValueError("invalid range definition: {}".format(repr(part)))
+
+        _wildcard, _start, _end, _step = match.groups()
+        if _wildcard:
+            start = min_value
+            end = max_value
         else:
-            numbers.add(int(part))
+            start = int(_start)
+            end = start if _end is None else int(_end)
+            for value in (start, end):
+                if value < min_value or value > max_value:
+                    raise ValueError(
+                        "value {} is out of range {}..{}"
+                        .format(value, min_value, max_value)
+                    )
+            if end < start:
+                start, end = end, start
+        step = int(_step or 1)
+
+        for i in range(start, end + 1, step):
+            numbers.add(i)
+
     return numbers
 
 def format_time(when: datetime.time, format_str: str = TIME_FORMAT) -> str:

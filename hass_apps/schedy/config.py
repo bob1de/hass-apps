@@ -154,15 +154,17 @@ def validate_rule_paths(sched: schedule.Schedule) -> schedule.Schedule:
 
 ########## MISCELLANEOUS
 
+def build_range_string_schema(min_value: int, max_value: int) -> vol.Schema:
+    """Returns a Schema for validating range strings with the given
+    min/max constraints."""
+
+    return vol.Schema(vol.All(
+        vol.Any(int, str),
+        lambda v: util.expand_range_string(v, min_value, max_value),
+    ))
+
 ENTITY_ID_SCHEMA = vol.Schema(vol.Match(r"^[A-Za-z_]+\.[A-Za-z0-9_]+$"))
 PYTHON_VAR_SCHEMA = vol.Schema(vol.Match(r"^[a-zA-Z_]+[a-zA-Z0-9_]*$"))
-RANGE_STRING_SCHEMA = vol.Schema(vol.All(
-    vol.Any(
-        int,
-        vol.Match(r"^ *\d+( *\- *\d+)?( *\, *\d+( *\- *\d+)?)* *$"),
-    ),
-    util.expand_range_string,
-))
 PARTIAL_DATE_SCHEMA = vol.Schema({
     vol.Optional("year"): vol.All(int, vol.Range(min=1970, max=9999)),
     vol.Optional("month"): vol.All(int, vol.Range(min=1, max=12)),
@@ -206,11 +208,11 @@ SCHEDULE_RULE_SCHEMA = vol.Schema(vol.All(
         vol.Optional("end", default=None): vol.Any(TIME_SCHEMA, None),
         vol.Optional("end_plus_days", default=None):
             vol.Any(vol.All(int, vol.Range(min=0)), None),
-        vol.Optional("years"): RANGE_STRING_SCHEMA,
-        vol.Optional("months"): RANGE_STRING_SCHEMA,
-        vol.Optional("days"): RANGE_STRING_SCHEMA,
-        vol.Optional("weeks"): RANGE_STRING_SCHEMA,
-        vol.Optional("weekdays"): RANGE_STRING_SCHEMA,
+        vol.Optional("years"): build_range_string_schema(1970, 2099),
+        vol.Optional("months"): build_range_string_schema(1, 12),
+        vol.Optional("days"): build_range_string_schema(1, 31),
+        vol.Optional("weeks"): build_range_string_schema(1, 53),
+        vol.Optional("weekdays"): build_range_string_schema(1, 7),
         vol.Optional("start_date"): PARTIAL_DATE_SCHEMA,
         vol.Optional("end_date"): PARTIAL_DATE_SCHEMA,
     },
