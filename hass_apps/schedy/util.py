@@ -13,8 +13,10 @@ import voluptuous as vol
 
 # matches any character not allowed in Python variable names
 INVALID_VAR_NAME_CHAR_PATTERN = re.compile(r"[^0-9a-z_]", re.I)
-# regexp pattern matching a range like 5, 3-7 or */5 without spaces
+
+# regexp pattern matching a range spec like 5, 3-7 or */5 without spaces
 RANGE_PATTERN = re.compile(r"^(?:(\*)|(\d+)(?:\-(\d+))?)(?:\/([1-9]\d*))?$")
+
 # strftime-compatible format string for military time
 TIME_FORMAT = "%H:%M:%S"
 # regular expression for time formats, group 1 is hours, group 2 is minutes,
@@ -130,20 +132,22 @@ def escape_var_name(name: str) -> str:
         name = "_" + name
     return name
 
-def expand_range_string(
-        range_string: T.Union[float, int, str], min_value: int, max_value: int
+def expand_range_spec(
+        spec: T.Union[int, str], min_value: int, max_value: int
 ) -> T.Set[int]:
-    """Expands strings matching the range string definition to RangingSet
-    objects containing the specified values.
-    Any whitespace is ignored. If a float or int is given instead of a
-    string, a set containing only that, converted to int, is returned.
-    The min_value and max_value are required to support the * specifier."""
+    """Expands strings of the range specification format to RangingSet
+    objects containing the individual numbers.
+    Any whitespace is ignored. If an int is given instead of a string,
+    a set containing only that is returned.
+    The min_value and max_value are required to support the * specifier
+    and a ValueError is raised when the range specification exceeds
+    these boundaries."""
 
-    if isinstance(range_string, (float, int)):
-        range_string = str(range_string)
+    if isinstance(spec, int):
+        spec = str(spec)
 
     numbers = RangingSet()
-    for part in "".join(range_string.split()).split(","):
+    for part in "".join(spec.split()).split(","):
         match = RANGE_PATTERN.match(part)
         if match is None:
             raise ValueError("invalid range definition: {}".format(repr(part)))

@@ -156,8 +156,8 @@ considered. There are a number of these constraints, namely:
   case) is assumed.
 
 The format used to specify values for the first five types of constraints
-is similar to that of crontab files. We call it range strings, and only
-integers are supported, no decimal values.
+is similar to that of crontab files. We call it range specification,
+and only integers are supported, no decimal values.
 
 * ``x``: the single number ``x``
 * ``x-y`` where ``x < y``: range of numbers from ``x`` to ``y``,
