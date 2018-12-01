@@ -578,6 +578,8 @@ class Room:
 
         if self.schedule:
             times = self.schedule.get_scheduling_times()
+            for snippet in self.app.cfg["schedule_snippets"].values():
+                times.update(snippet.get_scheduling_times())
             self.log("Registering scheduling timers at: {{{}}}"
                      .format(", ".join([str(_time) for _time in times])),
                      level="DEBUG")
