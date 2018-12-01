@@ -75,9 +75,9 @@ class App(hassapi.Hass):
         alert("This is an app from the hass-apps package.")
         alert("  DOCS: https://hass-apps.readthedocs.io/en/stable/")
         alert("")
-        alert("If you like this app and want to honor the effort put "
-              "into it,")
-        alert("please consider a donation.")
+        alert("You like this app, want to honor the effort put into")
+        alert("it, ensure continuous development and support?")
+        alert("Then please consider making a donation.")
         alert("  DONATE: https://hass-apps.readthedocs.io/en/stable/#donations")
         alert("Thank you very much and enjoy {}!".format(self.Meta.name))
         alert("")
