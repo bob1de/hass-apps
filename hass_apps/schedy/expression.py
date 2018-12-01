@@ -21,8 +21,6 @@ __all__ = [
 class PreliminaryCombiningError(Exception):
     """Raised when PreliminaryResult.combine_with() fails."""
 
-    pass
-
 class PreliminaryValueMixin:
     """Makes a PreliminaryResult having a value."""
 
@@ -35,8 +33,6 @@ class PreliminaryValueMixin:
 class PreliminaryValidationMixin(PreliminaryValueMixin):
     """Marks a PreliminaryResult for needing value validation by the
     used actor type."""
-
-    pass
 
 class PreliminaryResult:
     """Marks an expressions result as preliminary."""

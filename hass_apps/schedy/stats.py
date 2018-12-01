@@ -98,8 +98,6 @@ class StatisticalParameter:
         """Is called during initialization and should set up
         implementation-specific state listeners."""
 
-        pass
-
     def log(self, msg: str, *args: T.Any, **kwargs: T.Any) -> None:
         """Prefixes the parameter to log messages."""
 
@@ -213,8 +211,6 @@ class ActorValueCollectorMixin(
     def initialize_actor_listeners(self, actor: "ActorBase") -> None:  # pylint: disable=no-self-use,unused-argument
         """Should initialize the appropriate state listeners for the
         given actor."""
-
-        pass
 
     def initialize_listeners(self) -> None:
         """Calls self.initialize_actor_listeners() for each actor of the

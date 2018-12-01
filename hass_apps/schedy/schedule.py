@@ -76,7 +76,9 @@ class Rule:
 
         midnight = datetime.time(0, 0)
         if self.start_time != midnight or self.end_time != midnight:
-            fmt_t = lambda t: t.strftime("%H:%M:%S" if t.second else "%H:%M")  # type: T.Callable[[datetime.time], str]
+            fmt_t = lambda t: t.strftime(
+                "%H:%M:%S" if t.second else "%H:%M"
+            )  # type: T.Callable[[datetime.time], str]
             times = "from {} to {}".format(
                 fmt_t(self.start_time), fmt_t(self.end_time)
             )

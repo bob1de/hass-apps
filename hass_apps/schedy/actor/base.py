@@ -116,8 +116,6 @@ class ActorBase:
     def after_initialization(self) -> None:
         """Can be implemented to perform actions after actor initialization."""
 
-        pass
-
     def cancel_resending_timer(self) -> None:
         """Cancels the re-sending timer for this actor, if one exists."""
 
@@ -132,8 +130,6 @@ class ActorBase:
         """Is called during initialization to warn the user about some
         possible common configuration mistakes. The entity's current
         state attributes dictionary is provided."""
-
-        pass
 
     @property
     def current_value(self) -> T.Any:
@@ -155,8 +151,6 @@ class ActorBase:
     def do_send(self) -> None:
         """This method should implement the actual sending of
         self._wanted_value to the actor."""
-
-        pass
 
     def filter_set_value(self, value: T.Any) -> T.Any:  # pylint: disable=no-self-use
         """Should be implemented to decide whether to set the given
@@ -236,8 +230,6 @@ class ActorBase:
     def prepare_eval_environment(cls, env: T.Dict[str, T.Any]) -> None:
         """Should add any additional items to the dict used as environment
         for expression evaluation."""
-
-        pass
 
     @staticmethod
     def serialize_value(value: T.Any) -> str:
