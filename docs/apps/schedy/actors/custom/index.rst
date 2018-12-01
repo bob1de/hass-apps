@@ -3,7 +3,7 @@ Custom Actor
 
 .. include:: /experimental.rst.inc
 
-.. include:: ../../advanced-topic.rst.inc
+.. include:: /advanced-topic.rst.inc
 
 The ``custom`` actor can be used if maximum control and flexibility is
 required, as it allows you to write custom hooks (pieces of Python code)
