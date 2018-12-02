@@ -19,15 +19,18 @@ class Rule:
     CONSTRAINTS = ("years", "months", "days", "weeks", "weekdays",
                    "start_date", "end_date")
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
             self, name: str = None,
             start_time: datetime.time = None, end_time: datetime.time = None,
             end_plus_days: int = None, constraints: T.Dict[str, T.Any] = None,
-            expr_raw: str = None, value: T.Any = None,
-        ) -> None:
-
-        if expr_raw is not None and value is not None:
-            raise ValueError("specify only one of expr_raw and value, not both")
+            expr: "types.CodeType" = None, expr_raw: str = None,
+            value: T.Any = None
+    ) -> None:
+        _checks = [expr is None, expr_raw is None]
+        if any(_checks) and not all(_checks):
+            raise ValueError("expr and expr_raw may only be passed together")
+        if expr is not None and value is not None:
+            raise ValueError("specify only one of expr and value, not both")
 
         self.name = name
 
@@ -54,12 +57,8 @@ class Rule:
             self.end_time = midnight
             self.end_plus_days = 1
 
-        self.expr = None  # type: T.Optional[types.CodeType]
-        self.expr_raw = None  # type: T.Optional[str]
-        if expr_raw is not None:
-            expr_raw = expr_raw.strip()
-            self.expr_raw = expr_raw
-            self.expr = util.compile_expression(expr_raw)
+        self.expr = expr
+        self.expr_raw = expr_raw
 
         self.value = value
 
@@ -212,8 +211,7 @@ class SubScheduleRule(Rule):
     def __init__(
             self, sub_schedule: "Schedule",
             *args: T.Any, **kwargs: T.Any
-        ) -> None:
-
+    ) -> None:
         super().__init__(*args, **kwargs)
 
         self.sub_schedule = sub_schedule

@@ -4,6 +4,7 @@ This module contains the CONFIG_SCHEMA for validation with voluptuous.
 
 import typing as T
 
+import traceback
 import voluptuous as vol
 
 from . import actor, schedule, util
@@ -19,12 +20,25 @@ def build_schedule_rule(rule: dict) -> schedule.Rule:
         if name in schedule.Rule.CONSTRAINTS:
             constraints[name] = value
 
+    expr = None
+    expr_raw = rule.get("expression")
+    if expr_raw is not None:
+        expr_raw = expr_raw.strip()
+        try:
+            expr = util.compile_expression(expr_raw)
+        except SyntaxError:
+            traceback.print_exc(limit=0)
+            raise vol.Invalid(
+                "Couldn't compile expression: {}".format(repr(expr_raw))
+            )
+
     kwargs = {
         "start_time": rule["start"],
         "end_time": rule["end"],
         "end_plus_days": rule["end_plus_days"],
         "constraints": constraints,
-        "expr_raw": rule.get("expression"),
+        "expr": expr,
+        "expr_raw": expr_raw,
         "value": rule.get("value"),
     }
 
@@ -32,12 +46,12 @@ def build_schedule_rule(rule: dict) -> schedule.Rule:
         return schedule.SubScheduleRule(rule["rules"], **kwargs)
     return schedule.Rule(**kwargs)
 
-def build_schedule(rules: T.Iterable[dict]) -> schedule.Schedule:
-    """Compiles the given rules and returns a schedule containing them."""
+def build_schedule(rules: T.Iterable[schedule.Rule]) -> schedule.Schedule:
+    """Returns a Scheedule containing the given Rule objects."""
 
     sched = schedule.Schedule()
     for rule in rules:
-        sched.rules.append(build_schedule_rule(rule))
+        sched.rules.append(rule)
     return sched
 
 def config_post_hook(cfg: dict) -> dict:
@@ -217,6 +231,7 @@ SCHEDULE_RULE_SCHEMA = vol.Schema(vol.All(
         vol.Optional("start_date"): PARTIAL_DATE_SCHEMA,
         vol.Optional("end_date"): PARTIAL_DATE_SCHEMA,
     },
+    build_schedule_rule,
 ))
 
 SCHEDULE_SCHEMA = vol.Schema(vol.All(
