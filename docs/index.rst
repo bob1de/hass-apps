@@ -61,6 +61,24 @@ let me know!
 * None yet.
 
 
+Getting Help
+------------
+
+.. note::
+
+   **If you run into any issue, first consult the documentation
+   thoroughly.**
+  
+   A notable amount of work has gone into it and most aspects should be
+   covered already. When this didn't help you're welcome to e.g. ask in
+   the `Home Assistant Community <https://community.home-assistant.io/>`_.
+
+When encountering something that seems to be a bug, please open an
+`issue on GitHub <https://github.com/efficiosoft/hass-apps/issues>`_ and
+attach complete logs with ``debug: true`` set in the app's configuration
+illustrating the issue. You won't receive help otherwise.
+
+
 Contributing
 ------------
 
