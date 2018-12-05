@@ -96,5 +96,3 @@ class App(hassapi.Hass):
     def initialize_inner(self) -> None:
         """Overwrite this stub to do the real initialization of the
         particular app."""
-
-        pass
