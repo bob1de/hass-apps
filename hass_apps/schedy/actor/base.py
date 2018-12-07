@@ -6,6 +6,7 @@ import typing as T
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     import uuid
+    from ..expression.helpers import HelperBase as ExpressionHelperBase
     from ..stats import StatisticalParameter
 
 import copy
@@ -29,6 +30,8 @@ class ActorBase:
         vol.Optional("send_retry_interval", default=30):
             vol.All(int, vol.Range(min=1)),
     }
+
+    expression_helpers = []  # type: T.List[T.Type[ExpressionHelperBase]]
 
     stats_param_types = []  # type: T.List[T.Type[StatisticalParameter]]
 
@@ -225,11 +228,6 @@ class ActorBase:
 
         self.is_initialized = True
         return True
-
-    @classmethod
-    def prepare_eval_environment(cls, env: T.Dict[str, T.Any]) -> None:
-        """Should add any additional items to the dict used as environment
-        for expression evaluation."""
 
     @staticmethod
     def serialize_value(value: T.Any) -> str:

@@ -8,6 +8,7 @@ if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     import uuid
     from .app import SchedyApp
+    from .schedule import Schedule
     from .actor.base import ActorBase
 
 import datetime
@@ -15,7 +16,8 @@ import functools
 import threading
 
 from .. import common
-from . import expression, schedule, util
+from . import expression, util
+from .expression import types as expression_types
 
 
 def sync_proxy(handler: T.Callable) -> T.Callable:
@@ -64,7 +66,7 @@ class Room:
         self.cfg = cfg
         self.app = app
         self.actors = []  # type: T.List[ActorBase]
-        self.schedule = None  # type: T.Optional[schedule.Schedule]
+        self.schedule = None  # type: T.Optional[Schedule]
 
         self._wanted_value = None  # type: T.Any
         self._scheduled_value = None  # type: T.Any
@@ -286,7 +288,7 @@ class Room:
         self.app.set_state(entity_id, state=state, attributes=attrs)
         self._last_state = (state, attrs)
 
-    def _validate_value(self, value: T.Any) -> T.Any:
+    def validate_value(self, value: T.Any) -> T.Any:
         """A wrapper around self.app.actor_type.validate_value() that
         sanely logs validation errors and returns None in that case."""
 
@@ -320,7 +322,7 @@ class Room:
 
         result = None
         if self.schedule:
-            result = self.eval_schedule(self.schedule, self.app.datetime())
+            result = self.schedule.evaluate(self, self.app.datetime())
         if result is None:
             self.log("No suitable value found in schedule.",
                      level="DEBUG")
@@ -339,7 +341,7 @@ class Room:
         if reset:
             self.cancel_rescheduling_timer()
             self._clear_overlay()
-        elif expression.Mark.OVERLAY in markers:
+        elif expression_types.Mark.OVERLAY in markers:
             self._store_for_overlaying(previous_scheduled_value)
         elif self._overlaid_wanted_value is not None:
             overlaid_wanted_value = self._overlaid_wanted_value
@@ -382,185 +384,18 @@ class Room:
         return True
 
     def eval_expr(
-            self, expr: types.CodeType
+            self, expr: types.CodeType, now: datetime.datetime
     ) -> T.Any:
-        """This is a wrapper around expression.eval_expr that adds
-        the room_name to the evaluation environment, as well as all
-        configured expression_modules. It also catches any exception
-        raised during evaluation. In this case, the caught Exception
-        object is returned."""
-
-        extra_env = {
-            "room_name": self.name,
-        }
-        assert self.app.actor_type is not None
-        self.app.actor_type.prepare_eval_environment(extra_env)
+        """This is a wrapper around expression.eval_expr().
+        It catches any exception raised during evaluation. In this case,
+        the caught Exception object is returned."""
 
         try:
-            return expression.eval_expr(expr, self.app, extra_env=extra_env)
+            return expression.eval_expr(expr, self, now)
         except Exception as err:  # pylint: disable=broad-except
             self.log("Error while evaluating expression: {}".format(repr(err)),
                      level="ERROR")
             return err
-
-    def eval_schedule(  # pylint: disable=too-many-branches,too-many-locals
-            self, sched: schedule.Schedule, when: datetime.datetime
-    ) -> T.Optional[T.Tuple[T.Any, T.Set[str], schedule.Rule]]:
-        """Evaluates a schedule, computing the value for the time the
-        given datetime object represents. The resulting value, a set of
-        markers applied to the value and the matched rule are returned.
-        If no value could be found in the schedule (e.g. all rules
-        evaluate to Skip()), None is returned."""
-
-        def insert_paths(
-                paths: T.List[schedule.RulePath], first_index: int,
-                path_prefix: schedule.RulePath,
-                rules: T.Iterable[schedule.Rule]
-        ) -> None:
-            """Helper to append each single of a set of rules to a commmon
-            path prefix and insert the resulting paths into a list."""
-
-            for rule in rules:
-                path = path_prefix.copy()
-                path.add(rule)
-                paths.insert(first_index, path)
-                first_index += 1
-
-        def log(
-                msg: str, path: schedule.RulePath,
-                *args: T.Any, **kwargs: T.Any
-        ) -> None:
-            """Wrapper around self.log that prefixes spaces to the
-            message based on the length of the rule path."""
-
-            prefix = " " * 3 * max(0, len(path.rules) - 1) + "\u251c\u2500"
-            self.log("{} {}".format(prefix, msg), *args, **kwargs)
-
-        self.log("Assuming it to be {}.".format(when),
-                 level="DEBUG")
-
-        rules = list(sched.get_matching_rules(when))
-        self.log("{} / {} rules of {} are currently valid."
-                 .format(len(rules), len(sched.rules), sched),
-                 level="DEBUG")
-
-        expr_cache = {}  # type: T.Dict[types.CodeType, T.Any]
-        markers = set()
-        pre_results = []
-        paths = []  # type: T.List[schedule.RulePath]
-        insert_paths(paths, 0, schedule.RulePath(sched), rules)
-        path_idx = 0
-        while path_idx < len(paths):
-            path = paths[path_idx]
-            path_idx += 1
-
-            log("{}".format(path), path, level="DEBUG")
-
-            last_rule = path.rules[-1]
-            if isinstance(last_rule, schedule.SubScheduleRule):
-                _rules = list(last_rule.sub_schedule.get_matching_rules(when))
-                log("{} / {} rules of {} are currently valid."
-                    .format(len(_rules), len(last_rule.sub_schedule.rules),
-                            last_rule.sub_schedule),
-                    path, level="DEBUG")
-                insert_paths(paths, path_idx, path, _rules)
-                continue
-
-            result = None
-            rules_with_expr_or_value = path.rules_with_expr_or_value
-            for rule in reversed(rules_with_expr_or_value):
-                if rule.expr is not None:
-                    if rule.expr in expr_cache:
-                        result = expr_cache[rule.expr]
-                        log("=> {}  [cache-hit]".format(repr(result)),
-                            path, level="DEBUG")
-                    else:
-                        result = self.eval_expr(rule.expr)
-                        expr_cache[rule.expr] = result
-                        log("=> {}".format(repr(result)),
-                            path, level="DEBUG")
-                elif rule.value is not None:
-                    result = rule.value
-                    log("=> {}".format(repr(result)),
-                        path, level="DEBUG")
-                if result is not None:
-                    break
-
-            if isinstance(result, expression.Mark):
-                markers.update(result.markers)
-                result = result.result
-
-            if result is None:
-                if rules_with_expr_or_value:
-                    log("All expressions returned None, skipping rule.",
-                        path, level="WARNING")
-                else:
-                    log("No expression/value definition found, skipping rule.",
-                        path, level="WARNING")
-            elif isinstance(result, Exception):
-                log("Evaluation failed, skipping rule.",
-                    path, level="DEBUG")
-            elif isinstance(result, expression.Abort):
-                break
-            elif isinstance(result, expression.Break):
-                prefix_size = max(0, len(path.rules) - result.levels)
-                prefix = path.rules[:prefix_size]
-                while path_idx < len(paths) and \
-                      paths[path_idx].root_schedule == path.root_schedule and \
-                      paths[path_idx].rules[:prefix_size] == prefix:
-                    del paths[path_idx]
-            elif isinstance(result, expression.IncludeSchedule):
-                _rules = list(result.schedule.get_matching_rules(when))
-                log("{} / {} rules of {} are currently valid."
-                    .format(len(_rules), len(result.schedule.rules),
-                            result.schedule),
-                    path, level="DEBUG")
-                _path = path.copy()
-                del _path.rules[-1]
-                _path.add(schedule.SubScheduleRule(result.schedule))
-                insert_paths(paths, path_idx, _path, _rules)
-            elif isinstance(result, expression.PreliminaryResult):
-                if isinstance(result, expression.PreliminaryValidationMixin):
-                    value = self._validate_value(result.value)
-                    if value is None:
-                        self.log("Aborting scheduling",
-                                 level="ERROR")
-                        break
-                    result.value = value
-                pre_results.append(result)
-            elif isinstance(result, expression.Skip):
-                continue
-            else:
-                result = self._validate_value(result)
-                for pre_result in pre_results:
-                    if result is None:
-                        break
-                    log("+ {}".format(repr(pre_result)),
-                        path, level="DEBUG")
-                    try:
-                        result = pre_result.combine_with(result)
-                    except expression.PreliminaryCombiningError as err:
-                        self.log("Error while combining {} with result {}: {}"
-                                 .format(repr(pre_result), repr(result), err),
-                                 level="ERROR")
-                        result = None
-                        break
-                    log("= {}".format(repr(result)),
-                        path, level="DEBUG")
-                    result = self._validate_value(result)
-                if result is None:
-                    self.log("Aborting scheduling",
-                             level="ERROR")
-                    break
-                self.log("Final result: {}".format(repr(result)),
-                         level="DEBUG")
-                if markers:
-                    self.log("Result markers: {}".format(markers),
-                             level="DEBUG")
-                return result, markers, last_rule
-
-        self.log("Found no result.", level="DEBUG")
-        return None
 
     @sync_proxy
     def initialize(self, reset: bool = False) -> None:
@@ -714,29 +549,31 @@ class Room:
         rescheduling_delay, if given, overwrites the value configured
         for the room. Passing 0 disables re-scheduling."""
 
-        checks = (expr_raw is None, value is None)
-        assert any(checks) and not all(checks), \
-            "specify exactly one of expr_raw and value"
+        _checks = expr_raw is None, value is None
+        if all(_checks) or not any(_checks):
+            raise ValueError("specify exactly one of expr_raw and value")
 
         markers = set()
+        now = self.app.datetime()
         if expr_raw is not None:
             expr = util.compile_expression(expr_raw)
-            result = self.eval_expr(expr)
+            result = self.eval_expr(expr, now)
             self.log("Evaluated expression {} to {}."
                      .format(repr(expr_raw), repr(result)),
                      level="DEBUG")
 
-            if isinstance(result, expression.Mark):
+            if isinstance(result, expression_types.Mark):
                 markers.update(result.markers)
                 result = result.result
 
             not_allowed_result_types = (
-                expression.ControlResult, expression.PreliminaryResult,
+                expression_types.ControlResult,
+                expression_types.PreliminaryResult,
                 type(None), Exception,
             )
             value = None
-            if isinstance(result, expression.IncludeSchedule):
-                _result = self.eval_schedule(result.schedule, self.app.datetime())
+            if isinstance(result, expression_types.IncludeSchedule):
+                _result = result.schedule.evaluate(self, now)
                 if _result is not None:
                     value = _result[0]
                     markers.update(_result[1])
@@ -744,13 +581,13 @@ class Room:
                 value = result
 
         if value is not None:
-            value = self._validate_value(value)
+            value = self.validate_value(value)
 
         if value is None:
             self.log("Ignoring value.")
             return
 
-        if expression.Mark.OVERLAY in markers:
+        if expression_types.Mark.OVERLAY in markers:
             self._store_for_overlaying(self._scheduled_value)
 
         self.set_value(value, force_resend=force_resend)

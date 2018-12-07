@@ -6,10 +6,15 @@ import typing as T
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     import types
+    from .room import Room
 
 import datetime
 
 from . import util
+from .expression import types as expression_types
+
+
+ScheduleEvaluationResultType = T.Tuple[T.Any, T.Set[str], "Rule"]
 
 
 class Rule:
@@ -245,6 +250,165 @@ class Schedule:
         if self.name is None:
             return "<Schedule of {} rules>".format(len(self.rules))
         return "<Schedule {}>".format(repr(self.name))
+
+    def evaluate(  # pylint: disable=too-many-branches,too-many-locals
+            self, room: "Room", when: datetime.datetime
+    ) -> T.Optional[ScheduleEvaluationResultType]:
+        """Evaluates the schedule, computing the value for the time the
+        given datetime object represents. The resulting value, a set of
+        markers applied to the value and the matched rule are returned.
+        If no value could be found in the schedule (e.g. all rules
+        evaluate to Skip()), None is returned."""
+
+        def insert_paths(
+                paths: T.List[RulePath], first_index: int,
+                path_prefix: RulePath, rules: T.Iterable[Rule]
+        ) -> None:
+            """Helper to append each single of a set of rules to a commmon
+            path prefix and insert the resulting paths into a list."""
+
+            for rule in rules:
+                path = path_prefix.copy()
+                path.add(rule)
+                paths.insert(first_index, path)
+                first_index += 1
+
+        def log(
+                msg: str, path: RulePath, *args: T.Any, **kwargs: T.Any
+        ) -> None:
+            """Wrapper around room.log that prefixes spaces to the
+            message based on the length of the rule path."""
+
+            prefix = " " * 3 * max(0, len(path.rules) - 1) + "\u251c\u2500"
+            room.log("{} {}".format(prefix, msg), *args, **kwargs)
+
+        room.log("Assuming it to be {}.".format(when),
+                 level="DEBUG")
+
+        rules = list(self.get_matching_rules(when))
+        room.log("{} / {} rules of {} are currently valid."
+                 .format(len(rules), len(self.rules), self),
+                 level="DEBUG")
+
+        expr_cache = {}  # type: T.Dict[types.CodeType, T.Any]
+        markers = set()
+        pre_results = []
+        paths = []  # type: T.List[RulePath]
+        insert_paths(paths, 0, RulePath(self), rules)
+        path_idx = 0
+        while path_idx < len(paths):
+            path = paths[path_idx]
+            path_idx += 1
+
+            log("{}".format(path), path, level="DEBUG")
+
+            last_rule = path.rules[-1]
+            if isinstance(last_rule, SubScheduleRule):
+                _rules = list(last_rule.sub_schedule.get_matching_rules(when))
+                log("{} / {} rules of {} are currently valid."
+                    .format(len(_rules), len(last_rule.sub_schedule.rules),
+                            last_rule.sub_schedule),
+                    path, level="DEBUG")
+                insert_paths(paths, path_idx, path, _rules)
+                continue
+
+            result = None
+            rules_with_expr_or_value = path.rules_with_expr_or_value
+            for rule in reversed(rules_with_expr_or_value):
+                if rule.expr is not None:
+                    if rule.expr in expr_cache:
+                        result = expr_cache[rule.expr]
+                        log("=> {}  [cache-hit]".format(repr(result)),
+                            path, level="DEBUG")
+                    else:
+                        result = room.eval_expr(rule.expr, when)
+                        expr_cache[rule.expr] = result
+                        log("=> {}".format(repr(result)),
+                            path, level="DEBUG")
+                elif rule.value is not None:
+                    result = rule.value
+                    log("=> {}".format(repr(result)),
+                        path, level="DEBUG")
+                if result is not None:
+                    break
+
+            if isinstance(result, expression_types.Mark):
+                markers.update(result.markers)
+                result = result.result
+
+            if result is None:
+                if rules_with_expr_or_value:
+                    log("All expressions returned None, skipping rule.",
+                        path, level="WARNING")
+                else:
+                    log("No expression/value definition found, skipping rule.",
+                        path, level="WARNING")
+            elif isinstance(result, Exception):
+                log("Evaluation failed, skipping rule.",
+                    path, level="DEBUG")
+            elif isinstance(result, expression_types.Abort):
+                break
+            elif isinstance(result, expression_types.Break):
+                prefix_size = max(0, len(path.rules) - result.levels)
+                prefix = path.rules[:prefix_size]
+                while path_idx < len(paths) and \
+                      paths[path_idx].root_schedule == path.root_schedule and \
+                      paths[path_idx].rules[:prefix_size] == prefix:
+                    del paths[path_idx]
+            elif isinstance(result, expression_types.IncludeSchedule):
+                _rules = list(result.schedule.get_matching_rules(when))
+                log("{} / {} rules of {} are currently valid."
+                    .format(len(_rules), len(result.schedule.rules),
+                            result.schedule),
+                    path, level="DEBUG")
+                _path = path.copy()
+                del _path.rules[-1]
+                _path.add(SubScheduleRule(result.schedule))
+                insert_paths(paths, path_idx, _path, _rules)
+            elif isinstance(result, expression_types.PreliminaryResult):
+                if isinstance(
+                        result, expression_types.PreliminaryValidationMixin
+                ):
+                    value = room.validate_value(result.value)
+                    if value is None:
+                        room.log("Aborting schedule evaluation.",
+                                 level="ERROR")
+                        break
+                    result.value = value
+                pre_results.append(result)
+            elif isinstance(result, expression_types.Skip):
+                continue
+            else:
+                result = room.validate_value(result)
+                for pre_result in pre_results:
+                    if result is None:
+                        break
+                    log("+ {}".format(repr(pre_result)),
+                        path, level="DEBUG")
+                    try:
+                        result = pre_result.combine_with(result)
+                    except expression_types.PreliminaryCombiningError as err:
+                        room.log("Error while combining {} with result {}: {}"
+                                 .format(repr(pre_result), repr(result), err),
+                                 level="ERROR")
+                        result = None
+                        break
+                    log("= {}".format(repr(result)),
+                        path, level="DEBUG")
+                    result = room.validate_value(result)
+                if result is None:
+                    room.log("Aborting schedule evaluation.",
+                             level="ERROR")
+                    break
+                room.log("Final result: {}".format(repr(result)),
+                         level="DEBUG")
+                if markers:
+                    room.log("Result markers: {}".format(markers),
+                             level="DEBUG")
+                return result, markers, last_rule
+
+        room.log("Found no result.", level="DEBUG")
+        return None
 
     def get_matching_rules(
             self, when: datetime.datetime

@@ -1,15 +1,11 @@
 """
-Module containing functionality to evaluate expressions.
+Module containing types to be used in expression evaluation.
 """
 
-import types
 import typing as T
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
-    from . import schedule
-    from .app import SchedyApp
-
-import datetime
+    from .. import schedule
 
 
 __all__ = [
@@ -175,47 +171,3 @@ class Skip(ControlResult):
 
     def __repr__(self) -> str:
         return "Skip()"
-
-
-def build_expr_env(app: "SchedyApp") -> T.Dict[str, T.Any]:
-    """This function builds and returns an environment usable as globals
-    for the evaluation of an expression. It will add all members
-    of this module's __all__ to the environment. Additionally, some
-    helpers will be constructed based on the SchedyApp object"""
-
-    # use date/time provided by appdaemon to support time-traveling
-    now = app.datetime()
-    env = {
-        "app": app,
-        "schedule_snippets": app.cfg["schedule_snippets"],
-        "datetime": datetime,
-        "now": now,
-        "date": now.date(),
-        "time": now.time(),
-        "state": app.get_state,
-        "is_on": lambda _id: str(app.get_state(_id)).lower() == "on",
-        "is_off": lambda _id: str(app.get_state(_id)).lower() == "off",
-    }
-
-    globs = globals()
-    for name in __all__:
-        env[name] = globs[name]
-
-    env.update(app.expression_modules)
-
-    return env
-
-def eval_expr(
-        expr: types.CodeType, app: "SchedyApp",
-        extra_env: T.Optional[T.Dict[str, T.Any]] = None
-) -> T.Any:
-    """This method evaluates the given expression. The evaluation result
-    is returned. The items of the extra_env dict are added to the globals
-    available during evaluation."""
-
-    env = build_expr_env(app)
-    if extra_env:
-        env.update(extra_env)
-
-    exec(expr, env)  # pylint: disable=exec-used
-    return env.get("result")

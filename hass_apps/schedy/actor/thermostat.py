@@ -12,6 +12,7 @@ import voluptuous as vol
 
 from ... import common
 from .. import stats
+from ..expression.helpers import HelperBase as ExpressionHelperBase
 from .base import ActorBase
 
 
@@ -145,6 +146,19 @@ class Temp:
         return str(self.value)
 
 
+class ThermostatExpressionHelper(ExpressionHelperBase):
+    """Adds Temp and OFF to the evaluation environment."""
+
+    # pylint: disable=invalid-name
+
+    def __init__(self, *args: T.Any, **kwargs: T.Any) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.Temp = Temp
+        self.OFF = OFF
+        self.room_name = self._room.name
+
+
 TEMP_SCHEMA = vol.Schema(vol.All(
     vol.Any(float, int, Off, vol.All(str, lambda v: v.upper(), "OFF")),
     lambda v: Temp(v),  # pylint: disable=unnecessary-lambda
@@ -229,6 +243,10 @@ class ThermostatActor(ActorBase):
             "current_temp_state_attr", default="current_temperature"
         ): vol.Any(str, None),
     }
+
+    expression_helpers = ActorBase.expression_helpers + [
+        ThermostatExpressionHelper,
+    ]
 
     stats_param_types = [TempDeltaParameter]
 
@@ -430,16 +448,6 @@ class ThermostatActor(ActorBase):
                      prefix=common.LOG_PREFIX_INCOMING)
 
         return target_temp
-
-    @classmethod
-    def prepare_eval_environment(cls, env: T.Dict[str, T.Any]) -> None:
-        """Adds Temp, OFF etc. to the dict used as environment for
-        expression evaluation."""
-
-        env.update({
-            "OFF": OFF,
-            "Temp": Temp,
-        })
 
     @staticmethod
     def serialize_value(value: Temp) -> str:

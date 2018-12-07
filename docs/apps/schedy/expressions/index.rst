@@ -1,6 +1,11 @@
 Expressions
 ===========
 
+.. toctree::
+   :hidden:
+
+   helpers
+
 Schedy accepts so called expressions in schedules or when manually
 setting a value via the ``schedy_set_value`` event.
 
@@ -17,47 +22,18 @@ values, such an object can be created as a plain integer or floating
 point value like ``19`` or ``20.5``. The special value ``OFF`` is also
 available for thermostats.
 
-
-The Execution Environment
--------------------------
-
-There is an object available under the name ``app`` which represents
-the ``appdaemon.plugins.hass.hassapi.Hass`` object of Schedy. You could,
-for instance, retrieve values of input sliders via the normal AppDaemon
-API.
-
-The following globals are available for use in expressions.
-
-* ``room_name``: the name of the room the expression is evaluated for
-  as set in Schedy's configuration (not the friendly name)
-* ``schedule_snippets``: a dictionary containing all configured schedule
-  snippets, indexed by their name for use with ``IncludeSchedule()``
-
-* date and time:
-
-  * ``datetime``: Python's ``datetime`` module
-  * ``now``: a ``datetime.datetime`` object containing the current date
-    and time
-  * ``date``: a shortcut for ``now.date()``
-  * ``time``: a shortcut for ``now.time()``
-
-* state:
-
-  * ``app``: the ``appdaemon.plugins.hass.hassapi.Hass`` object of Schedy
-  * ``is_on(entity_id)``: returns ``True`` if the state of the given entity
-    is ``"on"`` (case-insensitive), ``False`` otherwise
-  * ``is_off(entity_id)``: returns ``True`` if the state of the given entity
-    is ``"off"`` (case-insensitive), ``False`` otherwise
-  * ``state(entity_id, attribute=None)``: a shortcut for ``app.get_state(entity_id, attribute=None)``
-
 .. note::
 
-   There is a difference between using ``is_off(...)`` and ``not
-   is_on(...)``. These helper functions only compare the state of the
-   specified entity to the values ``"off"`` and ``"on"``, respectively. If
-   you want to treat a non-existing entity (which's state is returned as
-   ``None``) as if it was ``"off"``, you have to use ``not is_on(...)``
-   since ``is_off(...)`` would return ``False`` in this case.
+   In contrast to plain values, which are denoted as ``value`` or ``v``,
+   expressions have to be set as the ``expression`` (or ``x``) parameter
+   of a schedule rule.
+
+
+Writing Expressions
+-------------------
+
+Various helper functions and variables are available during expression
+evaluation. See :doc:`helpers` for a complete list.
 
 
 Controlling the Evaluation Flow
@@ -236,7 +212,7 @@ that should prepare our bathroom for taking a bath. It's name is
 Last step is to write a simple Home Assistant automation to emit
 a re-schedule event whenever the state of ``switch.take_a_bath``
 changes. More about the available events and how to emit them is explained
-in the chapter :doc:`events`.
+in the chapter :doc:`../events`.
 
 ::
 

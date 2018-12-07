@@ -54,7 +54,7 @@ the concept <concept>` first and then proceed to the following pages.
    configuration
    actors/index
    writing-schedules
-   expressions
+   expressions/index
    events
    statistics/index
    tips-and-tricks
