@@ -1,5 +1,5 @@
 Schedule Helpers
-----------------
+================
 
 These helpers can be used to evaluate schedule snippets from within an
 expression. That could be useful to make decisions based on the result
@@ -13,8 +13,10 @@ second a set with markers applied to the result and the third is the
 the first item, the actual value.
 
 
+``schedule.evaluate``
+---------------------
+
 ``schedule.evaluate(schedule: Schedule, when: datetime.datetime = None) -> Optional[ScheduleEvaluationResult]``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Evaluates the given schedule at the given point in time. If ``when``
 is not specified, the current date and time is assumed.
@@ -35,8 +37,10 @@ Example:
         # do something with the value
 
 
+``schedule.next_results``
+-------------------------
+
 ``schedule.next_results(schedule: Schedule, start: datetime.datetime = None, end: datetime.datetime = None) -> Iterable[Tuple[datetime.datetime, ScheduleEvaluationResult]]``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This function let's you iterate over future results of a given schedule
 snippet. Every ``Tuple[datetime.datetime, ScheduleEvaluationResult]``

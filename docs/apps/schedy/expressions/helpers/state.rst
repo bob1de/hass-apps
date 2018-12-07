@@ -1,19 +1,23 @@
 State Helpers
--------------
+=============
 
 These helpers can be used to retrieve the state of entities from Home
 Assistant.
 
 
+``is_on``
+---------
+
 ``is_on(entity_id: str) -> bool``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Returns ``True`` if the state of the given entity is ``"on"``
 (case-insensitive), ``False`` otherwise.
 
 
+``is_off``
+----------
+
 ``is_off(entity_id: str) -> bool``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Returns ``True`` if the state of the given entity is ``"off"``
 (case-insensitive), ``False`` otherwise.
@@ -28,7 +32,9 @@ Returns ``True`` if the state of the given entity is ``"off"``
    since ``is_off(...)`` would return ``False`` in this case.
 
 
+``state``
+---------
+
 ``state(entity_id: str, attribute: str = None) -> Any``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A shortcut for ``app.get_state(...)``.
