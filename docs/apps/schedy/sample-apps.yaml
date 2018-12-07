@@ -1,4 +1,7 @@
-schedy:
+schedy: ##That's the name (app_name) of your Schedy instance. You 
+  # will need it, for instance, to trigger a reschedule of this
+  # particular Schedy.
+  
   # Obligatory settings that tell appdaemon where to find the app.
   # You shouldn't need to change these two.
   module: hass_apps_loader
