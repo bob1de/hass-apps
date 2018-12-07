@@ -1,4 +1,5 @@
-schedy:
+schedy:  # An arbitrary name for this instance of Schedy,
+         # needed e.g. for addressing events to it.
   # Obligatory settings that tell appdaemon where to find the app.
   # You shouldn't need to change these two.
   module: hass_apps_loader
