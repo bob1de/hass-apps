@@ -180,18 +180,10 @@ class PatternHelper(HelperBase):
 
     @staticmethod
     def linear(
-            start_value: float, end_value: float,
-            factor: float = None, percentage: float = None
+            start_value: T.Union[float, int], end_value: T.Union[float, int],
+            percentage: T.Union[float, int]
     ) -> float:
         """Calculate the value at a given percentage between start_value
-        and end_value. As an alternative to percentage, a factor between
-        0 and 1 may be given."""
+        and end_value."""
 
-        _checks = factor is None, percentage is None
-        if all(_checks) or not any(_checks):
-            raise ValueError("either factor or percentage must be given")
-        if percentage is not None:
-            factor = percentage / 100
-
-        assert factor is not None  # required for mypy
-        return start_value + factor * (end_value - start_value)
+        return start_value + percentage * (end_value - start_value) / 100
