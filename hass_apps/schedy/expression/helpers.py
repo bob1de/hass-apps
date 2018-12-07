@@ -118,12 +118,10 @@ class StateHelper(HelperBase):
         for entity, state in states.items():
             if not isinstance(state, dict):
                 continue
-            state = state.get("state")
             attributes = state.get("attributes", {})
             for attr, value in criteria.items():
-                if attr == "state" and state != value:
-                    break
-                if attributes.get(attr) != value:
+                if attr == "state" and state.get("state") != value or \
+                   attributes.get(attr) != value:
                     break
             else:
                 yield entity
