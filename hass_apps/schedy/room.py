@@ -304,21 +304,19 @@ class Room:
 
     @sync_proxy
     def apply_schedule(
-            self, reset: bool = False, force_resend: bool = False,
+            self, reset: bool = False, force_resend: bool = False
     ) -> None:
-        """Sets the value that is configured for the current date and
-        time.
-        This method won't re-schedule if a re-schedule timer runs. It
-        will also detect when the result hasn't changed compared to
-        the last run and prevent re-setting it in that case. These both
-        checks can be skipped by setting reset to True.
+        """Applies the value scheduled for the current date and time.
+        It detects when the result hasn't changed compared to the last
+        run and prevent re-setting it in that case.
+        This method will also not re-apply the schedule if a re-schedule
+        timer runs - however, the OVERLAY marker is regarded.
+        These both checks can be skipped by setting reset to True.
         force_resend is passed through to set_value()."""
 
-        self.log("Applying room's schedule (reset={}, force_resend={})."
+        self.log("Evaluating room's schedule (reset={}, force_resend={})."
                  .format(reset, force_resend),
                  level="DEBUG")
-
-        assert self.app.actor_type is not None
 
         result = None
         if self.schedule:
@@ -329,6 +327,7 @@ class Room:
             return
 
         value, markers = result[:2]
+        assert self.app.actor_type is not None
         if self.app.actor_type.values_equal(value, self._scheduled_value) and \
            not reset and not force_resend:
             self.log("Result didn't change, not setting it again.",
