@@ -38,3 +38,26 @@ Returns ``True`` if the state of the given entity is ``"off"``
 ``state(entity_id: str, attribute: str = None) -> Any``
 
 A shortcut for ``app.get_state(...)``.
+
+
+``filter_entities``
+-------------------
+
+``filter_entities(entities: Union[str, List[str]] = None, **criteria: Any) -> Iterable[str]``
+
+From a given set of entities, this function yields only those with a
+state and/or attributes matching all given criteria.
+
+Entities may either be specified as a single string (full entity id or
+domain), a list of such strings, or as ``None``, which means all entities
+found in Home Assistant.
+
+Examples:
+
+::
+
+    # entities with a state of "on"
+    filter_entities(state="on")
+
+    # binary_sensor and input_boolean entities having a room attribute with the value "living"
+    filter_entities(["binary_sensor", "input_boolean"], room="living")

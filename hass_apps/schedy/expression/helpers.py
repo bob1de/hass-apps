@@ -73,6 +73,45 @@ class StateHelper(HelperBase):
 
         self.state = self._app.get_state
 
+    def filter_entities(
+            self, entities: T.Union[str, T.List[str]] = None, **criteria: T.Any
+    ) -> T.Iterable[str]:
+        """From a given set of entities, this function yields only those
+        with a state and/or attributes matching all given criteria.
+        Entities may either be specified as a single string (full entity
+        id or domain), a list of such strings, or as None, which means
+        all entities found in Home Assistant.
+        The attributes of each entity are checked against the given
+        criteria. Only entities that fulfill all criteria are yielded."""
+
+        def _add_state(entity: str) -> None:
+            if "." in entity:
+                states[entity] = self.state(entity)
+            else:
+                states.update(self.state(entity))
+
+        states = {}  # type: T.Dict[str, T.Any]
+        if isinstance(entities, list):
+            for entity in entities:
+                _add_state(entity)
+        elif isinstance(entities, str):
+            _add_state(entities)
+        else:
+            states.update(self.state())
+
+        for entity, state in states.items():
+            if not isinstance(state, dict):
+                continue
+            state = state.get("state")
+            attributes = state.get("attributes", {})
+            for attr, value in criteria.items():
+                if attr == "state" and state != value:
+                    break
+                if attributes.get(attr) != value:
+                    break
+            else:
+                yield entity
+
     def is_on(self, entity_id: str) -> bool:
         """Returns whether an entity'S state is "on" (case-insensitive)."""
 
