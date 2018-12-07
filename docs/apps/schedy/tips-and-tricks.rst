@@ -147,9 +147,6 @@ Let's assume the following:
 2. There'S a motion sensor ``binary_sensor.entrance_motion`` that switches
    to ``on`` when motion is detected.
 
-3. You've got a ``binary_sensor.dark`` configured in Home Assistant that,
-   if it's on, should enable motion triggering.
-
 Ok, let's get started.
 
 1. Add a custom ``motion_room: entrance`` attribute to the
@@ -163,7 +160,7 @@ Ok, let's get started.
 
    ::
 
-       - x: Mark("on", Mark.OVERLAY) if is_on("binary_sensor.dark") and not is_empty(filter_entities("binary_sensor", motion_room=room_name, state="on")) else Skip()
+       - x: Mark("on", Mark.OVERLAY) if not is_empty(filter_entities("binary_sensor", motion_room=room_name, state="on")) else Skip()
 
 3. Create an automation.
 
@@ -184,5 +181,8 @@ Ok, let's get started.
              room: "{{ trigger.to_state.attributes['motion_room'] }}"
 
 Try it out. As long as at least one of the motion sensors in a room
-reports motion, the lights in that room should stay on. You could change
-the ``binary_sensor.dark`` to always be ``true`` to simulate darkness.
+reports motion, the lights in that room should stay on.
+
+If you also had brightness sensors in each room, you could now insert
+another rule before the one we just added to fix the value to ``"off"``
+when it's not dark enough in the particular room.
