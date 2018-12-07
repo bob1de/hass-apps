@@ -36,9 +36,10 @@ their name for use with ``IncludeSchedule()``.
 ``is_empty(iterable: Iterable) -> bool``
 
 Returns whether the given iterable is empty.
+
 next() is used for testing the iterable. For iterators, this has the
 side effect of the first item being consumed, but it avoids generating
-all values just for decision about emptiness."""
+all values just for decision about emptiness.
 
 
 ``round_to_step``
@@ -52,5 +53,6 @@ of decimal places.
 Examples:
 
 ::
+
     round_to_step(34, 25) == 25
-    round_to_step(0.665, 0.2, 1) == 0.6"""
+    round_to_step(0.665, 0.2, 1) == 0.6
