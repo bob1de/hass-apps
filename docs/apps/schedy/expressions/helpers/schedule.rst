@@ -1,6 +1,8 @@
 Schedule Helpers
 ================
 
+.. include:: /advanced-topic.rst.inc
+
 These helpers can be used to evaluate schedule snippets from within an
 expression. That could be useful to make decisions based on the result
 a particular schedule snippet would provide when evaluated at a given
