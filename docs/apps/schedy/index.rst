@@ -57,5 +57,5 @@ the concept <concept>` first and then proceed to the following pages.
    expressions/index
    events
    statistics/index
-   tips-and-tricks
+   tips-and-tricks/index
    CHANGELOG

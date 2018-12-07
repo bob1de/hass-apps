@@ -120,7 +120,7 @@ The following markers are available:
   if that was the scheduled or a manually set one. Even a previous
   re-scheduling time is restored.
   An occasion for using this marker is
-  :ref:`schedy/tips-and-tricks/open-door-or-window-detection`.
+  :doc:`../tips-and-tricks/open-window-detection`.
 
 
 Expressions vs. Statements
