@@ -40,6 +40,22 @@ class BasicHelper(HelperBase):
         self.schedule_snippets = self._app.cfg["schedule_snippets"]
 
     @staticmethod
+    def is_empty(iterable: T.Iterable) -> bool:
+        """Returns whether the given iterable is empty.
+        next() is used for testing the iterable. For iterators, this
+        has the side effect of the first item being consumed, but it
+        avoids generating all values just for decision about emptiness."""
+
+        try:
+            if isinstance(iterable, T.Iterator):
+                next(iterable)
+            else:
+                next(iter(iterable))
+        except StopIteration:
+            return True
+        return False
+
+    @staticmethod
     def round_to_step(
             value: T.Union[float, int], step: T.Union[float, int],
             decimal_places: int = None

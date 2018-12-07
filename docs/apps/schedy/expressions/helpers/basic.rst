@@ -30,6 +30,17 @@ A dictionary containing all configured schedule snippets, indexed by
 their name for use with ``IncludeSchedule()``.
 
 
+``is_empty``
+------------
+
+``is_empty(iterable: Iterable) -> bool``
+
+Returns whether the given iterable is empty.
+next() is used for testing the iterable. For iterators, this has the
+side effect of the first item being consumed, but it avoids generating
+all values just for decision about emptiness."""
+
+
 ``round_to_step``
 -----------------
 

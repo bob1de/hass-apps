@@ -90,27 +90,17 @@ in the current room is open is added. We place it at the top of the
 rooms as their first rule.
 
 This code checks all ``binary_sensor`` entities found in Home Assistant
-for a ``window_room`` attribute with the current room's name as its value
-and a state of ``"on"``. This way it finds all window sensors of the
-current room that report to be open. The ``try/except/else`` construct is
-used with the ``filter_entities`` generator to have searching aborted as
+for a ``window_room`` attribute with the current room's name as its
+value and a state of ``"on"``. This way it finds all window sensors of
+the current room that report to be open. The ``is_empty()`` function is
+used with the ``filter_entities()`` generator to have searching aborted as
 soon as one open window is found rather than always checking all entities.
+Feel free to break this single-line expression into multiple statements
+if you prefer clarity over conciseness.
 
 ::
 
-    - x: |
-        try:
-            next(filter_entities("binary_sensor", window_room=room_name, state="on"))
-        except StopIteration:
-            result = Skip()
-        else:
-            result = Mark(OFF, Mark.OVERLAY)
-
-Or, if you prefer conciseness over clarity:
-
-::
-
-    - x: Mark(OFF, Mark.OVERLAY) if next(filter_entities("binary_sensor", window_room=room_name, state="on"), None) else Skip()
+    - x: Mark(OFF, Mark.OVERLAY) if not is_empty(filter_entities("binary_sensor", window_room=room_name, state="on")) else Skip()
 
 Now, we add an automation to re-evaluate the schedule when a window's
 state changes. Replace ``schedy_heating`` with the name of your
@@ -173,15 +163,7 @@ Ok, let's get started.
 
    ::
 
-       - x: |
-           result = Skip()
-           if is_on("binary_sensor.dark"):
-               try:
-                   next(filter_entities("binary_sensor", motion_room=room_name, state="on"))
-               except StopIteration:
-                   pass
-               else:
-                   result = Mark("on", Mark.OVERLAY)
+       - x: Mark("on", Mark.OVERLAY) if is_on("binary_sensor.dark") and not is_empty(filter_entities("binary_sensor", motion_room=room_name, state="on")) else Skip()
 
 3. Create an automation.
 
