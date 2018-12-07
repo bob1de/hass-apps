@@ -149,14 +149,8 @@ class Temp:
 class ThermostatExpressionHelper(ExpressionHelperBase):
     """Adds Temp and OFF to the evaluation environment."""
 
-    # pylint: disable=invalid-name
-
-    def __init__(self, *args: T.Any, **kwargs: T.Any) -> None:
-        super().__init__(*args, **kwargs)
-
-        self.Temp = Temp
-        self.OFF = OFF
-        self.room_name = self._room.name
+    OFF = OFF
+    Temp = Temp
 
 
 TEMP_SCHEMA = vol.Schema(vol.All(
