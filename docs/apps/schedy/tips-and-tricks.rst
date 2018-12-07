@@ -68,8 +68,8 @@ is opened. We can achieve this with a single additional schedule rule
 and one automation in Home Assistant for an unlimited number of windows.
 
 We assume that our window sensors are named
-``binary_sensor.living_window`` and ``binary_sensor.kids_window`` and
-report ``"on"`` as their state when the particular window is opened.
+``binary_sensor.living_window_1`` and ``binary_sensor.living_window_2``
+and report ``"on"`` as their state when the particular window is opened.
 
 To make this solution scale to multiple windows in multiple rooms without
 creating additional automations or rules, we add a new custom attribute
@@ -78,37 +78,45 @@ name of the Schedy room the sensor belongs to.
 
 ::
 
-    binary_sensor.living_window:
+    binary_sensor.living_window_1:
       window_room: living
 
-    binary_sensor.kids_window:
-      window_room: kids
+    binary_sensor.living_window_2:
+      window_room: living
 
 Now, a new rule which overlais the temperature with ``OFF`` when a window
 in the current room is open is added. We place it at the top of the
 ``schedule_prepend`` configuration section to have it applied to all
 rooms as their first rule.
+
 This code checks all ``binary_sensor`` entities found in Home Assistant
-for a ``window_room`` attribute and, if present, compares the value
-of that attribute to the name of the room for which the expression is
-evaluated. This way it finds all window sensors for the current room
-and can check whether one of them reports to be open.
+for a ``window_room`` attribute with the current room's name as its value
+and a state of ``"on"``. This way it finds all window sensors of the
+current room that report to be open. The ``try/except/else`` construct is
+used with the ``filter_entities`` generator to have searching aborted as
+soon as one open window is found rather than always checking all entities.
 
 ::
 
     - x: |
-        for s in state("binary_sensor"):
-            if state(s, attribute="window_room") == room_name and is_on(s):
-                result = Mark(OFF, Mark.OVERLAY)
-                break
-        else:
+        try:
+            next(filter_entities("binary_sensor", window_room=room_name, state="on"))
+        except StopIteration:
             result = Skip()
+        else:
+            result = Mark(OFF, Mark.OVERLAY)
+
+Or, if you prefer conciseness over clarity:
+
+::
+
+    - x: Mark(OFF, Mark.OVERLAY) if next(filter_entities("binary_sensor", window_room=room_name, state="on"), None) else Skip()
 
 Now, we add an automation to re-evaluate the schedule when a window's
 state changes. Replace ``schedy_heating`` with the name of your
 instance of Schedy. In order to add more window sensors, just append
 them to the ``entity_id`` list and set the ``window_room`` attribute in
-``customize.yaml``.
+``customize.yaml`` to the room the particular sensor belongs to.
 
 ::
 
@@ -116,8 +124,8 @@ them to the ``entity_id`` list and set the ``window_room`` attribute in
       trigger:
       - platform: state
         entity_id:
-        - binary_sensor.living_window
-        - binary_sensor.kids_window
+        - binary_sensor.living_window_1
+        - binary_sensor.living_window_2
       condition:
       - condition: template
         value_template: "{{ trigger.from_state.state != trigger.to_state.state }}"
@@ -133,16 +141,18 @@ That's it. Don't forget to restart Home Assistant after editing the files.
 Motion-Triggered Lights
 -----------------------
 
-Scheduling lights is really easy with the ``switch`` actor
-type. Even associating motion sensors isn't too complicated
-with just a single automation and an additional schedule
-rule. This is very similar to the procedure used for
-:ref:`schedy/tips-and-tricks/open-door-or-window-detection`.
+Scheduling lights is really easy with the ``switch`` actor type. Even
+associating motion sensors isn't too complicated with just a single
+automation and an additional schedule rule. The procedure is identical to
+that used for :ref:`schedy/tips-and-tricks/open-door-or-window-detection`,
+except that the ``binary_sensor`` entities now report motion instead
+of open windows and the value needs to be set to ``"on"`` while motion
+is detected.
 
 Let's assume the following:
 
 1. You've got a room named ``entrance`` configured in Schedy with one
-   or more light actors.
+   or more lights as actors.
 
 2. There'S a motion sensor ``binary_sensor.entrance_motion`` that switches
    to ``on`` when motion is detected.
@@ -160,21 +170,18 @@ Ok, let's get started.
    motion sensor of the current room reports motion is added. We place
    it at the top of the ``schedule_prepend`` configuration section to
    have it applied to all rooms as their first rule.
-   This code checks all ``binary_sensor`` entities found in Home Assistant
-   for a ``motion_room`` attribute and, if present, compares the value
-   of that attribute to the name of the room for which the expression
-   is evaluated. This way it finds all motion sensors for the current
-   room and can check whether one of them reports motion.
 
    ::
 
        - x: |
            result = Skip()
            if is_on("binary_sensor.dark"):
-               for s in state("binary_sensor"):
-                   if state(s, attribute="motion_room") == room_name and is_on(s):
-                       result = Mark("on", Mark.OVERLAY)
-                       break
+               try:
+                   next(filter_entities("binary_sensor", motion_room=room_name, state="on"))
+               except StopIteration:
+                   pass
+               else:
+                   result = Mark("on", Mark.OVERLAY)
 
 3. Create an automation.
 
