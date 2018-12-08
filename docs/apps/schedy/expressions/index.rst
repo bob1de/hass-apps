@@ -140,8 +140,8 @@ decisions. However, there might be situations in which you need to make
 more complex weightings that would get confusing when written as a single
 line expression. That's why you may as well use whole statements.
 
-As soon as the string given as an expression contains line-breaks, it's
-treated as a series of whole statements rather than an expression. In
+As soon as the string given as an expression contains line-breaks,
+it's treated as a series of whole statements rather than an expression. In
 YAML, a schedule rule with such a multi-line expression can be denoted
 as follows.
 
@@ -159,6 +159,24 @@ You may in fact write  arbitrary Python code in such a script, including
 import statements and class or function definitions. The only requirement
 is that at the end of the execution, the final result is stored in the
 global ``result`` variable.
+
+.. note::
+
+   The string really has to consist of more than one line to be treated
+   as a statement. The following example doesn't contain line-breaks
+   and hence would be considered as an uncompilable expression.
+
+   ::
+
+       - x: |
+           result = 42
+
+   While this is a valid single-line expression and would compile just fine:
+
+   ::
+
+       - x: |
+           42
 
 
 Expressions and Sub-Schedules

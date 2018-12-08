@@ -97,14 +97,19 @@ def build_date_from_constraint(
 
 def compile_expression(expr: str) -> types.CodeType:
     """Compiles strings to code objects.
-    Strings with one or more newlines are assumed to contain whole
-    statements already.
-    Strings without newlines are treated as simple expressions and
-    "result = " is prepended to them before compilation."""
+    Strings containing one or more newlines are assumed to contain
+    whole statements. Others are treated as simple expressions and
+    "result = " is prepended to them before compilation is done as a
+    single statement."""
 
-    if "\n" not in expr:
+    if "\n" in expr:
+        mode = "exec"
+    else:
         expr = "result = {}".format(expr)
-    return compile(expr, "expr", "exec")
+        mode = "single"
+
+    compiled = compile(expr, "expr", mode, dont_inherit=True)  # type: types.CodeType
+    return compiled
 
 def deep_merge_dicts(source: dict, dest: dict) -> None:
     """Updates items of dest with those of source, descending into and
