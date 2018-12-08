@@ -50,7 +50,7 @@ Example:
 ``schedule.next_results``
 -------------------------
 
-``schedule.next_results(schedule: Schedule, start: datetime.datetime = None, end: datetime.datetime = None) -> Iterable[Tuple[datetime.datetime, ScheduleEvaluationResult]]``
+``schedule.next_results(schedule: Schedule, start: datetime.datetime = None, end: datetime.datetime = None) -> Generator[Tuple[datetime.datetime, ScheduleEvaluationResult], None, None]``
 
 This function let's you iterate over future results of a given schedule
 snippet. Every ``Tuple[datetime.datetime, ScheduleEvaluationResult]``
@@ -58,7 +58,8 @@ represents a point in time at which the result will change.
 With the ``start`` and ``end`` parameters, you can limit the time range
 to consider. The default is to start at the current time and continue
 infinitely.
-The first evaluation is always done for the ``start`` time.
+The first result generated is always that for the ``start`` time, the
+last one that for the ``end`` time.
 
 Example:
 

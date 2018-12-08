@@ -154,21 +154,26 @@ class ScheduleHelper(HelperBase):
     def next_results(
             self, schedule: "schedule_mod.Schedule",
             start: datetime.datetime = None, end: datetime.datetime = None
-    ) -> T.Iterable[T.Tuple[
+    ) -> T.Generator[T.Tuple[
         datetime.datetime, "schedule_mod.ScheduleEvaluationResultType"
-    ]]:
-        """Returns an iterator over tuples of datetime objects and
-        schedule evaluation results. At each of these datetimes, the
-        scheduling result will change to the returned one."""
+    ], None, None]:
+        """Returns a generator that yields tuples of datetime objects
+        and schedule evaluation results. At each of these datetimes,
+        the scheduling result will change to the returned one.
+        The first result generated is always that for the start time,
+        the last one that for the end time."""
 
         when = start or self._now  # type: T.Optional[datetime.datetime]
         last_result = None
         while when and (not end or end > when):
             result = schedule.evaluate(self._room, when)
-            if result is not None and result != last_result:
+            if result and result != last_result:
                 yield when, result
                 last_result = result
             when = schedule.get_next_scheduling_datetime(when)
+
+        if end and last_result:
+            yield end, last_result
 
 
 class PatternHelper(HelperBase):
