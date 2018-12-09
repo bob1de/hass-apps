@@ -14,6 +14,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 
 ### Changed
+
+### Deprecated
+
+### Removed
+
+
+## 0.20181209.0
+
+### Added
+* Schedy v0.1.0
+
+### Changed
 * Installation in hass.io is now a lot simpler, see
   [here](getting-started.html#installation-in-hass-io).
 * Installation in Docker is now a lot simpler, see
