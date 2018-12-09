@@ -22,20 +22,12 @@ the version number in the ``requirements.txt`` file you once created
 (or the add-on settings) to the latest one and restart AppDaemon.
 
 
-Upgrade Using the Auto-Install Assistant
-----------------------------------------
-
-If you used the :ref:`getting-started/auto-install-assistant` for setting
-hass-apps up, you can simply re-run it and specify the same location as
-you did when installing. It'll then remove the old version and install
-a fresh up-to-date copy of hass-apps for you. All configuration data
-in the ``conf`` sub-directory will of course be retained. The assistant
-will have created a copy of itself called ``AIA.py`` in the installation
-directory. Just run it.
-
-
 Upgrade Manually
 ----------------
+
+When you've installed hass-apps using the
+:ref:`getting-started/manual-installation` method, follow these steps
+to upgrade it.
 
 1. First, ``cd`` into ``~/appdaemon`` and activate your virtualenv.
 

@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   control lights much more flexibly.
 
 ### Removed
+* Removed the Auto-Install Assistant because of missing resonance
 
 
 ## 0.20181005.0

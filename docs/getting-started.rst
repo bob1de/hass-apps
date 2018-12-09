@@ -62,8 +62,10 @@ Installation in Docker
 3. Continue with the :ref:`getting-started/configuration` as normal.
 
 
-Installation on GNU/Linux
--------------------------
+.. _getting-started/manual-installation:
+
+Manual Installation
+-------------------
 
 Hass-apps is a collection of apps for `AppDaemon
 <https://appdaemon.readthedocs.io/en/stable/>`_, hence AppDaemon is a
@@ -78,30 +80,6 @@ operating system.
 The minimum required Python version is 3.5. To find out what you have
 installed, run ``python3 --version``. If your version of Python is recent
 enough, you may continue with installing.
-
-
-.. _getting-started/auto-install-assistant:
-
-Auto-Install Assistant
-~~~~~~~~~~~~~~~~~~~~~~
-
-There is a script available to guide you through the installation and
-configuration. Just open a console, terminal, SSH session or whatever
-and execute the following command. Execute it as the user that should
-run AppDaemon later, doing this as root is strictly dissuaded from.
-
-::
-
-    wget -qO- https://raw.githubusercontent.com/efficiosoft/hass-apps/master/AIA.py > /tmp/AIA.py && python3 /tmp/AIA.py
-
-Once the script has been downloaded, it'll run automatically. Follow
-the instructions on screen.
-
-
-.. _getting-started/manual-installation:
-
-Manual Installation
-~~~~~~~~~~~~~~~~~~~
 
 It is strongly recommended to install hass-apps (+ it's dependencies
 like AppDaemon) into a virtualenv, separated even from Home Assistant in
