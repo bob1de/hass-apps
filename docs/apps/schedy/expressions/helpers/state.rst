@@ -57,7 +57,9 @@ Examples:
 ::
 
     # entities with a state of "on"
-    filter_entities(state="on")
+    for entity in filter_entities(state="on"):
+        ...
 
     # binary_sensor and input_boolean entities having a room attribute with the value "living"
-    filter_entities(["binary_sensor", "input_boolean"], room="living")
+    for entity in filter_entities(["binary_sensor", "input_boolean"], room="living"):
+        ...
