@@ -316,6 +316,7 @@ class Schedule:
             rules_with_expr_or_value = path.rules_with_expr_or_value
             for rule in reversed(rules_with_expr_or_value):
                 if rule.expr is not None:
+                    plain_value = False
                     if rule.expr in expr_cache:
                         result = expr_cache[rule.expr]
                         log("=> {}  [cache-hit]".format(repr(result)),
@@ -326,6 +327,7 @@ class Schedule:
                         log("=> {}".format(repr(result)),
                             path, level="DEBUG")
                 elif rule.value is not None:
+                    plain_value = True
                     result = rule.value
                     log("=> {}".format(repr(result)),
                         path, level="DEBUG")
@@ -380,6 +382,11 @@ class Schedule:
                 continue
             else:
                 result = room.validate_value(result)
+                if result is None and plain_value:
+                    room.log("Maybe this is an expression? If so, set it "
+                             "as the rule's 'expression' parameter "
+                             "rather than as 'value'.",
+                             level="WARNING")
                 for pre_result in pre_results:
                     if result is None:
                         break
