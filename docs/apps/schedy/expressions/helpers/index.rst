@@ -13,10 +13,11 @@ usage in your expressions, these will be described in this chapter.
 
 
 .. toctree::
-   :maxdepth: 1
+   :caption: Available helpers:
+   :maxdepth: 2
 
-   helpers/basic
-   helpers/date-time
-   helpers/state
-   helpers/schedule
-   helpers/pattern
+   basic
+   date-time
+   state
+   schedule
+   pattern
