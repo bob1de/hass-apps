@@ -15,12 +15,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 ### Changed
-* Lowered delay after which a schedy_reschedule event is processed from
-  3 to 1 second.
 
 ### Deprecated
 
 ### Removed
+
+
+## 0.1.1 - 2018-12-11
+
+### Changed
+* Lowered delay after which a schedy_reschedule event is processed from
+  3 to 1 second.
 
 
 ## 0.1.0 - 2018-12-09
