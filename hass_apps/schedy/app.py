@@ -96,15 +96,16 @@ class SchedyApp(common.App):
             return
 
         rooms = self._get_event_rooms(event, data.get("room"))
-        self.log("Re-schedule event received for: {} [mode={}, delay=3sec]"
+        self.log("Re-schedule event received for: {} [mode={}, delay=1sec]"
                  .format(", ".join([str(room) for room in rooms]),
                          repr(mode)),
                  prefix=common.LOG_PREFIX_INCOMING)
 
         for room in rooms:
-            # delay for some seconds to have the state fully updated
+            # delay for one second to have the state fully updated when
+            # when schedules are evaluated
             gen = lambda func, reset: lambda *a, **kw: func(reset=reset)
-            self.run_in(gen(room.apply_schedule, bool(mode == "reset")), 3)  # type: ignore
+            self.run_in(gen(room.apply_schedule, bool(mode == "reset")), 1)  # type: ignore
 
     def _set_value_event_cb(
             self, event: str, data: dict, kwargs: dict
