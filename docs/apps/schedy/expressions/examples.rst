@@ -183,14 +183,17 @@ top-level schedule and hence abort the entire schedule evaluation.
 What to Use ``Abort()`` for
 ---------------------------
 
-The ``Abort`` return type is most useful for disabling Schedy's
-scheduling mechanism depending on the state of entities. You might
-implement a schedule on/off switch with it, like so:
+The ``Abort`` return type is most useful for disabling Schedy's scheduling
+mechanism depending on the state of entities. You might implement on/off
+switches for disabling the schedules with it, like so:
 
 ::
 
     schedule_prepend:
+    # global schedule on/off switch
     - x: Abort() if is_off("input_boolean.schedy") else Skip()
+    # and, additionally, one per room
+    - x: Abort() if is_off("input_boolean.schedy_room_" + room_name) else Skip()
 
 As soon as ``Abort()`` is returned, schedule evaluation is aborted and
 the value stays unchanged.
