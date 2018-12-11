@@ -1,14 +1,23 @@
 Apps
 ====
 
-All apps for AppDaemon can be found inside the ``hass_apps`` directory
-of the repository. Each includes a sample configuration in the file
-``docs/apps/<app_name>/sample-apps.yaml``.
+Each app has its own, detailled documentation and includes a sample configuration.
 
-Currently, the following apps are included:
 
 .. toctree::
    :glob:
+   :hidden:
    :maxdepth: 1
 
    */index
+
+
+.. rubric:: Active and stable apps:
+
+* :doc:`schedy/index` - The most powerful scheduler for everything from lighting to heating
+
+
+.. rubric:: Deprecated apps that will be removed:
+
+* :doc:`heaty/index` - A scheduler for your heating setup
+* :doc:`motion_light/index` - Motion-triggered lights
