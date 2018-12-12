@@ -20,4 +20,3 @@ Each app has its own, detailled documentation and includes a sample configuratio
 .. rubric:: Deprecated apps that will be removed:
 
 * :doc:`heaty/index` - A scheduler for your heating setup
-* :doc:`motion_light/index` - Motion-triggered lights
