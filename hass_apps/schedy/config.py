@@ -60,6 +60,8 @@ def config_post_hook(cfg: dict) -> dict:
     # pylint: disable=too-many-locals
 
     # name schedule snippets
+    cfg["schedule_prepend"].name = "prepend"
+    cfg["schedule_append"].name = "append"
     for name, sched in cfg["schedule_snippets"].items():
         sched.name = name
 
@@ -95,9 +97,15 @@ def config_post_hook(cfg: dict) -> dict:
             actors[actor_name] = actor_data
 
         # complete the room's schedule.
-        sched = cfg["schedule_prepend"] + room_data["schedule"] + \
-                cfg["schedule_append"]
-        sched.name = room_name
+        rules = []
+        if cfg["schedule_prepend"].rules:
+            rules.append(schedule.SubScheduleRule(cfg["schedule_prepend"]))
+        if room_data["schedule"].rules:
+            room_data["schedule"].name = "room-individual"
+            rules.append(schedule.SubScheduleRule(room_data["schedule"]))
+        if cfg["schedule_append"].rules:
+            rules.append(schedule.SubScheduleRule(cfg["schedule_append"]))
+        sched = schedule.Schedule(name=room_name, rules=rules)
 
         del room_data["actors"]
         del room_data["schedule"]

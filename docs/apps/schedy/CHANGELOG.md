@@ -15,6 +15,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 ### Changed
+* The rules configured as ``schedule_prepend``, the individual room's
+  schedule and those configured as ``schedule_append`` are now combined
+  into the final room's schedule as three separate sub-schedules. This
+  implies that ``Break()``, when returned from the top level, will
+  now only break the individual section of the schedule it stands
+  in. ``Break()`` in a ``schedule_prepend`` section will e.g. only cause
+  the remaining rules of the ``schedule_prepend`` section to be skipped
+  and continue with the individual room's schedule. Use ``Abort()``
+  (recommended) or ``Break(2)`` to achieve the old behaviour.
 
 ### Deprecated
 

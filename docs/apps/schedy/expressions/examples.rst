@@ -165,19 +165,21 @@ The rules 2-4 of the sub-schedule will only be respected when
 continues with the last rule, setting the value to ``OFF`` (which only
 exists with the thermostat actor type).
 
+.. note::
+
+   Since ``schedule_prepend``, a room's individual schedule and
+   ``schedule_append`` are just sub-schedules chained internally,
+   returning ``Break()`` from a top-level rule of one of these three
+   sections causes evaluation to be continued with the next section.
+
 The actual definition of this result type is ``Break(levels=1)``,
 which means that you may optionally pass a parameter called ``levels``
 to ``Break()``. This parameter controls how many levels of nested
 sub-schedules to break out of. The implicit default value ``1`` will
 only abort the innermost sub-schedule (the one currently in). However,
 you may want to directly abort its parent schedule as well by returning
-``Break(2)``. In the above example, this would actually break the
-top-level schedule and hence abort the entire schedule evaluation.
-
-.. note::
-
-   Returning ``Break()`` in the top-level schedule is equivalent to
-   returning ``Abort()``.
+``Break(2)``. In the above example, this would actually break the room's
+schedule and hence continue evaluating the ``schedule_prepend`` section.
 
 
 What to Use ``Abort()`` for
@@ -190,10 +192,10 @@ switches for disabling the schedules with it, like so:
 ::
 
     schedule_prepend:
-    # global schedule on/off switch
-    - x: Abort() if is_off("input_boolean.schedy") else Skip()
-    # and, additionally, one per room
-    - x: Abort() if is_off("input_boolean.schedy_room_" + room_name) else Skip()
+    - name: global schedule on/off switch
+      x: Abort() if is_off("input_boolean.schedy") else Skip()
+    - name: per-room schedule on/off switch
+      x: Abort() if is_off("input_boolean.schedy_room_" + room_name) else Skip()
 
 As soon as ``Abort()`` is returned, schedule evaluation is aborted and
 the value stays unchanged.
