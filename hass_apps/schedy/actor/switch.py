@@ -11,12 +11,17 @@ class SwitchActor(GenericActor):
     name = "switch"
     config_defaults = {
         **GenericActor.config_defaults,
-        "states": {
-            "on": {
-                "service": "homeassistant/turn_on",
+        "attributes": [
+            {
+                "attribute": "state",
+                "values": {
+                    "on": {
+                        "service": "homeassistant/turn_on",
+                    },
+                    "off": {
+                        "service": "homeassistant/turn_off",
+                    },
+                },
             },
-            "off": {
-                "service": "homeassistant/turn_off",
-            },
-        },
+        ],
     }

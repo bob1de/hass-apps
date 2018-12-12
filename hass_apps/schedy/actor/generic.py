@@ -7,11 +7,10 @@ import typing as T
 import voluptuous as vol
 
 from ... import common
-from .. import util
 from .base import ActorBase
 
 
-STATE_DEF_SCHEMA = vol.Schema(vol.All(
+VALUE_DEF_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
     {
         vol.Required("service"): vol.All(
@@ -23,92 +22,121 @@ STATE_DEF_SCHEMA = vol.Schema(vol.All(
             dict,
         ),
         vol.Optional("include_entity_id", default=True): bool,
-        vol.Optional("value_param", default=None): vol.Any(str, None),
+        vol.Optional("value_parameter", default=None):
+            vol.Any(str, None),
     },
 ))
 
-WILDCARD_STATE_NAME_SCHEMA = vol.Schema(vol.All(
+WILDCARD_VALUE_SCHEMA = vol.Schema(vol.All(
     vol.Coerce(str), str.lower, "_other_",
 ))
 
 
 class GenericActor(ActorBase):
-    """A configurable, generic actor for Schedy."""
+    """A configurable, generic actor for Schedy that can control multiple
+    attributes at once."""
 
     name = "generic"
     config_schema_dict = {
         **ActorBase.config_schema_dict,
-        vol.Optional("state_attr", default="state"): vol.Any(str, None),
-        vol.Optional("states", default=dict): vol.All(
-            lambda v: v or {},
-            {
-                vol.Any(WILDCARD_STATE_NAME_SCHEMA, util.CONF_STR_KEY):
-                    STATE_DEF_SCHEMA,
-            },
+        vol.Optional("attributes", default=list): vol.All(
+            lambda v: v or [],
+            [
+                vol.All(
+                    lambda v: v or {},
+                    {
+                        vol.Optional("attribute", default=None):
+                            vol.Any(str, None),
+                        vol.Optional("values", default=dict): vol.All(
+                            lambda v: v or {},
+                            {
+                                vol.Any(
+                                    WILDCARD_VALUE_SCHEMA,
+                                    float, int, str,
+                                ): VALUE_DEF_SCHEMA,
+                            },
+                        ),
+                    },
+                ),
+            ],
         ),
     }
 
-    def _get_state_cfg(self, state: str) -> T.Any:
-        """Returns the state configuration for given state or None,
-        if unknown. _other_ is respected as well."""
+    def _get_value_cfg(self, index: int, value: str) -> T.Any:
+        """Returns the value configuration for given attribute index
+        and value or None, if unknown. _other_ is respected as well."""
 
         try:
-            return self.cfg["states"][state]
+            return self.cfg["attributes"][index]["values"][value]
         except KeyError:
-            return self.cfg["states"].get("_other_")
+            return self.cfg["attributes"][index]["values"].get("_other_")
 
     def do_send(self) -> None:
-        """Executes the service configured for self._wanted_value."""
+        """Executes the services configured for self._wanted_value."""
 
-        cfg = self._get_state_cfg(self._wanted_value)
-        service = cfg["service"]
-        service_data = cfg["service_data"].copy()
-        if cfg["include_entity_id"]:
-            service_data.setdefault("entity_id", self.entity_id)
-        if cfg["value_param"] is not None:
-            service_data.setdefault(cfg["value_param"], self._wanted_value)
+        value = self._wanted_value
+        if len(self.cfg["attributes"]) == 1:
+            value = (value,)
 
-        self.log("Calling service {}, data = {}."
-                 .format(repr(service), repr(service_data)),
-                 level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
-        self.app.call_service(service, **service_data)
+        for index in range(len(self.cfg["attributes"])):
+            cfg = self._get_value_cfg(index, value[index])
+            service = cfg["service"]
+            service_data = cfg["service_data"].copy()
+            if cfg["include_entity_id"]:
+                service_data.setdefault("entity_id", self.entity_id)
+            if cfg["value_parameter"] is not None:
+                service_data.setdefault(cfg["value_parameter"], value[index])
+
+            self.log("Calling service {}, data = {}."
+                     .format(repr(service), repr(service_data)),
+                     level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
+            self.app.call_service(service, **service_data)
 
     def filter_set_value(self, value: T.Any) -> T.Any:
-        """Checks whether the actor supports this state."""
+        """Checks whether the actor supports this value."""
 
-        value = str(value)
-        if self._get_state_cfg(value) is not None:
-            return value
+        if not isinstance(value, tuple):
+            value = (value,)
+        if len(value) != len(self.cfg["attributes"]):
+            self.log("The value {} has not the expected number of items ({})."
+                     .format(repr(value), len(self.cfg["attributes"])),
+                     level="ERROR")
+            return None
 
-        self.log("State {} is not known by this generic actor, "
-                 "ignoring request to set it."
-                 .format(repr(value)),
-                 level="WARNING")
-        return None
+        _value = []
+        for index, item in enumerate(value):
+            if self._get_value_cfg(index, item) is None:
+                self.log("VALUe {} for slot {} is not known by this "
+                         "generic actor, ignoring request to set it."
+                         .format(repr(item), index),
+                         level="ERROR")
+                return None
+            _value.append(item)
+
+        return value[0] if len(_value) == 1 else tuple(_value)
 
     def notify_state_changed(self, attrs: dict) -> T.Any:
         """Is called when the entity's state changes."""
 
-        state_attr = self.cfg["state_attr"]
-        if state_attr is None:
-            return None
-        state = attrs.get(state_attr)
-        self.log("Attribute {} is {}."
-                 .format(repr(state_attr), repr(state)),
-                 level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
-        if state is None:
-            self.log("Ignoring state of None.", level="DEBUG")
-            return None
+        items = []  # type: T.List[T.Any]
+        for cfg in self.cfg["attributes"]:
+            attr = cfg["attribute"]
+            if attr is None:
+                # write-only slot, can never be determined
+                items.append(None)
+                continue
+            state = attrs.get(attr)
+            self.log("Attribute {} is {}."
+                     .format(repr(attr), repr(state)),
+                     level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
+            if state is None:
+                self.log("Ignoring state of None.", level="DEBUG")
+                return None
+            items.append(state)
 
-        state = str(state)
-        if not self.values_equal(state, self._current_value):
+        value = items[0] if len(items) == 1 else tuple(items)
+        if not self.values_equal(value, self._current_value):
             self.log("Received state of {}."
-                     .format(repr(state)),
+                     .format(repr(value)),
                      prefix=common.LOG_PREFIX_INCOMING)
-        return state
-
-    @staticmethod
-    def values_equal(a: T.Any, b: T.Any) -> bool:
-        """Compares the string representations of a and b."""
-
-        return str(a) == str(b)
+        return value

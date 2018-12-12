@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   the remaining rules of the ``schedule_prepend`` section to be skipped
   and continue with the individual room's schedule. Use ``Abort()``
   (recommended) or ``Break(2)`` to achieve the old behaviour.
+* The generic actor has been reworked to support controlling multiple
+  attributes at once. Its configuration schema has changed as well, so
+  please consult the documentation for migrating.
 
 ### Deprecated
 

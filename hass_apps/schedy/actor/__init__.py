@@ -11,8 +11,13 @@ from .switch import SwitchActor
 from .thermostat import ThermostatActor
 
 
-__all__ = ["ActorBase", "CustomActor", "GenericActor", "SwitchActor",
-           "ThermostatActor"]
+__all__ = [
+    "ActorBase",
+    "CustomActor",
+    "GenericActor",
+    "SwitchActor",
+    "ThermostatActor",
+]
 
 
 def get_actor_types() -> T.Iterable[T.Type[ActorBase]]:

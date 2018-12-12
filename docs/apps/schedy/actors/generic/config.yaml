@@ -1,33 +1,45 @@
-# The attribute of the entity to be watched for state changes.
-#state_attr: state
+# List the entity attributes to be controlled by this actor.
+attributes:
 
-# Here, the possible values of that attribute are configured.
-states:
+- # The attribute of the entity to be watched for state changes.
+  # Use "state" for the entity state or any other attribute from the
+  # attributes dictionary.
+  # When you set this to null, you define a write-only attribute which's
+  # current value isn't reflected in the entity's state and thus can't be
+  # determined by Schedy. The configured service is called when setting a
+  # value, but the value can never be considered committed and re-sending
+  # is done according to the send_retries and send_retry_interval settings.
+  #attribute: null
 
-  #some_state:
+  # Here, the possible values of that attribute are configured.
+  values:
 
-    # The service that needs to be called in order to make state_attr
-    # show this state.
-    #service: <required>
+    #some_value:
 
-    # The data to be passed to the service.
-    #service_data: {}
+      # The service that needs to be called in order to make the attribute
+      # show this value.
+      #service: <required>
 
-    # Whether to include the entity id as "entity_id" in the service data.
-    #include_entity_id: true
+      # The data to be passed to the service.
+      #service_data: {}
 
-    # The parameter as which the actual value should be passed in the
-    # service data.
-    # null means not include the value in the service data.
-    #value_param: null
+      # Whether to include the entity id as "entity_id" in the service data.
+      #include_entity_id: true
 
-  #other_state:
-    # ...
+      # The parameter as which the actual value should be passed in the
+      # service data.
+      # null means not include the value in the service data.
+      #value_param: null
 
-  # The keyword "_other_" stands for a so-called wildcard state that
-  # matches any state not explicitly defined here. You may want to use
-  # the wildcard state to catch arbitrary numbers, for example.
-  # If you define all possible states explicitly and don't need a wildcard
-  # state, simply leave it out.
-  #_other_:
-    # ...
+    #other_value:
+      # ...
+
+    # The keyword "_other_" stands for a so-called wildcard value that
+    # matches any value not explicitly defined here. You may want to use
+    # the wildcard value to catch arbitrary numbers, for example.
+    # If you define all possible values explicitly and don't need a wildcard,
+    # simply leave it out.
+    #_other_:
+      # ...
+
+- # Second attribute...
