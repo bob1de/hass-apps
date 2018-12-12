@@ -387,26 +387,28 @@ class Schedule:
                              "as the rule's 'expression' parameter "
                              "rather than as 'value'.",
                              level="WARNING")
-                for pre_result in pre_results:
-                    if result is None:
-                        break
-                    log("+ {}".format(repr(pre_result)),
-                        path, level="DEBUG")
-                    try:
-                        result = pre_result.combine_with(result)
-                    except expression_types.PreliminaryCombiningError as err:
-                        room.log("Error while combining {} with result {}: {}"
-                                 .format(repr(pre_result), repr(result), err),
-                                 level="ERROR")
-                        result = None
-                        break
-                    log("= {}".format(repr(result)),
-                        path, level="DEBUG")
-                    result = room.validate_value(result)
+                elif pre_results:
+                    room.log("Applying preliminary results.", level="DEBUG")
+                    for pre_result in pre_results:
+                        if result is None:
+                            break
+                        room.log("+ {}".format(repr(pre_result)), level="DEBUG")
+                        try:
+                            result = pre_result.combine_with(result)
+                        except expression_types.PreliminaryCombiningError as err:
+                            room.log("Error while combining {} with result {}: {}"
+                                     .format(repr(pre_result), repr(result), err),
+                                     level="ERROR")
+                            result = None
+                            break
+                        room.log("= {}".format(repr(result)), level="DEBUG")
+                        result = room.validate_value(result)
+
                 if result is None:
                     room.log("Aborting schedule evaluation.",
                              level="ERROR")
                     break
+
                 room.log("Final result: {}".format(repr(result)),
                          level="DEBUG")
                 if markers:
