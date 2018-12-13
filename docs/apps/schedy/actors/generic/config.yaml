@@ -12,6 +12,7 @@ attributes:
   #attribute: null
 
   # Here, the possible values of that attribute are configured.
+  # Values can be floats, integers, strings or null.
   values:
 
     #some_value:

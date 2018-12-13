@@ -10,6 +10,8 @@ from ... import common
 from .base import ActorBase
 
 
+ALLOWED_VALUE_TYPES = (float, int, str, type(None))
+
 VALUE_DEF_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
     {
@@ -51,8 +53,7 @@ class GenericActor(ActorBase):
                             lambda v: v or {},
                             {
                                 vol.Any(
-                                    WILDCARD_VALUE_SCHEMA,
-                                    float, int, str,
+                                    WILDCARD_VALUE_SCHEMA, *ALLOWED_VALUE_TYPES
                                 ): VALUE_DEF_SCHEMA,
                             },
                         ),
@@ -140,3 +141,23 @@ class GenericActor(ActorBase):
                      .format(repr(value)),
                      prefix=common.LOG_PREFIX_INCOMING)
         return value
+
+    @staticmethod
+    def validate_value(value: T.Any) -> T.Any:
+        """Converts lists to tuples."""
+
+        if isinstance(value, list):
+            items = tuple(value)
+        elif isinstance(value, tuple):
+            items = value
+        else:
+            items = (value,)
+
+        for index, item in enumerate(items):
+            if not isinstance(item, ALLOWED_VALUE_TYPES):
+                raise ValueError(
+                    "Value {} for slot {} must be of one of these types: {}"
+                    .format(repr(item), index, ALLOWED_VALUE_TYPES)
+                )
+
+        return items[0] if len(items) == 1 else items
