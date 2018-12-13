@@ -3,9 +3,9 @@ A multi-purpose scheduler for Home Assistant + AppDaemon.
 """
 
 import typing as T
-import types  # pylint: disable=unused-import
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
+    import types
     from .room import Room
     from .stats import StatisticalParameter
 
@@ -29,11 +29,12 @@ class SchedyApp(common.App):
         config_schema = config.CONFIG_SCHEMA
 
     def __init__(self, *args: T.Any, **kwargs: T.Any) -> None:
+        super().__init__(*args, **kwargs)
+
         self.actor_type = None  # type: T.Optional[T.Type[ActorBase]]
         self.rooms = []  # type: T.List[Room]
         self.stats_params = []  # type: T.List[StatisticalParameter]
         self.expression_modules = {}  # type: T.Dict[str, types.ModuleType]
-        super().__init__(*args, **kwargs)
 
     def _check_accept_event(self, event: str, data: dict) -> bool:
         """Returns whether this Schedy instance is addressed by the
@@ -169,9 +170,7 @@ class SchedyApp(common.App):
         return None
 
     def initialize_inner(self) -> None:
-        """Checks the configuration, initializes all timers, state and
-        event callbacks and sets values in all rooms according to the
-        configured schedules."""
+        """Initializes all actors and callbacks."""
 
         assert self.actor_type is not None
         self.log("Actor type is: {}".format(repr(self.actor_type.name)))
