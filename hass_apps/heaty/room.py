@@ -200,6 +200,8 @@ class Room:
         If no temperature could be found in the schedule (e.g. all
         rules evaluate to Skip()), None is returned."""
 
+        # pylint: disable=line-too-long
+
         def insert_paths(
                 paths: T.List[schedule.RulePath], first_index: int,
                 path_prefix: schedule.RulePath,

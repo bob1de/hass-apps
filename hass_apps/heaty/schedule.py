@@ -58,6 +58,7 @@ class Rule:
                 temp = expr.Temp(temp_expr)
             except ValueError:
                 # this is a temperature expression, precompile it
+                assert isinstance(temp_expr, str)
                 self.temp_expr = compile(temp_expr, "temp_expr", "eval")  # type: expr.ExprType
             else:
                 self.temp_expr = temp
@@ -70,6 +71,8 @@ class Rule:
 
     def _get_repr_tokens(self) -> T.List[str]:
         """Returns a list of tokens to be shown in repr()."""
+
+        # pylint: disable=line-too-long
 
         tokens = []  # type: T.List[str]
 
