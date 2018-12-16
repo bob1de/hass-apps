@@ -436,11 +436,6 @@ class ThermostatActor(ActorBase):
                         "current_temp_changed", self, current_temp
                     )
 
-        if target_temp != self._current_value:
-            self.log("Received target temperature of {}."
-                     .format(str(target_temp)),
-                     prefix=common.LOG_PREFIX_INCOMING)
-
         return target_temp
 
     @staticmethod

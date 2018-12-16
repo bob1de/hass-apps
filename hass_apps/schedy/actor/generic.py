@@ -134,13 +134,7 @@ class GenericActor(ActorBase):
                 self.log("Ignoring state of None.", level="DEBUG")
                 return None
             items.append(state)
-
-        value = items[0] if len(items) == 1 else tuple(items)
-        if not self.values_equal(value, self._current_value):
-            self.log("Received state of {}."
-                     .format(repr(value)),
-                     prefix=common.LOG_PREFIX_INCOMING)
-        return value
+        return items[0] if len(items) == 1 else tuple(items)
 
     @staticmethod
     def validate_value(value: T.Any) -> T.Any:

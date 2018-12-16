@@ -7,7 +7,6 @@ import typing as T
 
 import voluptuous as vol
 
-from ... import common
 from .. import util
 from .base import ActorBase
 
@@ -91,9 +90,4 @@ class CustomActor(ActorBase):
         if value is None:
             self.log("Ignoring value of None.", level="DEBUG")
             return None
-
-        if value != self._current_value:
-            self.log("Received value of {}."
-                     .format(repr(value)),
-                     prefix=common.LOG_PREFIX_INCOMING)
         return value
