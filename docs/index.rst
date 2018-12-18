@@ -51,16 +51,6 @@ donation, no matter how small.
 | ZEC: t1RKFyt4qqtqdYfprf8HZoDHRNLNzhe35ED
 
 
-Monthly Supporters
-~~~~~~~~~~~~~~~~~~
-
-These awesome supporters show their appreciation with a monthly donation
-and help keeping hass-apps alive. If you want to be listed here, please
-let me know!
-
-* None yet.
-
-
 Getting Help
 ------------
 
