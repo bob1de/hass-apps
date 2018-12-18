@@ -6,6 +6,7 @@ import typing as T
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     import types
+    from .actor.base import ActorBase
     from .room import Room
     from .stats import StatisticalParameter
 
@@ -13,7 +14,6 @@ import importlib
 
 from .. import common
 from . import __version__, config, util
-from .actor.base import ActorBase
 
 
 __all__ = ["SchedyApp"]

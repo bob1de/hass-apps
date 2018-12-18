@@ -7,6 +7,7 @@ if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     import uuid
     from ..expression.helpers import HelperBase as ExpressionHelperBase
+    from ..room import Room
     from ..stats import StatisticalParameter
 
 import copy
@@ -15,7 +16,7 @@ import observable
 import voluptuous as vol
 
 from ... import common
-from ..room import Room, sync_proxy
+from ..room import sync_proxy
 
 
 class ActorBase:
