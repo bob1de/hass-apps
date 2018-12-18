@@ -168,7 +168,8 @@ with expressions, you gain a lot more flexibility.
 
 As you know from :ref:`schedy/writing-schedules/rules-with-sub-schedules`,
 rules of sub-schedules inherit their ``v`` parameter from the nearest
-anchestor rule having it defined, should they miss an own one.
+anchestor rule having it defined, should they miss an own one. Basically,
+this is true for the ``x`` parameter as well.
 
 With an expression as the ``x`` value of the rule having a sub-schedule,
 you get the flexibility to dynamically overwrite the anchestor's value or
@@ -182,4 +183,4 @@ The whole process can be described as follows. To find the result for
 a particular rule inside a sub-schedule, the ``v``/``x`` parameters of
 the rule and it's anchestor rules are evaluated from inside to outside
 (from right to left when looking at the indentation of the YAML syntax)
-until one results in something different than ``None``.
+until one results in something different to ``None``.
