@@ -13,7 +13,7 @@ As the value for ``x``, you configure an expression like the following.
 
 ::
 
-    "on" if time.hour >= float(state("input_number.start_hour")) and time.hour <= float(state("input_number.end_hour")) else Skip()
+    'on' if time.hour >= float(state('input_number.start_hour')) and time.hour <= float(state('input_number.end_hour')) else Skip()
 
 What this does is quite simple. It sets the value to "on" if the
 current hour is between the values configured by the two entities we
@@ -32,4 +32,4 @@ Now let's put this all together into a valid schedule rule:
 
 ::
 
-    - v: state("input_number.day_temperature") if time.hour >= float(state("input_number.start_hour")) and time.hour <= float(state("input_number.end_hour")) else Skip()
+    - x: "state('input_number.day_temperature') if time.hour >= float(state('input_number.start_hour')) and time.hour <= float(state('input_number.end_hour')) else Skip()"

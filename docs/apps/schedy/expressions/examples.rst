@@ -14,7 +14,7 @@ that should prepare our bathroom for taking a bath. It's name is
 ::
 
     schedule:
-    - x: 22 if is_on("switch.take_a_bath") else Skip()
+    - x: "22 if is_on('switch.take_a_bath') else Skip()"
     - v: 19
 
 Last step is to write a simple Home Assistant automation to emit
@@ -53,7 +53,7 @@ This is a rule I once used in my own heating configuration at home:
 ::
 
     schedule_prepend:
-    - x: Add(-3) if is_on("input_boolean.absent") else Skip()
+    - x: "Add(-3) if is_on('input_boolean.absent') else Skip()"
 
 What does this? Well, the first thing we see is that the rule is placed
 inside the ``schedule_prepend`` section. That means, it is valid for
@@ -119,7 +119,7 @@ Now, we include the snippet into a room's schedule:
 ::
 
     schedule:
-    - x: IncludeSchedule(schedule_snippets["summer"])
+    - x: "IncludeSchedule(schedule_snippets['summer'])"
       months: 6-9
     - { v: 21, start: "07:00", end: "21:30", weekdays: 1-5 }
     - { v: 21, start: "08:00", end: "23:00", weekdays: 6-7 }
@@ -154,7 +154,7 @@ sub-schedule, for instance.
     schedule:
     - v: 20
       rules:
-      - x: Skip() if is_on("input_boolean.include_sub_schedule") else Break()
+      - x: "Skip() if is_on('input_boolean.include_sub_schedule') else Break()"
       - { start: "07:00", end: "09:00" }
       - { start: "12:00", end: "22:00" }
       - v: 17
@@ -193,9 +193,9 @@ switches for disabling the schedules with it, like so:
 
     schedule_prepend:
     - name: global schedule on/off switch
-      x: Abort() if is_off("input_boolean.schedy") else Skip()
+      x: "Abort() if is_off('input_boolean.schedy') else Skip()"
     - name: per-room schedule on/off switch
-      x: Abort() if is_off("input_boolean.schedy_room_" + room_name) else Skip()
+      x: "Abort() if is_off('input_boolean.schedy_room_' + room_name) else Skip()"
 
 As soon as ``Abort()`` is returned, schedule evaluation is aborted and
 the value stays unchanged.

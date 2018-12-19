@@ -5,7 +5,10 @@ Writing Expressions
 
    In contrast to plain values, which are denoted as ``value`` or ``v``,
    expressions have to be set as the ``expression`` (or ``x``) parameter
-   of a schedule rule.
+   of a schedule rule. And since expressions have to be strings, we
+   enclose them in quotation marks to prevent the YAML parser from
+   guessing, which may otherwise lead to obscure errors with certain
+   expressions.
 
 Expressions must return a kind of value the used actor type
 understands. Take the thermostat actor as an example. It needs a
@@ -22,8 +25,8 @@ expression.
 
 * ``5``
 * ``True``
-* ``"off"``
-* ``17 if is_on("binary_sensor.absent") else Skip()``
+* ``'off'``
+* ``17 if is_on('binary_sensor.absent') else Skip()``
 
 Writing expressions that way is short and great for things like binary
 decisions. However, there might be situations in which you need to make

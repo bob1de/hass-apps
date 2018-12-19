@@ -39,7 +39,7 @@ if you prefer clarity over conciseness.
 
 ::
 
-    - x: Mark(OFF, Mark.OVERLAY) if not is_empty(filter_entities("binary_sensor", window_room=room_name, state="on")) else Skip()
+    - x: "Mark(OFF, Mark.OVERLAY) if not is_empty(filter_entities('binary_sensor', window_room=room_name, state='on')) else Skip()"
 
 Now, we add an automation to re-evaluate the schedule when a window's
 state changes. Replace ``schedy_heating`` with the name of your

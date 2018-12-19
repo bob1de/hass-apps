@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
+* All expressions of schedule rules specified in the YAML configuration
+  should be enclosed in quotes to force the parser to treat them as
+  strings. A note has been added to the documentation and all examples
+  were updated accordingly.
 
 ### Security
 
