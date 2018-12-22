@@ -69,8 +69,9 @@ Now let's get back to the schedule rule. When it evaluates, it checks the
 state of ``input_boolean.absent``. If the switch is turned on, it
 evaluates to ``Add(-3)``, otherwise to ``Skip()``.
 
-As you know from above, ``Add(-3)`` is no final result yet. Think of it
-as a temporary value that is remembered and used later.
+As you know from above, ``Add(-3)`` is a so-called :doc:`postprocessor
+<postprocessors>`. Think of it as a temporary value that is remembered
+and used later, after a real result was found.
 
 Now, my regular schedule starts being evaluated, which, of course,
 is different for every room. Rules are evaluated just as normal. If

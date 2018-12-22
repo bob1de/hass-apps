@@ -54,9 +54,9 @@ of expressions is the string ``"OFF"`` (case-insensitive).
 
 .. note::
 
-   When working with the ``Add()`` preliminary result type and the final
-   result is ``OFF``, it will stay ``OFF``, no matter what's being added
-   to it.
+   When working with the ``Add()`` :doc:`postprocessor
+   <../../expressions/postprocessors>` and the result is ``OFF``, it
+   will stay ``OFF``, no matter what's being added to it.
 
 
 Statistical Parameters

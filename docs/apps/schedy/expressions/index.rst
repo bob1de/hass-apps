@@ -17,7 +17,7 @@ make their later evaluation really performant.
 
    writing-expressions
    helpers/index
-   postprocessing
+   postprocessors
    result-markers
    examples
 

@@ -567,7 +567,7 @@ class Room:
 
             not_allowed_result_types = (
                 expression_types.ControlResult,
-                expression_types.PreliminaryResult,
+                expression_types.Postprocessor,
                 type(None), Exception,
             )
             value = None

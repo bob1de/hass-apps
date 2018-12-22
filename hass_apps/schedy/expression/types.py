@@ -14,11 +14,11 @@ __all__ = [
 ]
 
 
-class PreliminaryCombiningError(Exception):
-    """Raised when PreliminaryResult.combine_with() fails."""
+class PostprocessingError(Exception):
+    """Raised when Postprocessor.apply() fails."""
 
-class PreliminaryValueMixin:
-    """Makes a PreliminaryResult having a value."""
+class PostprocessorValueMixin:
+    """Makes a Postprocessor having a value."""
 
     def __init__(self, value: T.Any) -> None:
         self.value = value
@@ -26,90 +26,90 @@ class PreliminaryValueMixin:
     def __eq__(self, other: T.Any) -> bool:
         return super().__eq__(other) and self.value == other.value
 
-class PreliminaryValidationMixin(PreliminaryValueMixin):
-    """Marks a PreliminaryResult for needing value validation by the
-    used actor type."""
+class PostprocessorValidationMixin(PostprocessorValueMixin):
+    """Marks a Postprocessor for needing value validation by the used
+    actor type."""
 
-class PreliminaryResult:
-    """Marks an expressions result as preliminary."""
+class Postprocessor:
+    """A postprocessor for the scheduling result."""
 
     def __eq__(self, other: T.Any) -> bool:
         return type(self) is type(other)
 
-    def combine_with(self, result: T.Any) -> T.Any:
+    def apply(self, result: T.Any) -> T.Any:
         """Implements the logic to update result with self. The returned
         value should have the type of result."""
 
         raise NotImplementedError()
 
-class Add(PreliminaryValidationMixin, PreliminaryResult):
+class Add(PostprocessorValidationMixin, Postprocessor):
     """Adds a value to the final result."""
 
-    def combine_with(self, result: T.Any) -> T.Any:
+    def apply(self, result: T.Any) -> T.Any:
         try:
             return type(result)(result + self.value)
         except TypeError as err:
-            raise PreliminaryCombiningError(repr(err))
+            raise PostprocessingError(repr(err))
 
     def __repr__(self) -> str:
         return "Add({})".format(repr(self.value))
 
-class And(PreliminaryValidationMixin, PreliminaryResult):
+class And(PostprocessorValidationMixin, Postprocessor):
     """And-combines a value with the final result."""
 
-    def combine_with(self, result: T.Any) -> T.Any:
+    def apply(self, result: T.Any) -> T.Any:
         return type(result)(result and self.value)
 
     def __repr__(self) -> str:
         return "And({})".format(repr(self.value))
 
-class Multiply(PreliminaryValidationMixin, PreliminaryResult):
+class Multiply(PostprocessorValidationMixin, Postprocessor):
     """Multiplies a value with the final result."""
 
-    def combine_with(self, result: T.Any) -> T.Any:
+    def apply(self, result: T.Any) -> T.Any:
         try:
             return type(result)(result * self.value)
         except TypeError as err:
-            raise PreliminaryCombiningError(repr(err))
+            raise PostprocessingError(repr(err))
 
     def __repr__(self) -> str:
         return "Multiply({})".format(repr(self.value))
 
-class Negate(PreliminaryResult):
+class Negate(Postprocessor):
     """Negates the final result by calling __neg__().
     Booleans and the strings "on"/"off" are inverted instead."""
 
     specials = {True:False, False:True, "on":"off", "off":"on"}
 
-    def combine_with(self, result: T.Any) -> T.Any:
+    def apply(self, result: T.Any) -> T.Any:
         try:
             return self.specials[result]
         except KeyError:
             try:
                 return -result
             except TypeError as err:
-                raise PreliminaryCombiningError(repr(err))
+                raise PostprocessingError(repr(err))
 
     def __repr__(self) -> str:
         return "Negate()"
 
-class Or(PreliminaryValidationMixin, PreliminaryResult):
+class Or(PostprocessorValidationMixin, Postprocessor):
     """Or-combines a value with the final result."""
 
-    def combine_with(self, result: T.Any) -> T.Any:
+    def apply(self, result: T.Any) -> T.Any:
         return type(result)(result or self.value)
 
     def __repr__(self) -> str:
         return "Or({})".format(repr(self.value))
 
-class Postprocess(PreliminaryResult):
-    """A preliminary result type which can be used for post-processing
-    the later result by a custom function (i.e. a lambda closure)."""
+class Postprocess(Postprocessor):
+    """A type which can be used for post-processing the later result by
+    a custom function (i.e. a lambda closure)."""
 
     def __init__(self, func: T.Callable[[T.Any], T.Any]) -> None:
         self._func = func
 
-    def combine_with(self, result: T.Any) -> T.Any:
+    def apply(self, result: T.Any) -> T.Any:
         return self._func(result)
 
 

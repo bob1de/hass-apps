@@ -17,8 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
-* Added the ``Postprocess`` preliminary result type that can be used to
-  post-process the scheduling result in a completely custom way.
+* Added the ``Postprocess`` postprocessor that can be used to post-process
+  the scheduling result in a completely custom way.
 
 ### Changed
 * The rules configured as ``schedule_prepend``, the individual room's
@@ -33,6 +33,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * The generic actor has been reworked to support controlling multiple
   attributes at once. Its configuration schema has changed as well, so
   please consult the documentation for migrating.
+* Preliminary results are now called postprocessors. Syntax and names
+  stay unchanged.
 
 ### Deprecated
 

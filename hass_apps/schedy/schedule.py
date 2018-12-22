@@ -292,7 +292,7 @@ class Schedule:
 
         expr_cache = {}  # type: T.Dict[types.CodeType, T.Any]
         markers = set()
-        pre_results = []
+        postprocessors = []
         paths = []  # type: T.List[RulePath]
         insert_paths(paths, 0, RulePath(self), rules)
         path_idx = 0
@@ -367,9 +367,9 @@ class Schedule:
                 del _path.rules[-1]
                 _path.add(SubScheduleRule(result.schedule))
                 insert_paths(paths, path_idx, _path, _rules)
-            elif isinstance(result, expression_types.PreliminaryResult):
+            elif isinstance(result, expression_types.Postprocessor):
                 if isinstance(
-                        result, expression_types.PreliminaryValidationMixin
+                        result, expression_types.PostprocessorValidationMixin
                 ):
                     value = room.validate_value(result.value)
                     if value is None:
@@ -377,7 +377,7 @@ class Schedule:
                                  level="ERROR")
                         break
                     result.value = value
-                pre_results.append(result)
+                postprocessors.append(result)
             elif isinstance(result, expression_types.Skip):
                 continue
             else:
@@ -387,17 +387,19 @@ class Schedule:
                              "as the rule's 'expression' parameter "
                              "rather than as 'value'.",
                              level="WARNING")
-                elif pre_results:
-                    room.log("Applying preliminary results.", level="DEBUG")
-                    for pre_result in pre_results:
+                elif postprocessors:
+                    room.log("Applying postprocessors.", level="DEBUG")
+                    for postprocessor in postprocessors:
                         if result is None:
                             break
-                        room.log("+ {}".format(repr(pre_result)), level="DEBUG")
+                        room.log("+ {}".format(repr(postprocessor)),
+                                 level="DEBUG")
                         try:
-                            result = pre_result.combine_with(result)
-                        except expression_types.PreliminaryCombiningError as err:
-                            room.log("Error while combining {} with result {}: {}"
-                                     .format(repr(pre_result), repr(result), err),
+                            result = postprocessor.apply(result)
+                        except expression_types.PostprocessingError as err:
+                            room.log("Error while applying {} to result {}: {}"
+                                     .format(repr(postprocessor), repr(result),
+                                             err),
                                      level="ERROR")
                             result = None
                             break
