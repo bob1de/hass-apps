@@ -10,7 +10,7 @@ if T.TYPE_CHECKING:
 
 __all__ = [
     "Abort", "Break", "Mark", "IncludeSchedule", "Skip",
-    "Add", "And", "Multiply", "Negate", "Or",
+    "Add", "And", "Multiply", "Negate", "Or", "Postprocess",
 ]
 
 
@@ -36,18 +36,18 @@ class PreliminaryResult:
     def __eq__(self, other: T.Any) -> bool:
         return type(self) is type(other)
 
-    def combine_with(self, other: T.Any) -> T.Any:
-        """Implements the logic to update other with self. The result
-        should have the type of other."""
+    def combine_with(self, result: T.Any) -> T.Any:
+        """Implements the logic to update result with self. The returned
+        value should have the type of result."""
 
         raise NotImplementedError()
 
 class Add(PreliminaryValidationMixin, PreliminaryResult):
     """Adds a value to the final result."""
 
-    def combine_with(self, other: T.Any) -> T.Any:
+    def combine_with(self, result: T.Any) -> T.Any:
         try:
-            return type(other)(other + self.value)
+            return type(result)(result + self.value)
         except TypeError as err:
             raise PreliminaryCombiningError(repr(err))
 
@@ -57,8 +57,8 @@ class Add(PreliminaryValidationMixin, PreliminaryResult):
 class And(PreliminaryValidationMixin, PreliminaryResult):
     """And-combines a value with the final result."""
 
-    def combine_with(self, other: T.Any) -> T.Any:
-        return type(other)(other and self.value)
+    def combine_with(self, result: T.Any) -> T.Any:
+        return type(result)(result and self.value)
 
     def __repr__(self) -> str:
         return "And({})".format(repr(self.value))
@@ -66,9 +66,9 @@ class And(PreliminaryValidationMixin, PreliminaryResult):
 class Multiply(PreliminaryValidationMixin, PreliminaryResult):
     """Multiplies a value with the final result."""
 
-    def combine_with(self, other: T.Any) -> T.Any:
+    def combine_with(self, result: T.Any) -> T.Any:
         try:
-            return type(other)(other * self.value)
+            return type(result)(result * self.value)
         except TypeError as err:
             raise PreliminaryCombiningError(repr(err))
 
@@ -81,12 +81,12 @@ class Negate(PreliminaryResult):
 
     specials = {True:False, False:True, "on":"off", "off":"on"}
 
-    def combine_with(self, other: T.Any) -> T.Any:
+    def combine_with(self, result: T.Any) -> T.Any:
         try:
-            return self.specials[other]
+            return self.specials[result]
         except KeyError:
             try:
-                return -other
+                return -result
             except TypeError as err:
                 raise PreliminaryCombiningError(repr(err))
 
@@ -96,11 +96,21 @@ class Negate(PreliminaryResult):
 class Or(PreliminaryValidationMixin, PreliminaryResult):
     """Or-combines a value with the final result."""
 
-    def combine_with(self, other: T.Any) -> T.Any:
-        return type(other)(other or self.value)
+    def combine_with(self, result: T.Any) -> T.Any:
+        return type(result)(result or self.value)
 
     def __repr__(self) -> str:
         return "Or({})".format(repr(self.value))
+
+class Postprocess(PreliminaryResult):
+    """A preliminary result type which can be used for post-processing
+    the later result by a custom function (i.e. a lambda closure)."""
+
+    def __init__(self, func: T.Callable[[T.Any], T.Any]) -> None:
+        self._func = func
+
+    def combine_with(self, result: T.Any) -> T.Any:
+        return self._func(result)
 
 
 class ControlResult:

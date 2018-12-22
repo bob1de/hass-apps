@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
+* Added the ``Postprocess`` preliminary result type that can be used to
+  post-process the scheduling result in a completely custom way.
 
 ### Changed
 * The rules configured as ``schedule_prepend``, the individual room's
