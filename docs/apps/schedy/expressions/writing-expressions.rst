@@ -84,10 +84,12 @@ processed.
 * ``Break(levels=1)``, which causes lookup of one (or multiple nested)
   sub-schedule(s) to be aborted immediately. The evaluation will continue
   after the sub-schedule(s).
-* ``IncludeSchedule(schedule)``, which evaluates the given schedule
-  object. See below for an example on how to use this.
+* ``IncludeSchedule(schedule)``, which dynamically inserts the given
+  schedule object as a sub-schedule at the current location.
 * ``Skip()``, which causes the rule to be treated as if it didn't exist
   at all. If one exists, the next rule is evaluated in this case.
+
+For all of these types, :doc:`usage examples <examples>` are provided.
 
 
 Expressions and Sub-Schedules
