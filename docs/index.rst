@@ -1,20 +1,33 @@
 Welcome to the documentation of hass-apps!
 ==========================================
 
-This is a collection of useful apps and snippets to empower Home Assistant
-and AppDaemon even more.
+This is a collection of useful apps to empower Home Assistant even more.
+
+The apps are built ontop of the AppDaemon framework. Each has its own,
+detailled documentation and includes a sample configuration. Read the
+:doc:`getting-started` chapter and start empowering your smart home.
 
 
-Contents
---------
+.. rubric:: Active and stable apps:
+
+* :doc:`apps/schedy/index` - The most powerful scheduler for everything
+  from lighting to heating
+
+
+.. rubric:: Deprecated apps that will be removed:
+
+* :doc:`apps/heaty/index` - A scheduler for your heating setup
+
 
 .. toctree::
+   :glob:
+   :hidden:
    :maxdepth: 1
 
    Introduction <self>
    getting-started
    upgrading
-   apps/index
+   apps/*/index
    CHANGELOG
    CODE_OF_CONDUCT
 
