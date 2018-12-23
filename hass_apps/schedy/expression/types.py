@@ -10,7 +10,7 @@ if T.TYPE_CHECKING:
 
 __all__ = [
     "Abort", "Break", "Mark", "IncludeSchedule", "Skip",
-    "Add", "And", "Multiply", "Negate", "Or", "Postprocess",
+    "Add", "And", "Multiply", "Invert", "Negate", "Or", "Postprocess",
 ]
 
 
@@ -75,7 +75,7 @@ class Multiply(PostprocessorValidationMixin, Postprocessor):
     def __repr__(self) -> str:
         return "Multiply({})".format(repr(self.value))
 
-class Negate(Postprocessor):
+class Invert(Postprocessor):
     """Negates the final result by calling __neg__().
     Booleans and the strings "on"/"off" are inverted instead."""
 
@@ -91,7 +91,9 @@ class Negate(Postprocessor):
                 raise PostprocessingError(repr(err))
 
     def __repr__(self) -> str:
-        return "Negate()"
+        return "Invert()"
+
+Negate = Invert
 
 class Or(PostprocessorValidationMixin, Postprocessor):
     """Or-combines a value with the final result."""

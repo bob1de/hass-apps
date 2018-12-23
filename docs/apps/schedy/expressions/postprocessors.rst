@@ -17,7 +17,7 @@ to alter the later result. Namely, there are:
 * ``And(x)`` to combine the result with ``x`` by the ``and`` Python
   operator.
 * ``Multiply(x)`` to multiply the result with ``x``.
-* ``Negate()`` to negate the result. This negates numbers, inverts boolean
+* ``Invert()`` to invert the result. This negates numbers, inverts boolean
   values and swaps the strings ``"on"`` and ``"off"`` for each other.
 * ``Or(x)`` to combine the result with ``x`` by the ``or`` Python
   operator.

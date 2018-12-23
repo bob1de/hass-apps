@@ -35,8 +35,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   please consult the documentation for migrating.
 * Preliminary results are now called postprocessors. Syntax and names
   stay unchanged.
+* The ``Negate`` postprocessor has been renamed to ``Invert``. The old
+  name will cease to work in version 0.3.
 
 ### Deprecated
+* 0.3: The old name ``Negate`` for the ``Invert`` postprocessor will
+  be removed.
 
 ### Removed
 
