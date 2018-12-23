@@ -37,8 +37,8 @@ class Postprocessor:
         return type(self) is type(other)
 
     def apply(self, result: T.Any) -> T.Any:
-        """Implements the logic to update result with self. The returned
-        value should have the type of result."""
+        """Implements the postprocessor-specific logic for updating the
+        result. The returned value should have the type of result."""
 
         raise NotImplementedError()
 
