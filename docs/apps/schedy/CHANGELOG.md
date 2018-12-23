@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 ### Changed
+* Various small improvements of the examples for using expressions.
 
 ### Deprecated
 * 0.3: The old name ``Negate`` for the ``Invert`` postprocessor will

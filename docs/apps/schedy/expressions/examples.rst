@@ -39,10 +39,12 @@ schedule is re-evaluated and our first schedule rule executes. The
 rule is evaluating our custom expression, checking the state of the
 ``take_a_bath`` switch and, if it's enabled, causes the temperature to
 be set to 22 degrees. However, if the switch is off, the rule is ignored
-completely due to the ``Skip()`` we return in that case.
+completely due to the ``Skip()`` we return in that case and the second
+rule is processed, which always evaluates to 19 degrees.
 
-If that happens, the second rule is processed, which always evaluates
-to 19 degrees.
+What's so nice about these ``... if ... else ...`` expressions in Python
+is that they're almost always self-explanatory. We'll use them extensively
+in the following examples.
 
 
 Use of ``Add()`` and ``Skip()``
@@ -63,15 +65,16 @@ I've defined an ``input_boolean`` called ``absent`` in Home
 Assistant. Whenever I leave the house, this gets enabled. If I return,
 it's turned off again. In order for Schedy to notice the toggling, I
 added an automation to Home Assistant which fires a ``schedy_reschedule``
-event. How that can be done has already been shown above.
+event. How that can be done has already been shown :ref:`here
+<schedy/expressions/examples/considering-the-state-of-entities>`.
 
 Now let's get back to the schedule rule. When it evaluates, it checks the
 state of ``input_boolean.absent``. If the switch is turned on, it
 evaluates to ``Add(-3)``, otherwise to ``Skip()``.
 
-As you know from above, ``Add(-3)`` is a so-called :doc:`postprocessor
-<postprocessors>`. Think of it as a temporary value that is remembered
-and used later, after a real result was found.
+``Add(-3)`` is a so-called :doc:`postprocessor <postprocessors>`. Think
+of it as a temporary value that is remembered and used later, after a
+real result was found.
 
 Now, my regular schedule starts being evaluated, which, of course,
 is different for every room. Rules are evaluated just as normal. If
@@ -110,9 +113,8 @@ the configuration, hence we create one to play with for our heating setup:
 ::
 
     schedule_snippets:
-      summer:
-      - { v: 20, start: "07:00", end: "22:00", weekdays: 1-5 }
-      - { v: 20, start: "08:00", weekdays: 6-7 }
+      vacation:
+      - { v: 21, start: "08:30", end: "23:00" }
       - { v: 16 }
 
 Now, we include the snippet into a room's schedule:
@@ -120,20 +122,25 @@ Now, we include the snippet into a room's schedule:
 ::
 
     schedule:
-    - x: "IncludeSchedule(schedule_snippets['summer'])"
-      months: 6-9
+    - x: "IncludeSchedule(schedule_snippets['vacation']) if is_on('input_boolean.vacation') else Skip()"
+    # when not in vacation mode, have the normal per-room schedule
     - { v: 21, start: "07:00", end: "21:30", weekdays: 1-5 }
     - { v: 21, start: "08:00", end: "23:00", weekdays: 6-7 }
-    - { v: 17 }
+    - { v: 16 }
+
+Again, remember to :ref:`notify Schedy
+<schedy/expressions/examples/considering-the-state-of-entities>` when the
+``input_boolean`` is toggled.
 
 It turns out that you could have done the exact same without including
-schedules by adding the ``months: 6-9`` constraint to all rules of the
-summer snippet. But doing it this way makes the configuration a little
-more readable.
+a snippet by adding the vacation rules directly to the room's schedule,
+but doing it this way makes the configuration more readable, easier
+to maintain and avoids redundancy in case you want to include the
+``vacation`` snippet into other rooms as well.
 
-However, you can also utilize the include functionality from inside
-custom code. Just think of a function that selects different schedules
-based on external criteria, such as weather sensors or presence detection.
+Other use cases for ``IncludeSchedule`` are selecting different schedules
+based on presence (maybe even long holidays vs. short absence) or
+weather sensors.
 
 .. note::
 
@@ -148,7 +155,8 @@ What to Use ``Break()`` for
 When in a sub-schedule, returning ``Break()`` from an expression will
 skip the remaining rules of that sub-schedule and continue evaluation
 after it. You can use it together with ``Skip()`` to create a conditional
-sub-schedule, for instance.
+sub-schedule, for instance. Again, we assume to write a schedule for
+the thermostat actor type.
 
 ::
 
@@ -163,8 +171,7 @@ sub-schedule, for instance.
 
 The rules 2-4 of the sub-schedule will only be respected when
 ``input_boolean.include_sub_schedule`` is on. Otherwise, evaluation
-continues with the last rule, setting the value to ``OFF`` (which only
-exists with the thermostat actor type).
+continues with the last rule, setting the value to ``OFF``.
 
 .. note::
 
@@ -180,7 +187,7 @@ sub-schedules to break out of. The implicit default value ``1`` will
 only abort the innermost sub-schedule (the one currently in). However,
 you may want to directly abort its parent schedule as well by returning
 ``Break(2)``. In the above example, this would actually break the room's
-schedule and hence continue evaluating the ``schedule_prepend`` section.
+schedule and hence continue evaluating the ``schedule_append`` section.
 
 
 What to Use ``Abort()`` for
@@ -226,7 +233,22 @@ You could of course have done this with a single postprocessor as well.
 
     - x: "Postprocess(lambda result: max(16, min(result, 22)))"
 
-Here's another one. It actually behaves like ``Add(-3)``.
+Instead of lambda closures, normal functions may also be used. Here is
+an identically behaving, quite verbose implementation.
+
+::
+
+    - x: |
+        def limit(r):
+            if r < 16:
+                return 16
+            if r > 22:
+                return 22
+            return r
+
+        result = Postprocess(limit)
+
+Here's another one which actually behaves like ``Add(-3)``.
 
 ::
 
