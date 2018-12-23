@@ -18,6 +18,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Deprecated
 
 ### Removed
+
+
+## 0.20181223.0
+
+### Changed
+* Schedy v0.2.0
+
+### Removed
 * Removed the motion_light app.
 
 
