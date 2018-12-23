@@ -1,5 +1,5 @@
 """
-Module containing types to be used in expression evaluation.
+Module containing types to be used during expression evaluation.
 """
 
 import typing as T
