@@ -9,12 +9,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
+
+### Security
+
+### Added
+
+### Changed
+
+### Deprecated
+* 0.3: The old name ``Negate`` for the ``Invert`` postprocessor will
+  be removed.
+* 0.3: The ``And`` and ``Or`` postprocessors will be removed. Use the
+  generic ``Postprocess`` instead.
+
+### Removed
+
+
+## 0.2.0 - 2018-12-23
+
+**Merry Christmas to all users of hass-apps! Thank you for putting your
+trust in Schedy.**
+
+### Fixed
 * All expressions of schedule rules specified in the YAML configuration
   should be enclosed in quotes to force the parser to treat them as
   strings. A note has been added to the documentation and all examples
   were updated accordingly.
-
-### Security
 
 ### Added
 * Added the ``Postprocess`` postprocessor that can be used to post-process
@@ -43,8 +63,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   be removed.
 * 0.3: The ``And`` and ``Or`` postprocessors will be removed. Use the
   generic ``Postprocess`` instead.
-
-### Removed
 
 
 ## 0.1.1 - 2018-12-11
