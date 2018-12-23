@@ -18,17 +18,14 @@ class PostprocessingError(Exception):
     """Raised when Postprocessor.apply() fails."""
 
 class PostprocessorValueMixin:
-    """Makes a Postprocessor having a value."""
+    """Makes a Postprocessor having a value to be validated by the used
+    actor type."""
 
     def __init__(self, value: T.Any) -> None:
         self.value = value
 
     def __eq__(self, other: T.Any) -> bool:
         return super().__eq__(other) and self.value == other.value
-
-class PostprocessorValidationMixin(PostprocessorValueMixin):
-    """Marks a Postprocessor for needing value validation by the used
-    actor type."""
 
 class Postprocessor:
     """A postprocessor for the scheduling result."""
@@ -42,7 +39,7 @@ class Postprocessor:
 
         raise NotImplementedError()
 
-class Add(PostprocessorValidationMixin, Postprocessor):
+class Add(PostprocessorValueMixin, Postprocessor):
     """Adds a value to the final result."""
 
     def apply(self, result: T.Any) -> T.Any:
@@ -54,7 +51,7 @@ class Add(PostprocessorValidationMixin, Postprocessor):
     def __repr__(self) -> str:
         return "Add({})".format(repr(self.value))
 
-class And(PostprocessorValidationMixin, Postprocessor):
+class And(PostprocessorValueMixin, Postprocessor):
     """And-combines a value with the final result."""
 
     def apply(self, result: T.Any) -> T.Any:
@@ -63,7 +60,7 @@ class And(PostprocessorValidationMixin, Postprocessor):
     def __repr__(self) -> str:
         return "And({})".format(repr(self.value))
 
-class Multiply(PostprocessorValidationMixin, Postprocessor):
+class Multiply(PostprocessorValueMixin, Postprocessor):
     """Multiplies a value with the final result."""
 
     def apply(self, result: T.Any) -> T.Any:
@@ -95,7 +92,7 @@ class Invert(Postprocessor):
 
 Negate = Invert
 
-class Or(PostprocessorValidationMixin, Postprocessor):
+class Or(PostprocessorValueMixin, Postprocessor):
     """Or-combines a value with the final result."""
 
     def apply(self, result: T.Any) -> T.Any:

@@ -368,9 +368,7 @@ class Schedule:
                 _path.add(SubScheduleRule(result.schedule))
                 insert_paths(paths, path_idx, _path, _rules)
             elif isinstance(result, expression_types.Postprocessor):
-                if isinstance(
-                        result, expression_types.PostprocessorValidationMixin
-                ):
+                if isinstance(result, expression_types.PostprocessorValueMixin):
                     value = room.validate_value(result.value)
                     if value is None:
                         room.log("Aborting schedule evaluation.",
