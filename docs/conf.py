@@ -89,7 +89,7 @@ html_theme = 'sphinx_rtd_theme'
 #
 # html_theme_options = {}
 html_theme_options = {
-    'navigation_depth': 3,
+    'navigation_depth': 4,
     'style_external_links': True,
 }
 
