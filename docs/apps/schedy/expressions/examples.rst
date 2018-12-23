@@ -200,3 +200,41 @@ switches for disabling the schedules with it, like so:
 
 As soon as ``Abort()`` is returned, schedule evaluation is aborted and
 the value stays unchanged.
+
+
+Using the Generic ``Postprocess()`` Postprocessor
+-------------------------------------------------
+
+The ``Postprocess()`` :doc:`postprocessor <postprocessors>` lets you
+alter the result of scheduling in arbitrary ways. It takes a callable
+which is then called with the result as its argument and should return
+the eventually altered result.
+
+In this example, we use ``Postprocess()`` with lambda closures (in-line
+functions that generate their return value with only a single expression)
+to limit the scheduled value to the range from ``16`` to ``22``. This
+could be useful for a temperature, for instance.
+
+::
+
+    - x: "Postprocess(lambda result: max(16, result))"
+    - x: "Postprocess(lambda result: min(result, 22))"
+
+You could of course have done this with a single postprocessor as well.
+
+::
+
+    - x: "Postprocess(lambda result: max(16, min(result, 22)))"
+
+Here's another one. It actually behaves like ``Add(-3)``.
+
+::
+
+    - x: "Postprocess(lambda result: result - 3)"
+
+.. note::
+
+   As you know, evaluation stops at the first rule generating a
+   result. Hence you need to ensure the rules returning postprocessors are
+   placed before the rules that generate the results to be postprocessed,
+   not after them.

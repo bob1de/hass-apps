@@ -29,3 +29,5 @@ When an expression results in such a postprocessor object, it is stored
 until a subsequent rule returns some real result. Then, the stored
 postprocessors are applied to that result one by one in the order they
 were generated.
+
+See the :doc:`examples` page for usage examples.
