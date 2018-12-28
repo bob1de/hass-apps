@@ -80,6 +80,7 @@ schedy:  # An arbitrary name for this instance of Schedy,
     # These short forms are possible as well.
   - "binary_sensor.motion"
   - "binary_sensor.motion:all"
+  - "binary_sensor.motion::reset"
   - "binary_sensor.motion:state,other_attribute:reset"
   - "binary_sensor.motion:all:ignore"
 
