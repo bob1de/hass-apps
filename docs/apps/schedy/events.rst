@@ -5,14 +5,16 @@ Schedy introduces two new events it listens for and which you can emit
 from your custom Home Assistant automations or scripts in order to
 control Schedy's behaviour.
 
-* ``schedy_reschedule``: Trigger a re-scheduling of the value.
+* ``schedy_reevaluate``: Trigger a re-evaluation of schedules. Only
+  use this event if you can't express the criteria that should trigger
+  a re-evaluation via the ``watched_entities`` configuration.
   Parameters are:
 
-  * ``room``: the name (or list of names) of the room(s) to re-schedule
-    as defined in Schedy's configuration (not the ``friendly_name``)
-    (default: ``null``, which means all rooms)
+  * ``room``: the name (or list of names) of the room(s) to re-evaluate
+    schedules for as defined in Schedy's configuration (not the
+    ``friendly_name``) (default: ``null``, which means all rooms)
 
-  * ``mode``: There are two different re-scheduling modes you can choose
+  * ``mode``: There are two different re-evaluation modes you can choose
     from. (default: ``"reevaluate"``)
 
     * ``"reevaluate"``: Re-evaluate the schedule and, if the result has
@@ -21,7 +23,7 @@ control Schedy's behaviour.
       nothing is done until that timer goes off.
       This is the mode you normally want when notifying Schedy about
       state changes of entities used in your schedule.
-      You can trigger a ``schedy_reschedule`` event in this mode as
+      You can trigger a ``schedy_reevaluate`` event in this mode as
       often as you like without worrying about loosing manual value
       changes early.
     * ``"reset"``: Re-evaluate the schedule and set the resulting value

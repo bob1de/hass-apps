@@ -17,22 +17,14 @@ that should prepare our bathroom for taking a bath. It's name is
     - x: "22 if is_on('switch.take_a_bath') else Skip()"
     - v: 19
 
-Last step is to write a simple Home Assistant automation to emit
-a re-schedule event whenever the state of ``switch.take_a_bath``
-changes. More about the available events and how to emit them is explained
-in the chapter :doc:`../events`.
+Last step is to tell Schedy to watch for changes of the state of
+``switch.take_a_bath``, so that it can re-evaluate the schedule of the
+bathroom when the switch is toggled. We add the following to the room's configuration:
 
 ::
 
-    - alias: "Re-schedule when switch.take_a_bath is toggled"
-      trigger:
-      - platform: state
-        entity_id: switch.take_a_bath
-      action:
-      - event: schedy_reschedule
-        event_data:
-          app_name: <name of your schedy instance>
-          room: bathroom
+    watched_entities:
+    - "switch.take_a_bath"
 
 We're done! Now, whenever we toggle the ``take_a_bath`` switch, the
 schedule is re-evaluated and our first schedule rule executes. The
@@ -50,12 +42,14 @@ in the following examples.
 Use of ``Add()`` and ``Skip()``
 -------------------------------
 
-This is a rule I once used in my own heating configuration at home:
+This is something I once used in my own heating configuration at home:
 
 ::
 
     schedule_prepend:
     - x: "Add(-3) if is_on('input_boolean.absent') else Skip()"
+    watched_entities:
+    - "input_boolean.absent"
 
 What does this? Well, the first thing we see is that the rule is placed
 inside the ``schedule_prepend`` section. That means, it is valid for
@@ -64,9 +58,7 @@ every room and always the first rule being evaluated.
 I've defined an ``input_boolean`` called ``absent`` in Home
 Assistant. Whenever I leave the house, this gets enabled. If I return,
 it's turned off again. In order for Schedy to notice the toggling, I
-added an automation to Home Assistant which fires a ``schedy_reschedule``
-event. How that can be done has already been shown :ref:`here
-<schedy/expressions/examples/considering-the-state-of-entities>`.
+added it to the global ``watched_entities`` configuration.
 
 Now let's get back to the schedule rule. When it evaluates, it checks the
 state of ``input_boolean.absent``. If the switch is turned on, it
@@ -128,9 +120,8 @@ Now, we include the snippet into a room's schedule:
     - { v: 21, start: "08:00", end: "23:00", weekdays: 6-7 }
     - { v: 16 }
 
-Again, remember to :ref:`notify Schedy
-<schedy/expressions/examples/considering-the-state-of-entities>` when the
-``input_boolean`` is toggled.
+    watched_entities:
+    - "input_boolean.vacation"
 
 It turns out that you could have done the exact same without including
 a snippet by adding the vacation rules directly to the room's schedule,
@@ -169,6 +160,9 @@ the thermostat actor type.
       - v: 17
      - v: "OFF"
 
+    watched_entities:
+    - "input_boolean.include_sub_schedule"
+
 The rules 2-4 of the sub-schedule will only be respected when
 ``input_boolean.include_sub_schedule`` is on. Otherwise, evaluation
 continues with the last rule, setting the value to ``OFF``.
@@ -204,6 +198,19 @@ switches for disabling the schedules with it, like so:
       x: "Abort() if is_off('input_boolean.schedy') else Skip()"
     - name: per-room schedule on/off switch
       x: "Abort() if is_off('input_boolean.schedy_room_' + room_name) else Skip()"
+
+    # These should trigger a re-evaluation in every room.
+    watched_entities:
+    - "input_boolean.schedy"
+
+    # And for these it is sufficient to re-evaluate the corresponding room only.
+    rooms:
+      living:
+        watched_entities:
+        - "input_boolean.schedy_room_living"
+      kitchen:
+        watched_entities:
+        - "input_boolean.schedy_room_kitchen"
 
 As soon as ``Abort()`` is returned, schedule evaluation is aborted and
 the value stays unchanged.

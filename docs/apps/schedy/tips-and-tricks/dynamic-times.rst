@@ -20,9 +20,10 @@ current hour is between the values configured by the two entities we
 introduced. If it's not, the rule is ignored and processing continues
 at the next rule, as always.
 
-There is still one thing missing in order to make this work properly. You
-need to notify Schedy about state changes of the used entities by
-firing an event. How that's done is described in :ref:`this example
+There is still one thing missing in order to make this work
+properly. Schedy needs to be notified about state changes of
+the used entities by adding them to the ``watched_entities``
+configuration. How that's done is described in :ref:`this example
 <schedy/expressions/examples/considering-the-state-of-entities>`.
 
 You could now make the temperature configurable via an

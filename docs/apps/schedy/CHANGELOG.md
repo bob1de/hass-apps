@@ -18,12 +18,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 * Various small improvements of the examples for using expressions.
+* The ``schedy_reschedule`` event has been renamed to
+  ``schedy_reevaluate``. The old name will cease to work in version 0.4.
 
 ### Deprecated
 * 0.3: The old name ``Negate`` for the ``Invert`` postprocessor will
   be removed.
 * 0.3: The ``And`` and ``Or`` postprocessors will be removed. Use the
   generic ``Postprocess`` instead.
+* 0.4: The old name ``schedy_reschedule`` for the ``schedy_reevaluate``
+  event will be removed.
 
 ### Removed
 

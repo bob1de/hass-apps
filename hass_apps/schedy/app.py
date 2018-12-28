@@ -76,15 +76,15 @@ class SchedyApp(common.App):
 
         return rooms
 
-    def _reschedule_event_cb(
+    def _reevaluate_event_cb(
             self, event: str, data: dict, kwargs: dict
     ) -> None:
-        """This callback executes when a schedy_reschedule event is received.
-        data may contain a "room_name", which limits the re-scheduling
+        """This callback executes when a schedy_reevaluate event is received.
+        data may contain a "room_name", which limits the re-evaluation
         to the given room.
-        mode has to be one of "reevaluate" (the default, only set the
-        value when it changed) or "reset" (restart an eventually running
-        timer and start a new one with reset=True)."""
+        mode has to be one of "reevaluate" (the default, and
+        "reset"). It controls the value passed as the reset argument to
+        Room.trigger_reevaluation()."""
 
         if not self._check_accept_event(event, data):
             return
@@ -97,7 +97,7 @@ class SchedyApp(common.App):
             return
 
         rooms = self._get_event_rooms(event, data.get("room"))
-        self.log("Re-schedule event received for: {} [mode={}, delay=1sec]"
+        self.log("Re-evaluate event received for: {} [mode={}]"
                  .format(", ".join([str(room) for room in rooms]),
                          repr(mode)),
                  prefix=common.LOG_PREFIX_INCOMING)
@@ -195,9 +195,10 @@ class SchedyApp(common.App):
         for definition in self.cfg["watched_entities"]:
             self.watch_entity(definition, self.rooms)
 
-        self.log("Listening for schedy_reschedule event.",
+        self.log("Listening for schedy_reevaluate event.",
                  level="DEBUG")
-        self.listen_event(self._reschedule_event_cb, "schedy_reschedule")
+        self.listen_event(self._reevaluate_event_cb, "schedy_reevaluate")
+        self.listen_event(self._reevaluate_event_cb, "schedy_reschedule")
 
         self.log("Listening for schedy_set_value event.",
                  level="DEBUG")

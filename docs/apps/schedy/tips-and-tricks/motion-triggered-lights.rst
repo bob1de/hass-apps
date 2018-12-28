@@ -3,10 +3,10 @@ Motion-Triggered Lights
 
 Scheduling lights is really easy with the ``switch`` actor type. Even
 associating motion sensors isn't too complicated with just a single
-automation and an additional schedule rule. The procedure is identical
-to that used for :doc:`open-window-detection`, except that the
-``binary_sensor`` entities now report motion instead of open windows
-and the value needs to be set to ``"on"`` while motion is detected.
+additional schedule rule. The procedure is identical to that used for
+:doc:`open-window-detection`, except that the ``binary_sensor`` entities
+now report motion instead of open windows and the value needs to be set to
+``"on"`` while motion is detected.
 
 Let's assume the following:
 
@@ -31,23 +31,12 @@ Ok, let's get started.
 
        - x: "Mark('on', Mark.OVERLAY) if not is_empty(filter_entities('binary_sensor', motion_room=room_name, state='on')) else Skip()"
 
-3. Create an automation.
+3. Add the motion sensor to the ``watched_entities`` of the ``entrance`` room.
 
-   ::
+::
 
-       - trigger:
-         - platform: state
-           entity_id:
-           - binary_sensor.entrance_motion
-           # add all motion sensors of all rooms here
-         condition:
-         - condition: template
-           value_template: "{{ trigger.from_state.state != trigger.to_state.state }}"
-         action:
-         - event: schedy_reschedule
-           event_data_template:
-             app_name: schedy_light
-             room: "{{ trigger.to_state.attributes['motion_room'] }}"
+    watched_entities:
+    - "binary_sensor.entrance_motion"
 
 Try it out. As long as at least one of the motion sensors in a room
 reports motion, the lights in that room should stay on.
