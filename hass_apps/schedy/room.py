@@ -662,6 +662,11 @@ class Room:
                 if reset:
                     self.app.cancel_timer(self._reevaluation_timer)
                 else:
+                    self.log("Re-evaluation pending, doing nothing.",
+                             level="DEBUG")
                     return
 
+            self.log("Doing schedule re-evaluation in 1 second [reset={}]"
+                     .format(reset),
+                     level="DEBUG")
             self._reevaluation_timer = self.app.run_in(_reevaluation_cb, 1)

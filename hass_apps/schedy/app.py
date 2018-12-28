@@ -225,8 +225,7 @@ class SchedyApp(common.App):
         attributes = definition["attributes"]
         mode = definition["mode"]
 
-        self.log("Watching {} for changes [attributes = {}, rooms = {}, "
-                 "mode = {}]"
+        self.log("Watching {} for changes [attributes={}, rooms={}, mode={}]"
                  .format(repr(entity_id), attributes, rooms, mode),
                  level="DEBUG")
         if mode != "ignore":
