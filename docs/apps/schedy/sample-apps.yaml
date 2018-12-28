@@ -77,7 +77,10 @@ schedy:  # An arbitrary name for this instance of Schedy,
     # an expression.
     #mode: reevaluate
 
-    # These short forms are possible as well.
+    # Specifying it in a short form as a colon-separated string is
+    # possible as well.
+    # The format is: "<entity>:<comma-separated-attributes>:<mode>"
+    # Examples:
   - "binary_sensor.motion"
   - "binary_sensor.motion:all"
   - "binary_sensor.motion::reset"
