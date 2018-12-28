@@ -7,7 +7,8 @@ control Schedy's behaviour.
 
 * ``schedy_reevaluate``: Trigger a re-evaluation of schedules. Only
   use this event if you can't express the criteria that should trigger
-  a re-evaluation via the ``watched_entities`` configuration.
+  a re-evaluation via the ``watched_entities`` configuration, e.g. when
+  you need re-evaluation.based on time intervals instead of state changes.
   Parameters are:
 
   * ``room``: the name (or list of names) of the room(s) to re-evaluate
