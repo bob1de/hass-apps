@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
+* Schedy can now re-evaluate schedules automatically when the state of
+  entities changes. See the new ``watched_entities`` settings.
 
 ### Changed
 * Various small improvements of the examples for using expressions.

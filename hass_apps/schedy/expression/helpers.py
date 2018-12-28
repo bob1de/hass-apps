@@ -9,6 +9,7 @@ if T.TYPE_CHECKING:
     from ..room import Room
 
 import datetime
+import itertools
 
 
 class HelperBase:
@@ -84,11 +85,6 @@ class CustomModulesHelper(HelperBase):
 class StateHelper(HelperBase):
     """Various state-related helpers."""
 
-    def __init__(self, *args: T.Any, **kwargs: T.Any) -> None:
-        super().__init__(*args, **kwargs)
-
-        self.state = self._app.get_state
-
     def filter_entities(
             self, entities: T.Union[str, T.List[str]] = None, **criteria: T.Any
     ) -> T.Iterable[str]:
@@ -126,15 +122,40 @@ class StateHelper(HelperBase):
             else:
                 yield entity
 
-    def is_on(self, entity_id: str) -> bool:
-        """Returns whether an entity'S state is "on" (case-insensitive)."""
-
-        return str(self._app.get_state(entity_id)).lower() == "on"
-
     def is_off(self, entity_id: str) -> bool:
         """Returns whether an entity'S state is "off" (case-insensitive)."""
 
-        return str(self._app.get_state(entity_id)).lower() == "off"
+        return str(self.state(entity_id)).lower() == "off"
+
+    def is_on(self, entity_id: str) -> bool:
+        """Returns whether an entity'S state is "on" (case-insensitive)."""
+
+        return str(self.state(entity_id)).lower() == "on"
+
+    def state(self, entity: str = None, attribute: str = "state") -> T.Any:
+        """A wrapper around self._app.get_state()."""
+
+        if entity and "." in entity:
+            watched_entities = itertools.chain(
+                self._room.cfg["watched_entities"],
+                self._app.cfg["watched_entities"],
+            )
+            for watched in watched_entities:
+                if entity != watched["entity"]:
+                    continue
+                if attribute in watched["attributes"] or \
+                   "all" in watched["attributes"]:
+                    break
+            else:
+                self._room.log(
+                    "You query the {} attribute of {} in an expression, but "
+                    "the entity is not watched for state changes by Schedy. "
+                    "You should add it to the watched_entities configuration."
+                    .format(repr(attribute), repr(entity)),
+                    level="WARNING"
+                )
+
+        return self._app.get_state(entity, attribute=attribute)
 
 
 class ScheduleHelper(HelperBase):

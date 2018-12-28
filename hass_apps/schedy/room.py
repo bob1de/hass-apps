@@ -78,8 +78,11 @@ class Room:
 
         self._last_state = None  # type: T.Optional[T.Tuple[str, T.Dict[str, T.Any]]]
 
-        self._sync_proxy_lock = threading._RLock()  # pylint: disable=protected-access
+        self._sync_proxy_lock = threading.RLock()
         self._sync_proxy_running = False
+        self._timer_lock = threading.RLock()
+
+        self._reevaluation_timer = None  # type: T.Optional[uuid.UUID]
 
     def __repr__(self) -> str:
         return "<Room {}>".format(str(self))
@@ -185,9 +188,10 @@ class Room:
         """Is called whenever a re-scheduling timer fires.
         reset may be given in kwargs and is passed to apply_schedule()."""
 
-        self.log("Re-scheduling timer fired.",
-                 level="DEBUG")
-        self._rescheduling_time, self._rescheduling_timer = None, None
+        self.log("Re-scheduling timer fired.", level="DEBUG")
+        with self._timer_lock:
+            self._rescheduling_time = None
+            self._rescheduling_timer = None
         self.apply_schedule(reset=True)
 
     @sync_proxy
@@ -373,12 +377,14 @@ class Room:
         exists.
         Returns whether a timer has been cancelled."""
 
-        timer = self._rescheduling_timer
-        if timer is None:
-            return False
+        with self._timer_lock:
+            timer = self._rescheduling_timer
+            if timer is None:
+                return False
+            self.app.cancel_timer(timer)
+            self._rescheduling_time = None
+            self._rescheduling_timer = None
 
-        self.app.cancel_timer(timer)
-        self._rescheduling_time, self._rescheduling_timer = None, None
         self.log("Cancelled re-scheduling timer.", level="DEBUG")
         return True
 
@@ -410,22 +416,23 @@ class Room:
         for actor in self.actors:
             self._initialize_actor_cb({"actor": actor})
 
-        if self.schedule:
-            times = self.schedule.get_scheduling_times()
-            for snippet in self.app.cfg["schedule_snippets"].values():
-                times.update(snippet.get_scheduling_times())
-            self.log("Registering scheduling timers at: {{{}}}"
-                     .format(", ".join([str(_time) for _time in times])),
-                     level="DEBUG")
-            for _time in times:
-                self.app.run_daily(self._scheduling_timer_cb, _time)
-        else:
-            self.log("No schedule configured.", level="DEBUG")
+        assert self.schedule is not None
+        times = self.schedule.get_scheduling_times()
+        for snippet in self.app.cfg["schedule_snippets"].values():
+            times.update(snippet.get_scheduling_times())
+        self.log("Registering scheduling timers at: {{{}}}"
+                 .format(", ".join([str(_time) for _time in times])),
+                 level="DEBUG")
+        for _time in times:
+            self.app.run_daily(self._scheduling_timer_cb, _time)
 
         if reset:
             self.apply_schedule(reset=True)
         else:
             self._restore_state()
+
+        for definition in self.cfg["watched_entities"]:
+            self.app.watch_entity(definition, [self])
 
     def log(self, msg: str, *args: T.Any, **kwargs: T.Any) -> None:
         """Prefixes the room to log messages."""
@@ -623,9 +630,11 @@ class Room:
         self.log("Re-applying the schedule not before {} (in {})."
                  .format(util.format_time(when.time()), delta))
 
-        self._rescheduling_time, self._rescheduling_timer = when, self.app.run_at(
-            self._rescheduling_timer_cb, when
-        )
+        with self._timer_lock:
+            self._rescheduling_time = when
+            self._rescheduling_timer = self.app.run_at(
+                self._rescheduling_timer_cb, when
+            )
 
     @property
     def tracking_schedule(self) -> bool:
@@ -638,3 +647,21 @@ class Room:
                self.app.actor_type.values_equal(
                    self._scheduled_value, self._wanted_value
                )
+
+    def trigger_reevaluation(self, reset: bool = False) -> None:
+        """Initializes a schedule re-evaluation in 1 second.
+        The reset parameter is passed through to apply_schedule()."""
+
+        def _reevaluation_cb(*args: T.Any, **kwargs: T.Any) -> None:
+            with self._timer_lock:
+                self._reevaluation_timer = None
+            self.apply_schedule(reset=reset)
+
+        with self._timer_lock:
+            if self._reevaluation_timer:
+                if reset:
+                    self.app.cancel_timer(self._reevaluation_timer)
+                else:
+                    return
+
+            self._reevaluation_timer = self.app.run_in(_reevaluation_cb, 1)

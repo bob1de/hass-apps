@@ -103,10 +103,7 @@ class SchedyApp(common.App):
                  prefix=common.LOG_PREFIX_INCOMING)
 
         for room in rooms:
-            # delay for one second to have the state fully updated when
-            # when schedules are evaluated
-            gen = lambda func, reset: lambda *a, **kw: func(reset=reset)
-            self.run_in(gen(room.apply_schedule, bool(mode == "reset")), 1)  # type: ignore
+            room.trigger_reevaluation(reset=bool(mode == "reset"))
 
     def _set_value_event_cb(
             self, event: str, data: dict, kwargs: dict
@@ -195,6 +192,9 @@ class SchedyApp(common.App):
         for room in self.rooms:
             room.initialize(reset=self.cfg["reset_at_startup"])
 
+        for definition in self.cfg["watched_entities"]:
+            self.watch_entity(definition, self.rooms)
+
         self.log("Listening for schedy_reschedule event.",
                  level="DEBUG")
         self.listen_event(self._reschedule_event_cb, "schedy_reschedule")
@@ -205,3 +205,29 @@ class SchedyApp(common.App):
 
         for stats_param in self.stats_params:
             stats_param.initialize()
+
+    def watch_entity(
+            self, definition: T.Dict[str, T.Any], rooms: T.List["Room"]
+    ) -> None:
+        """Sets up a state listener as configured in the given definition
+        that triggers schedule re-evaluation in the given rooms."""
+
+        def _cb(*args: T.Any, **kwargs: T.Any) -> None:
+            self.log("State of watched {} changed, triggering re-evaluation in: {}"
+                     .format(repr(entity_id), rooms),
+                     level="DEBUG")
+
+            for room in rooms:
+                room.trigger_reevaluation(reset=bool(mode == "reset"))
+
+        entity_id = definition["entity"]
+        attributes = definition["attributes"]
+        mode = definition["mode"]
+
+        self.log("Watching {} for changes [attributes = {}, rooms = {}, "
+                 "mode = {}]"
+                 .format(repr(entity_id), attributes, rooms, mode),
+                 level="DEBUG")
+        if mode != "ignore":
+            for attribute in attributes:
+                self.listen_state(_cb, entity_id, attribute=attribute)

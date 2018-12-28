@@ -185,17 +185,17 @@ def build_range_spec_schema(min_value: int, max_value: int) -> vol.Schema:
         lambda v: util.expand_range_spec(v, min_value, max_value),
     ))
 
-ENTITY_ID_SCHEMA = vol.Schema(vol.Match(r"^[A-Za-z_]+\.[A-Za-z0-9_]+$"))
-PYTHON_VAR_SCHEMA = vol.Schema(vol.Match(r"^[a-zA-Z_]+[a-zA-Z0-9_]*$"))
+ENTITY_ID_VALIDATOR = vol.Match(r"^[A-Za-z_]+\.[A-Za-z0-9_]+$")
+PYTHON_VAR_VALIDATOR = vol.Match(r"^[a-zA-Z_]+[a-zA-Z0-9_]*$")
 PARTIAL_DATE_SCHEMA = vol.Schema({
     vol.Optional("year"): vol.All(int, vol.Range(min=1970, max=2099)),
     vol.Optional("month"): vol.All(int, vol.Range(min=1, max=12)),
     vol.Optional("day"): vol.All(int, vol.Range(min=1, max=31)),
 })
-TIME_SCHEMA = vol.Schema(vol.All(
+TIME_VALIDATOR = vol.All(
     vol.Match(util.TIME_REGEXP),
     util.parse_time_string,
-))
+)
 
 # This schema does no real validation and default value insertion,
 # it just ensures a dictionary containing string keys and dictionary
@@ -208,12 +208,50 @@ DICTS_IN_DICT_SCHEMA = vol.Schema(vol.All(
 EXPRESSION_MODULE_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
     {
-        "as": PYTHON_VAR_SCHEMA,
+        "as": PYTHON_VAR_VALIDATOR,
     },
 ))
 EXPRESSION_MODULES_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
     {util.CONF_STR_KEY: EXPRESSION_MODULE_SCHEMA},
+))
+
+def parse_watched_entity_str(value: str) -> T.Dict[str, T.Any]:
+    """Parses the alternative <entity>:<attributes>:<mode> strings."""
+
+    obj = {}  # type: T.Dict[str, T.Any]
+    spl = [part.strip() for part in value.split(":")]
+    if spl:
+        part = spl.pop(0)
+        if part:
+            obj["entity"] = part
+    if spl:
+        part = spl.pop(0)
+        if part:
+            obj["attributes"] = [_part.strip() for _part in part.split(",")]
+    if spl:
+        part = spl.pop(0)
+        if part:
+            obj["mode"] = part
+    return obj
+
+WATCHED_ENTITY_SCHEMA = vol.Schema(vol.All(
+    lambda v: v or {},
+    vol.Any(vol.All(str, parse_watched_entity_str), object),
+    {
+        vol.Required("entity"): ENTITY_ID_VALIDATOR,
+        vol.Optional("attributes", default="state"): vol.Any(
+            vol.All(str, lambda v: [v]),
+            [str],
+        ),
+        vol.Optional("mode", default="reevaluate"): vol.Any(
+            "reevaluate", "reset", "ignore",
+        ),
+    },
+))
+WATCHED_ENTITIES_SCHEMA = vol.Schema(vol.All(
+    lambda v: v or [],
+    [WATCHED_ENTITY_SCHEMA],
 ))
 
 
@@ -227,8 +265,8 @@ SCHEDULE_RULE_SCHEMA = vol.Schema(vol.All(
         "expression": str,
         "value": object,
         vol.Optional("name", default=None): vol.Any(str, None),
-        vol.Optional("start", default=None): vol.Any(TIME_SCHEMA, None),
-        vol.Optional("end", default=None): vol.Any(TIME_SCHEMA, None),
+        vol.Optional("start", default=None): vol.Any(TIME_VALIDATOR, None),
+        vol.Optional("end", default=None): vol.Any(TIME_VALIDATOR, None),
         vol.Optional("end_plus_days", default=None):
             vol.Any(vol.All(int, vol.Range(min=0)), None),
         vol.Optional("years"): build_range_spec_schema(1970, 2099),
@@ -265,6 +303,7 @@ ROOM_SCHEMA = vol.Schema(vol.All(
         vol.Optional("rescheduling_delay", default=0):
             vol.All(vol.Any(float, int), vol.Range(min=0)),
         vol.Optional("actors", default=dict): DICTS_IN_DICT_SCHEMA,
+        vol.Optional("watched_entities", default=None): WATCHED_ENTITIES_SCHEMA,
         vol.Optional("schedule", default=list): vol.All(
             SCHEDULE_SCHEMA,
             validate_rule_paths,
@@ -293,6 +332,7 @@ CONFIG_SCHEMA = vol.Schema(vol.All(
             lambda n: {a.name: a for a in actor.get_actor_types()}[n],
         ),
         vol.Optional("actor_templates", default=dict): DICTS_IN_DICT_SCHEMA,
+        vol.Optional("watched_entities", default=dict): WATCHED_ENTITIES_SCHEMA,
         vol.Optional("schedule_prepend", default=list): vol.All(
             SCHEDULE_SCHEMA,
             validate_rule_paths,
