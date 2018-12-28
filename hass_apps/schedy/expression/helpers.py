@@ -147,11 +147,13 @@ class StateHelper(HelperBase):
                    "all" in watched["attributes"]:
                     break
             else:
+                suggestion = entity
+                if attribute != "state":
+                    suggestion += ":" + attribute
                 self._room.log(
                     "You query the {} attribute of {} in an expression, but "
-                    "the entity is not watched for state changes by Schedy. "
-                    "You should add it to the watched_entities configuration."
-                    .format(repr(attribute), repr(entity)),
+                    "{} wasn't specified in the watched_entities config."
+                    .format(repr(attribute), repr(entity), repr(suggestion)),
                     level="WARNING"
                 )
 

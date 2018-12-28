@@ -64,28 +64,29 @@ schedy:  # An arbitrary name for this instance of Schedy,
   # entities only used in the schedules of particular rooms, use the
   # per-room watched_entities list.
   watched_entities:
-    # The entity id is required.
-  - entity: <required>
-    # Which attributes to watch for changes of, either a single attribute
-    # or a list like [state, temperature]. The special value "all"
-    # listens for changes of any attribute. Try to avoid this whenever
-    # possible as it can cause heavy load.
-    #attributes: state
-    # The re-evaluation mode as known from the schedy_reevaluate event.
-    # The special mode "ignore" causes no re-evaluation, it just
-    # suppresses the warnings generated when the entity is queried from
-    # an expression.
-    #mode: reevaluate
 
-    # Specifying it in a short form as a colon-separated string is
-    # possible as well.
-    # The format is: "<entity>:<comma-separated-attributes>:<mode>"
+    # Each entry has to be a string consisting of up to three
+    # colon-separated parts:
+    #
+    # 1. The id of the entity to watch. This is mandatory.
+    # 2. Which attributes to watch for changes of, either a single
+    #    attribute or a comma-separated list.
+    #    The special value "all" listens for changes of any attribute. Try
+    #    to avoid this whenever possible as it can increase the load
+    #    significantly.
+    #    Default: "state"
+    # 3. The re-evaluation mode as known from the schedy_reevaluate event.
+    #    The special mode "ignore" causes no re-evaluation, it just
+    #    suppresses the warnings generated when the entity is queried from
+    #    an expression.
+    #    Default: "reevaluate"
+    #
     # Examples:
-  - "binary_sensor.motion"
-  - "binary_sensor.motion:all"
-  - "binary_sensor.motion::reset"
-  - "binary_sensor.motion:state,other_attribute:reset"
-  - "binary_sensor.motion:all:ignore"
+    # - "binary_sensor.motion"
+    # - "binary_sensor.motion:all"
+    # - "binary_sensor.motion::reset"
+    # - "binary_sensor.motion:state,other_attribute:reset"
+    # - "binary_sensor.motion:all:ignore"
 
 
   # Add schedule rules you want to have prepended to each room's schedule
