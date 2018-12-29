@@ -49,9 +49,10 @@ watched entity and must return the value this state is caused by.
 
 These two hooks, the ``send`` and the ``state`` hook, are
 executed similarly to the :doc:`expressions used in schedules
-<../../expressions/index>`. Both simple expressions (single-line) and
-whole statements (multi-line) are possible. When using whole statements,
-the result has to be stored in the global ``result`` variable as usual.
+<../../schedules/expressions/index>`. Both simple expressions
+(single-line) and whole statements (multi-line) are possible. When using
+whole statements, the result has to be stored in the global ``result``
+variable as usual.
 
 Inside the hooks, the following variables are available for you to
 work with:

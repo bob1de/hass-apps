@@ -53,8 +53,7 @@ the concept <concept>` first and then proceed to the following pages.
    concept
    configuration
    actors/index
-   writing-schedules
-   expressions/index
+   schedules/index
    events
    statistics/index
    tips-and-tricks/index

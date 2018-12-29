@@ -102,7 +102,7 @@ expressions in both rules with a sub-schedule attached to them (so-called
 sub-schedule rules) and the rules contained in these sub-schedules. But
 with expressions, you gain a lot more flexibility.
 
-As you know from :ref:`schedy/writing-schedules/rules-with-sub-schedules`,
+As you know from :ref:`schedy/schedules/basics/rules-with-sub-schedules`,
 rules of sub-schedules inherit their ``v`` parameter from the nearest
 anchestor rule having it defined, should they miss an own one. Basically,
 this is true for the ``x`` parameter as well.

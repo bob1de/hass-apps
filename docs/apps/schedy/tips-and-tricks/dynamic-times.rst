@@ -24,7 +24,7 @@ There is still one thing missing in order to make this work
 properly. Schedy needs to be notified about state changes of
 the used entities by adding them to the ``watched_entities``
 configuration. How that's done is described in :ref:`this example
-<schedy/expressions/examples/considering-the-state-of-entities>`.
+<schedy/schedules/expressions/examples/considering-the-state-of-entities>`.
 
 You could now make the temperature configurable via an
 ``input_number.day_temperature`` entity as well.

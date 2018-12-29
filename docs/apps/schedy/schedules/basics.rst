@@ -1,5 +1,5 @@
-Writing Schedules
-=================
+The Basics: Static Schedules
+============================
 
 A schedule controls the state of actors in a room over time. It consists
 of a set of rules. What these rules define is dependent upon the type
@@ -15,7 +15,7 @@ Each rule must at least define a value:
 
 This schedule would just always set the temperature to ``16``
 degrees, nothing else. Of course, schedules wouldn't make a lot
-sense if they couldn't do more than that.
+sense if they couldn't do more than this.
 
 For ``value``, there is a shortcut ``v`` to make rules more
 compact. We'll use that from now on.
@@ -174,7 +174,7 @@ and only integers are supported, no decimal values.
 All constraints you define need to be fulfilled for the rule to match.
 
 
-.. _schedy/writing-schedules/rules-with-sub-schedules:
+.. _schedy/schedules/basics/rules-with-sub-schedules:
 
 Rules with Sub-Schedules
 ------------------------

@@ -1,5 +1,5 @@
-Expressions
-===========
+Dynamic Expressions
+===================
 
 As an alternative to fixed values, Schedy accepts so called expressions
 in schedule rules.

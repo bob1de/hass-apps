@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Various small improvements of the examples for using expressions.
 * The ``schedy_reschedule`` event has been renamed to
   ``schedy_reevaluate``. The old name will cease to work in version 0.4.
+* The documentation for writing schedules has been restructured.
 
 ### Deprecated
 * 0.3: The old name ``Negate`` for the ``Invert`` postprocessor will

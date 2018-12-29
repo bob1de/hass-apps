@@ -34,4 +34,4 @@ The following markers are available:
   scheduled or a manually set one. Even a previous re-scheduling time
   is restored.
   An occasion for using this marker is
-  :doc:`../tips-and-tricks/open-window-detection`.
+  :doc:`../../tips-and-tricks/open-window-detection`.

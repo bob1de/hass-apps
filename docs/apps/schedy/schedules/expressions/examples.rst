@@ -1,7 +1,7 @@
 Examples
 ========
 
-.. _schedy/expressions/examples/considering-the-state-of-entities:
+.. _schedy/schedules/expressions/examples/considering-the-state-of-entities:
 
 Considering the State of Entities
 ---------------------------------
@@ -96,7 +96,7 @@ on the state of entities or is reused in multiple rooms.
    If you just want to prevent yourself from repeating the same static
    constraints over and over for multiple consecutive rules that are used
    only once in your configuration, use the :ref:`sub-schedule feature
-   <schedy/writing-schedules/rules-with-sub-schedules>` of the normal
+   <schedy/schedules/basics/rules-with-sub-schedules>` of the normal
    rule syntax instead.
 
 You can reference any schedule defined under ``schedule_snippets`` in
