@@ -132,7 +132,7 @@ class StateHelper(HelperBase):
 
         return str(self.state(entity_id)).lower() == "on"
 
-    def state(self, entity: str = None, attribute: str = "state") -> T.Any:
+    def state(self, entity: str = None, attribute: str = None) -> T.Any:
         """A wrapper around self._app.get_state()."""
 
         if entity and "." in entity:
@@ -140,15 +140,16 @@ class StateHelper(HelperBase):
                 self._room.cfg["watched_entities"],
                 self._app.cfg["watched_entities"],
             )
+            _attribute = attribute or "state"
             for watched in watched_entities:
                 if entity != watched["entity"]:
                     continue
-                if attribute in watched["attributes"] or \
+                if _attribute in watched["attributes"] or \
                    "all" in watched["attributes"]:
                     break
             else:
                 suggestion = [entity]
-                if attribute != "state":
+                if attribute:
                     suggestion.append(attribute)
                 self._room.log(
                     "You query {} from an expression, but didn't specify it "
@@ -157,7 +158,9 @@ class StateHelper(HelperBase):
                     level="WARNING"
                 )
 
-        return self._app.get_state(entity, attribute=attribute)
+        if attribute:
+            return self._app.get_state(entity, attribute=attribute)
+        return self._app.get_state(entity)
 
 
 class ScheduleHelper(HelperBase):
