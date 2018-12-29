@@ -158,9 +158,11 @@ class StateHelper(HelperBase):
                     level="WARNING"
                 )
 
-        if attribute:
-            return self._app.get_state(entity, attribute=attribute)
-        return self._app.get_state(entity)
+        if entity:
+            if attribute:
+                return self._app.get_state(entity, attribute=attribute)
+            return self._app.get_state(entity)
+        return self._app.get_state()
 
 
 class ScheduleHelper(HelperBase):
