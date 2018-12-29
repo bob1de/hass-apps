@@ -56,6 +56,23 @@ schedy:  # An arbitrary name for this instance of Schedy,
       #...
 
 
+  # Add schedule rules you want to have prepended to each room's schedule
+  # automatically here.
+  schedule_prepend:
+
+  # Add schedule rules you want to have appended to each room's schedule
+  # automatically here.
+  schedule_append:
+
+  # Optionally, configure schedule snippets (lists of rules) that can
+  # be included by expressions dynamically. See the documentation for
+  # an example on how to use them.
+  schedule_snippets:
+
+    #summer:
+    #- ...
+
+
   # When you use expressions in your schedules that query the state of
   # entities, you should tell Schedy which entities the schedules depend
   # on. It can then watch for state changes of these and re-evaluate
@@ -87,23 +104,6 @@ schedy:  # An arbitrary name for this instance of Schedy,
     # - "binary_sensor.motion::reset"
     # - "binary_sensor.motion:state,other_attribute:reset"
     # - "binary_sensor.motion:all:ignore"
-
-
-  # Add schedule rules you want to have prepended to each room's schedule
-  # automatically here.
-  schedule_prepend:
-
-  # Add schedule rules you want to have appended to each room's schedule
-  # automatically here.
-  schedule_append:
-
-  # Optionally, configure schedule snippets that can be included by
-  # expressions dynamically. See the documentation for an example on
-  # how to use them.
-  schedule_snippets:
-
-    #summer:
-    # ...
 
 
   # Configure your rooms here.
@@ -153,15 +153,14 @@ schedy:  # An arbitrary name for this instance of Schedy,
           # template, if any, for this particular thermostat only.
           #delta: 1.0
 
-      # The same as the global watched_entities above, but these only
-      #  trigger a re-evaluation for this particular room.
-      watched_entities:
-      #- ...
-
       # The room's schedule, consisting of multiple rules.
       schedule:
       #- ...
 
+      # The same as the global watched_entities above, but these only
+      #  trigger a re-evaluation for this particular room.
+      watched_entities:
+      #- ...
 
 
     # Configure statistical parameters to be collected.
