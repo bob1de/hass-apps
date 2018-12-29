@@ -35,9 +35,13 @@ Returns ``True`` if the state of the given entity is ``"off"``
 ``state``
 ---------
 
-``state(entity_id: str, attribute: str = None) -> Any``
+``state(entity_id: str = None, attribute: str = None) -> Any``
 
-A shortcut for ``app.get_state(...)``.
+A shortcut for ``app.get_state()``.
+
+It generates a warning when an entity is queried for which no watch has
+been configured via ``watched_entities``. That's why you should always
+use this helper instead of calling ``app.get_state()`` directly.
 
 
 ``filter_entities``
