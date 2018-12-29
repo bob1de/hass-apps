@@ -147,13 +147,13 @@ class StateHelper(HelperBase):
                    "all" in watched["attributes"]:
                     break
             else:
-                suggestion = entity
+                suggestion = [entity]
                 if attribute != "state":
-                    suggestion += ":" + attribute
+                    suggestion.append(attribute)
                 self._room.log(
-                    "You query the {} attribute of {} in an expression, but "
-                    "{} wasn't specified in the watched_entities config."
-                    .format(repr(attribute), repr(entity), repr(suggestion)),
+                    "You query {} from an expression, but didn't specify it "
+                    "in the watched_entities config."
+                    .format(repr(":".join(suggestion))),
                     level="WARNING"
                 )
 
