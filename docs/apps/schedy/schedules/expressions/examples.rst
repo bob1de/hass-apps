@@ -140,8 +140,8 @@ weather sensors.
    readable as they grow.
 
 
-What to Use ``Break()`` for
----------------------------
+Conditional Sub-Schedules Using ``Break()``
+-------------------------------------------
 
 When in a sub-schedule, returning ``Break()`` from an expression will
 skip the remaining rules of that sub-schedule and continue evaluation
