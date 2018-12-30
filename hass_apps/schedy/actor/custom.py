@@ -41,7 +41,7 @@ class CustomActor(ActorBase):
         """evaluates the given expression and returns the value of
         result or None, if unset or an error occured."""
 
-        env = env.copy()
+        env = {**env}
         env.setdefault("entity_id", self.entity_id)
         env.setdefault("config", self.cfg["config"])
         env.setdefault("app", self.app)
