@@ -11,7 +11,7 @@ if T.TYPE_CHECKING:
 import datetime
 
 from . import util
-from .expression import types as expression_types
+from . import expression
 
 
 ScheduleEvaluationResultType = T.Tuple[T.Any, T.Set[str], "Rule"]
@@ -251,7 +251,7 @@ class Schedule:
             return "<Schedule of {} rules>".format(len(self.rules))
         return "<Schedule {}>".format(repr(self.name))
 
-    def evaluate(  # pylint: disable=too-many-branches,too-many-locals
+    def evaluate(  # pylint: disable=too-many-branches,too-many-locals,too-many-statements
             self, room: "Room", when: datetime.datetime
     ) -> T.Optional[ScheduleEvaluationResultType]:
         """Evaluates the schedule, computing the value for the time the
@@ -291,6 +291,7 @@ class Schedule:
                  level="DEBUG")
 
         expr_cache = {}  # type: T.Dict[types.CodeType, T.Any]
+        expr_env = None
         markers = set()
         postprocessors = []
         paths = []  # type: T.List[RulePath]
@@ -322,7 +323,9 @@ class Schedule:
                         log("=> {}  [cache-hit]".format(repr(result)),
                             path, level="DEBUG")
                     else:
-                        result = room.eval_expr(rule.expr, when)
+                        if expr_env is None:
+                            expr_env = expression.build_expr_env(room, when)
+                        result = room.eval_expr(rule.expr, expr_env)
                         expr_cache[rule.expr] = result
                         log("=> {}".format(repr(result)),
                             path, level="DEBUG")
@@ -334,7 +337,7 @@ class Schedule:
                 if result is not None:
                     break
 
-            if isinstance(result, expression_types.Mark):
+            if isinstance(result, expression.types.Mark):
                 markers.update(result.markers)
                 result = result.result
 
@@ -348,16 +351,16 @@ class Schedule:
             elif isinstance(result, Exception):
                 log("Evaluation failed, skipping rule.",
                     path, level="DEBUG")
-            elif isinstance(result, expression_types.Abort):
+            elif isinstance(result, expression.types.Abort):
                 break
-            elif isinstance(result, expression_types.Break):
+            elif isinstance(result, expression.types.Break):
                 prefix_size = max(0, len(path.rules) - result.levels)
                 prefix = path.rules[:prefix_size]
                 while path_idx < len(paths) and \
                       paths[path_idx].root_schedule == path.root_schedule and \
                       paths[path_idx].rules[:prefix_size] == prefix:
                     del paths[path_idx]
-            elif isinstance(result, expression_types.IncludeSchedule):
+            elif isinstance(result, expression.types.IncludeSchedule):
                 _rules = list(result.schedule.get_matching_rules(when))
                 log("{} / {} rules of {} are currently valid."
                     .format(len(_rules), len(result.schedule.rules),
@@ -367,8 +370,8 @@ class Schedule:
                 del _path.rules[-1]
                 _path.add(SubScheduleRule(result.schedule))
                 insert_paths(paths, path_idx, _path, _rules)
-            elif isinstance(result, expression_types.Postprocessor):
-                if isinstance(result, expression_types.PostprocessorValueMixin):
+            elif isinstance(result, expression.types.Postprocessor):
+                if isinstance(result, expression.types.PostprocessorValueMixin):
                     value = room.validate_value(result.value)
                     if value is None:
                         room.log("Aborting schedule evaluation.",
@@ -376,7 +379,7 @@ class Schedule:
                         break
                     result.value = value
                 postprocessors.append(result)
-            elif isinstance(result, expression_types.Skip):
+            elif isinstance(result, expression.types.Skip):
                 continue
             else:
                 result = room.validate_value(result)
@@ -394,7 +397,7 @@ class Schedule:
                                  level="DEBUG")
                         try:
                             result = postprocessor.apply(result)
-                        except expression_types.PostprocessingError as err:
+                        except expression.types.PostprocessingError as err:
                             room.log("Error while applying {} to result {}: {}"
                                      .format(repr(postprocessor), repr(result),
                                              err),

@@ -51,16 +51,12 @@ def build_expr_env(room: "Room", now: datetime.datetime) -> T.Dict[str, T.Any]:
     return env
 
 def eval_expr(
-        expr: _types.CodeType, room: "Room", now: datetime.datetime,
-        extra_env: T.Optional[T.Dict[str, T.Any]] = None
+        expr: _types.CodeType, env: T.Dict[str, T.Any]
 ) -> T.Any:
     """This method evaluates the given expression. The evaluation result
-    is returned. The items of the extra_env dict are added to the globals
+    is returned. The items of the env dict are added to the globals
     available during evaluation."""
 
-    env = build_expr_env(room, now)
-    if extra_env:
-        env.update(extra_env)
-
+    env = {**env}
     exec(expr, env)  # pylint: disable=exec-used
     return env.get("result")

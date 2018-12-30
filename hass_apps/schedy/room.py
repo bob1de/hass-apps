@@ -388,15 +388,13 @@ class Room:
         self.log("Cancelled re-scheduling timer.", level="DEBUG")
         return True
 
-    def eval_expr(
-            self, expr: types.CodeType, now: datetime.datetime
-    ) -> T.Any:
+    def eval_expr(self, expr: types.CodeType, env: T.Dict[str, T.Any]) -> T.Any:
         """This is a wrapper around expression.eval_expr().
         It catches any exception raised during evaluation. In this case,
         the caught Exception object is returned."""
 
         try:
-            return expression.eval_expr(expr, self, now)
+            return expression.eval_expr(expr, env)
         except Exception as err:  # pylint: disable=broad-except
             self.log("Error while evaluating expression: {}".format(repr(err)),
                      level="ERROR")
@@ -563,7 +561,8 @@ class Room:
         now = self.app.datetime()
         if expr_raw is not None:
             expr = util.compile_expression(expr_raw)
-            result = self.eval_expr(expr, now)
+            env = expression.build_expr_env(self, now)
+            result = self.eval_expr(expr, env)
             self.log("Evaluated expression {} to {}."
                      .format(repr(expr_raw), repr(result)),
                      level="DEBUG")
