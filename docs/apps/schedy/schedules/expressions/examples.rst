@@ -183,6 +183,42 @@ you may want to directly abort its parent schedule as well by returning
 ``Break(2)``. In the above example, this would actually break the room's
 schedule and hence continue evaluating the ``schedule_append`` section.
 
+Here's another example with multiple nested sub-schedules utilizing
+``Break()``. It is used by an user of Schedy to turn his bathroom floor
+heating on at specific times, but only when the outside temperature
+is 5 degrees or lower. It additionally differenciates between away,
+holiday and normal modes.
+
+::
+
+    schedule:
+    - v: "on"
+      rules:
+      # don't turn on when it's > 5 degrees outside
+      - x: "Break() if float(state('sensor.outside_temperature') or 0) > 5 else Skip()"
+
+      # don't turn on when in away mode
+      - x: "Break() if is_on('input_boolean.away') else Skip()"
+
+      # on weekends and during holidays, turn on from 09:00 to 10:30
+      - rules:
+        - x: "Skip() if is_on('input_boolean.holidays') else Break()"
+          weekdays: "!6-7"
+        - { start: "09:00", end: "10:30" }
+
+      # on normal working days, turn on from 06:30 to 07:00
+      - weekdays: 1-5
+        rules:
+        - { start: "06:30", end: "07:00"}
+
+    # at all other times, turn off
+    - v: 'off'
+
+    watched_entities:
+    - "sensor.outside_temperature"
+    - "input_boolean.away"
+    - "input_boolean.holidays"
+
 
 What to Use ``Abort()`` for
 ---------------------------
