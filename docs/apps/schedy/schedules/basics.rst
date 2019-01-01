@@ -133,7 +133,7 @@ new parameter is ``weekdays``, which is a so called constraint.
 Constraints can be used to limit the starting days on which the rule is
 considered. There are a number of these constraints, namely:
 
-* ``years``: limit the years (e.g. ``years: 2016 - 2018``
+* ``years``: limit the years (e.g. ``years: 2016-2018``
 * ``months``: limit based on months of the year (e.g.
   ``months: 1-3, 10-12`` for Jan, Feb, Mar, Oct, Nov and Dec)
 * ``days``: limit based on days of the month (e.g.
@@ -155,6 +155,8 @@ considered. There are a number of these constraints, namely:
   provided, the nearest prior valid date (namely 2018-02-28 in this
   case) is assumed.
 
+All constraints you define need to be fulfilled for the rule to match.
+
 The format used to specify values for the first five types of constraints
 is similar to that of crontab files. We call it range specification,
 and only integers are supported, no decimal values.
@@ -171,7 +173,15 @@ and only integers are supported, no decimal values.
 * ... and so on
 * Any spaces are ignored.
 
-All constraints you define need to be fulfilled for the rule to match.
+If an exclamation mark (``!``) is prepended to the range specification,
+it's values are inverted. For instance, the constraint ``weekdays:
+"!4-5,7"`` expands to ``weekdays: 1,2,3,6`` and ``months: "!3"`` is
+equivalent to ``months: 1-2,4-12``.
+
+.. note::
+
+   The ``!`` sign has a special meaning in YAML, hence inverted
+   specifications have to be enclosed in quotes.
 
 
 .. _schedy/schedules/basics/rules-with-sub-schedules:

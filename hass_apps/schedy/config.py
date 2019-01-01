@@ -176,14 +176,14 @@ def validate_rule_paths(sched: schedule.Schedule) -> schedule.Schedule:
 
 ########## MISCELLANEOUS
 
-def build_range_spec_schema(min_value: int, max_value: int) -> vol.Schema:
-    """Returns a Schema for validating range specifications with the
-    given min/max constraints."""
+def build_range_spec_validator(min_value: int, max_value: int) -> vol.Schema:
+    """Returns a validator for range specifications with the given
+    min/max values."""
 
-    return vol.Schema(vol.All(
+    return vol.All(
         vol.Any(int, str),
         lambda v: util.expand_range_spec(v, min_value, max_value),
-    ))
+    )
 
 ENTITY_ID_VALIDATOR = vol.Match(r"^[A-Za-z_]+\.[A-Za-z0-9_]+$")
 PYTHON_VAR_VALIDATOR = vol.Match(r"^[a-zA-Z_]+[a-zA-Z0-9_]*$")
@@ -269,11 +269,11 @@ SCHEDULE_RULE_SCHEMA = vol.Schema(vol.All(
         vol.Optional("end", default=None): vol.Any(TIME_VALIDATOR, None),
         vol.Optional("end_plus_days", default=None):
             vol.Any(vol.All(int, vol.Range(min=0)), None),
-        vol.Optional("years"): build_range_spec_schema(1970, 2099),
-        vol.Optional("months"): build_range_spec_schema(1, 12),
-        vol.Optional("days"): build_range_spec_schema(1, 31),
-        vol.Optional("weeks"): build_range_spec_schema(1, 53),
-        vol.Optional("weekdays"): build_range_spec_schema(1, 7),
+        vol.Optional("years"): build_range_spec_validator(1970, 2099),
+        vol.Optional("months"): build_range_spec_validator(1, 12),
+        vol.Optional("days"): build_range_spec_validator(1, 31),
+        vol.Optional("weeks"): build_range_spec_validator(1, 53),
+        vol.Optional("weekdays"): build_range_spec_validator(1, 7),
         vol.Optional("start_date"): PARTIAL_DATE_SCHEMA,
         vol.Optional("end_date"): PARTIAL_DATE_SCHEMA,
     },

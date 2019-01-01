@@ -150,9 +150,15 @@ def expand_range_spec(
 
     if isinstance(spec, int):
         spec = str(spec)
+    spec = "".join(spec.split())
+    if spec.startswith("!"):
+        spec = spec[1:]
+        invert = True
+    else:
+        invert = False
 
     numbers = RangingSet()
-    for part in "".join(spec.split()).split(","):
+    for part in spec.split(","):
         match = RANGE_PATTERN.match(part)
         if match is None:
             raise ValueError("invalid range definition: {}".format(repr(part)))
@@ -176,6 +182,9 @@ def expand_range_spec(
 
         for i in range(start, end + 1, step):
             numbers.add(i)
+
+    if invert:
+        numbers.symmetric_difference_update(range(min_value, max_value + 1))
 
     return numbers
 
