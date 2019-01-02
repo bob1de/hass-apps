@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   entities changes. See the new ``watched_entities`` settings.
 * Range specifications for constraints can now be inverted by prepending
   them with ``!``.
+* Added the ``Inherit()`` result type to inherit the parent rule's
+  value. ``None`` will continue to work as well, but ``Inherit()``
+  is more explanatory and thus preferred.
 
 ### Changed
 * Various small improvements of the examples for using expressions.

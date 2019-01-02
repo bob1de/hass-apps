@@ -9,7 +9,7 @@ if T.TYPE_CHECKING:
 
 
 __all__ = [
-    "Abort", "Break", "Mark", "IncludeSchedule", "Skip",
+    "Abort", "Break", "IncludeSchedule", "Inherit", "Mark", "Skip",
     "Add", "And", "Multiply", "Invert", "Negate", "Or", "Postprocess",
 ]
 
@@ -153,6 +153,12 @@ class IncludeSchedule(ControlResult):
 
     def __repr__(self) -> str:
         return "IncludeSchedule({})".format(self.schedule)
+
+class Inherit(ControlResult):
+    """Causes the next parent's value to be used as the result."""
+
+    def __repr__(self) -> str:
+        return "Inherit()"
 
 class Mark(ControlResult):
     """A result with some markers applied."""

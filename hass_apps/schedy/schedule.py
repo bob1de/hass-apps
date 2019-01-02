@@ -354,10 +354,12 @@ class Schedule:
                    path.includes_schedule(result.schedule):
                     # Prevent reusing IncludeSchedule results that would
                     # lead to a cycle. This happens when a rule of an
-                    # included schedule returns None and the search then
-                    # reaches the IncludeSchedule within the parent.
+                    # included schedule returns Inherit() and the search
+                    # then reaches the IncludeSchedule within the parent.
                     log("==   [skipping this candidate to prevent a cycle]",
                         path, level="DEBUG")
+                    result = None
+                elif isinstance(result, expression.types.Inherit):
                     result = None
                 elif result is None:
                     log("==   [skipping this candidate]",
@@ -366,12 +368,8 @@ class Schedule:
                     break
 
             if result is None:
-                if rules_with_expr_or_value:
-                    log("All expressions returned None, skipping rule.",
-                        path, level="WARNING")
-                else:
-                    log("No expression/value definition found, skipping rule.",
-                        path, level="WARNING")
+                log("No expression/value definition found, skipping rule.",
+                    path, level="WARNING")
             elif isinstance(result, Exception):
                 log("Evaluation failed, skipping rule.",
                     path, level="DEBUG")

@@ -85,7 +85,10 @@ processed.
   sub-schedule(s) to be aborted immediately. The evaluation will continue
   after the sub-schedule(s).
 * ``IncludeSchedule(schedule)``, which dynamically inserts the given
-  schedule object as a sub-schedule at the current location.
+  schedule object as a sub-schedule after the current rule.
+* ``Inherit()``, which causes the value or expression of the nearest
+  ancestor rule to be used as result for the current rule. See the next
+  section for a more detailed explanation.
 * ``Skip()``, which causes the rule to be treated as if it didn't exist
   at all. If one exists, the next rule is evaluated in this case.
 
@@ -104,19 +107,29 @@ with expressions, you gain a lot more flexibility.
 
 As you know from :ref:`schedy/schedules/basics/rules-with-sub-schedules`,
 rules of sub-schedules inherit their ``v`` parameter from the nearest
-anchestor rule having it defined, should they miss an own one. Basically,
+ancestor rule having it defined, should they miss an own one. Basically,
 this is true for the ``x`` parameter as well.
 
-With an expression as the ``x`` value of the rule having a sub-schedule,
-you get the flexibility to dynamically overwrite the anchestor's value or
-expression. Should an expression return ``None``, the next anchestor's
-value or expression is tried to be used. When compared to plain values,
-returning ``None`` is the equivalent of omitting the ``v`` parameter
-completely, but with the benefit of deciding dynamically about whether
-to omit it or not.
+With an expression as the ``x`` value of the rule inside a sub-schedule,
+you get the flexibility to conditionally overwrite the ancestor rule's
+value or expression. Should an expression return ``Inherit()``, the next
+ancestor rule's value or expression is used. When compared to static
+values, returning ``Inherit()`` is the equivalent of omitting the ``v``
+parameter completely, but with the benefit of deciding dynamically about
+whether to omit it or not.
 
 The whole process can be described as follows. To find the result for
 a particular rule inside a sub-schedule, the ``v``/``x`` parameters of
-the rule and it's anchestor rules are evaluated from inside to outside
+the rule and it's ancestor rules are evaluated from inside to outside
 (from right to left when looking at the indentation of the YAML syntax)
-until one results in something different to ``None``.
+until one results in something different to ``Inherit()``.
+
+This even works accross the boundaries of a schedule snippet
+included via ``IncludeSchedule()``, because snippets are inserted
+as sub-schedules. However, ``Inherit()`` returned from inside of an
+included schedule snippet could cause an infinite recursion under
+some circumstances, which Schedy deals with by simply skipping
+``IncludeSchedule()`` for a schedule snippet that's already on the
+execution stack when searching for an ancestor rule to take the value
+from. Examples illustrating this behaviour can be found :ref:`here
+<schedy/schedules/expressions/examples/include-schedule/cycles>`.

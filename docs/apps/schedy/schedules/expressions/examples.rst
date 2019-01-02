@@ -220,6 +220,8 @@ weather sensors.
    readable as they grow.
 
 
+.. _schedy/schedules/expressions/examples/include-schedule/cycles:
+
 Cycles
 ~~~~~~
 
@@ -244,8 +246,8 @@ purposes.
       - x: "IncludeSchedule(schedule_snippets['snippet'])"
 
 The ``IncludeSchedule()`` returned by ``snippet rule 1`` is not
-considered, because that would lead to an infinite recursion. It is
-treated as if it was ``None``, what then causes value lookup to be
+considered, because doing so would lead to an infinite recursion. It is
+treated as if it was ``Inherit()``, what then causes value lookup to be
 continued at the next parent, resulting in ``21`` .
 
 Here's another, more useful example, inspired by my own configuration,
@@ -255,8 +257,8 @@ which makes the benefits of this behaviour more obvious.
 
     schedule_snippets:
       somebody_home:
-      - x: "None if is_on('input_boolean.awake') else Skip()"
-        name: always heat when the awake switch is on
+      - x: "Inherit() if is_on('input_boolean.awake') else Skip()"
+        name: always heat when awake switch is on
       - weekdays: 1-5
         name: normal working days
         rules:
@@ -295,7 +297,7 @@ set the ``office`` to always stop ad ``18:00``, and that's where the
 magic kicks in. The ``stop at 6.00 pm`` rule inherits its result from
 its parent rule (``include somebody_home snippet``), which causes the
 ``somebody_home`` snippet to be inserted and evaluated. Now, we assume
-that ``always heat when the awake switch is on`` returns ``None``, which
+that ``always heat when awake switch is on`` returns ``Inherit()``, which
 again causes its parent's value to be used. The nearest parent with a
 value again is ``include somebody_home snippet`` - and there we would get
 an infinite recursion. But Schedy is smart enough to notice that we're
