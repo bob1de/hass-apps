@@ -83,63 +83,6 @@ dynamic throttling that slowly decreases as you near with almost zero
 configuration effort.
 
 
-Including Schedules Dynamically with ``IncludeSchedule()``
-----------------------------------------------------------
-
-The ``IncludeSchedule()`` result type for expressions can be used to
-insert a set of schedule rules right at the position of the current
-rule. This comes handy when a set of rules needs to be chosen depending
-on the state of entities or is reused in multiple rooms.
-
-.. note::
-
-   If you just want to prevent yourself from repeating the same static
-   constraints over and over for multiple consecutive rules that are used
-   only once in your configuration, use the :ref:`sub-schedule feature
-   <schedy/schedules/basics/rules-with-sub-schedules>` of the normal
-   rule syntax instead.
-
-You can reference any schedule defined under ``schedule_snippets`` in
-the configuration, hence we create one to play with for our heating setup:
-
-::
-
-    schedule_snippets:
-      vacation:
-      - { v: 21, start: "08:30", end: "23:00" }
-      - { v: 16 }
-
-Now, we include the snippet into a room's schedule:
-
-::
-
-    schedule:
-    - x: "IncludeSchedule(schedule_snippets['vacation']) if is_on('input_boolean.vacation') else Skip()"
-    # when not in vacation mode, have the normal per-room schedule
-    - { v: 21, start: "07:00", end: "21:30", weekdays: 1-5 }
-    - { v: 21, start: "08:00", end: "23:00", weekdays: 6-7 }
-    - { v: 16 }
-
-    watched_entities:
-    - "input_boolean.vacation"
-
-It turns out that you could have done the exact same without including
-a snippet by adding the vacation rules directly to the room's schedule,
-but doing it this way makes the configuration more readable, easier
-to maintain and avoids redundancy in case you want to include the
-``vacation`` snippet into other rooms as well.
-
-Other use cases for ``IncludeSchedule`` are selecting different schedules
-based on presence (maybe even long holidays vs. short absence) or
-weather sensors.
-
-.. note::
-
-   Splitting up schedules doesn't bring any extra power to Schedy's
-   scheduling capabilities, but it can make configurations much more
-   readable as they grow.
-
-
 Conditional Sub-Schedules Using ``Break()``
 -------------------------------------------
 
@@ -218,6 +161,146 @@ holiday and normal modes.
     - "sensor.outside_temperature"
     - "input_boolean.away"
     - "input_boolean.holidays"
+
+
+Including Schedules Dynamically with ``IncludeSchedule()``
+----------------------------------------------------------
+
+The ``IncludeSchedule()`` result type for expressions can be used to
+insert a set of schedule rules right at the position of the current
+rule. This comes handy when a set of rules needs to be chosen depending
+on the state of entities or is reused in multiple rooms.
+
+.. note::
+
+   If you just want to prevent yourself from repeating the same static
+   constraints over and over for multiple consecutive rules that are used
+   only once in your configuration, use the :ref:`sub-schedule feature
+   <schedy/schedules/basics/rules-with-sub-schedules>` of the normal
+   rule syntax instead.
+
+You can reference any schedule defined under ``schedule_snippets`` in
+the configuration, hence we create one to play with for our heating setup:
+
+::
+
+    schedule_snippets:
+      vacation:
+      - { v: 21, start: "08:30", end: "23:00" }
+      - { v: 16 }
+
+Now, we include the snippet into a room's schedule:
+
+::
+
+    schedule:
+    - x: "IncludeSchedule(schedule_snippets['vacation']) if is_on('input_boolean.vacation') else Skip()"
+    # when not in vacation mode, have the normal per-room schedule
+    - { v: 21, start: "07:00", end: "21:30", weekdays: 1-5 }
+    - { v: 21, start: "08:00", end: "23:00", weekdays: 6-7 }
+    - { v: 16 }
+
+    watched_entities:
+    - "input_boolean.vacation"
+
+It turns out that you could have done the exact same without including
+a snippet by adding the vacation rules directly to the room's schedule,
+but doing it this way makes the configuration more readable, easier
+to maintain and avoids redundancy in case you want to include the
+``vacation`` snippet into other rooms as well.
+
+Other use cases for ``IncludeSchedule`` are selecting different schedules
+based on presence (maybe even long holidays vs. short absence) or
+weather sensors.
+
+.. note::
+
+   Splitting up schedules doesn't bring any extra power to Schedy's
+   scheduling capabilities, but it can make configurations much more
+   readable as they grow.
+
+
+Cycles
+~~~~~~
+
+.. include:: /advanced-topic.rst.inc
+
+Schedy prevents you from creating cycles when using ``IncludeSchedule()``,
+that would lead to infinite recursion.
+
+Take this example. It's quite useless, but simple enough for demonstration
+purposes.
+
+::
+
+    schedule_snippets:
+      snippet:
+      - x: "IncludeSchedule(schedule_snippets['snippet'])"
+        name: snippet rule 1
+
+    schedule_prepend:
+    - v: 21
+      rules:
+      - x: "IncludeSchedule(schedule_snippets['snippet'])"
+
+The ``IncludeSchedule()`` returned by ``snippet rule 1`` is not
+considered, because that would lead to an infinite recursion. It is
+treated as if it was ``None``, what then causes value lookup to be
+continued at the next parent, resulting in ``21`` .
+
+Here's another, more useful example, inspired by my own configuration,
+which makes the benefits of this behaviour more obvious.
+
+::
+
+    schedule_snippets:
+      somebody_home:
+      - x: "None if is_on('input_boolean.awake') else Skip()"
+        name: always heat when the awake switch is on
+      - weekdays: 1-5
+        name: normal working days
+        rules:
+        - { start: "07:00", end: "09:00" }
+        - { start: "16:00", end: "22:00" }
+
+    schedule_prepend:
+    - v: 15
+
+    watched_entities:
+    - "input_boolean.awake"
+
+    rooms:
+      living:
+        schedule:
+        - v: 22
+          rules:
+          - x: "IncludeSchedule(schedule_snippets['somebody_home'])"
+
+      office:
+        schedule:
+        - v: 20
+          rules:
+          - x: "IncludeSchedule(schedule_snippets['somebody_home'])"
+            name: include somebody_home snippet
+            rules:
+            - { end: "18:00", name: "stop at 6.00 pm" }
+
+I'm not going to describe what every single rule does. If you want to
+see the actual evaluation flow, put it into your configuration and turn
+on the debug logging.
+
+What I do want to highlight is that each room can have it's own heating
+temperature, without having to define the times redundantly. I can even
+set the ``office`` to always stop ad ``18:00``, and that's where the
+magic kicks in. The ``stop at 6.00 pm`` rule inherits its result from
+its parent rule (``include somebody_home snippet``), which causes the
+``somebody_home`` snippet to be inserted and evaluated. Now, we assume
+that ``always heat when the awake switch is on`` returns ``None``, which
+again causes its parent's value to be used. The nearest parent with a
+value again is ``include somebody_home snippet`` - and there we would get
+an infinite recursion. But Schedy is smart enough to notice that we're
+already inside the ``somebody_home`` snippet and just takes the next
+parent's value, which is ``20`` and exactly what we want. Problem solved.
 
 
 What to Use ``Abort()`` for

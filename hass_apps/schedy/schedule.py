@@ -192,6 +192,17 @@ class RulePath:
             path.add(rule)
         return path
 
+    def includes_schedule(self, schedule: "Schedule") -> bool:
+        """Checks whether the given schedule is included in this path."""
+
+        if schedule is self.root_schedule:
+            return True
+        for rule in self.rules:
+            if isinstance(rule, SubScheduleRule) and \
+               rule.sub_schedule is schedule:
+                return True
+        return False
+
     @property
     def is_final(self) -> bool:
         """Tells whether the last rule in the path is no SubScheduleRule."""
@@ -225,7 +236,7 @@ class SubScheduleRule(Rule):
         """Adds the sub-schedule information to repr()."""
 
         tokens = super()._get_repr_tokens()
-        tokens.insert(0, "with sub-schedule")
+        tokens.insert(0, "with sub {}".format(self.sub_schedule))
         return tokens
 
 
@@ -279,7 +290,7 @@ class Schedule:
             """Wrapper around room.log that prefixes spaces to the
             message based on the length of the rule path."""
 
-            prefix = " " * 3 * max(0, len(path.rules) - 1) + "\u251c\u2500"
+            prefix = " " * 4 * max(0, len(path.rules) - 1) + "\u251c\u2500"
             room.log("{} {}".format(prefix, msg), *args, **kwargs)
 
         room.log("Assuming it to be {}.".format(when),
@@ -334,12 +345,25 @@ class Schedule:
                     result = rule.value
                     log("=> {}".format(repr(result)),
                         path, level="DEBUG")
-                if result is not None:
-                    break
 
-            if isinstance(result, expression.types.Mark):
-                markers.update(result.markers)
-                result = result.result
+                if isinstance(result, expression.types.Mark):
+                    markers.update(result.markers)
+                    result = result.result
+
+                if isinstance(result, expression.types.IncludeSchedule) and \
+                   path.includes_schedule(result.schedule):
+                    # Prevent reusing IncludeSchedule results that would
+                    # lead to a cycle. This happens when a rule of an
+                    # included schedule returns None and the search then
+                    # reaches the IncludeSchedule within the parent.
+                    log("==   [skipping this candidate to prevent a cycle]",
+                        path, level="DEBUG")
+                    result = None
+                elif result is None:
+                    log("==   [skipping this candidate]",
+                        path, level="DEBUG")
+                else:
+                    break
 
             if result is None:
                 if rules_with_expr_or_value:
