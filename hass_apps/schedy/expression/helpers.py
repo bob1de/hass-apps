@@ -116,9 +116,12 @@ class StateHelper(HelperBase):
                 continue
             attributes = state.get("attributes", {})
             for attr, value in criteria.items():
-                if attr == "state" and state.get("state") != value or \
-                   attributes.get(attr) != value:
-                    break
+                if attr == "state": 
+                    if state.get("state") != value:
+                        break
+                else:
+                    if attributes.get(attr) != value:
+                        break
             else:
                 yield entity
 
