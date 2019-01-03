@@ -359,11 +359,11 @@ class Schedule:
                     log("==   [skipping this candidate to prevent a cycle]",
                         path, level="DEBUG")
                     result = None
-                elif isinstance(result, expression.types.Inherit):
-                    result = None
-                elif result is None:
-                    log("==   [skipping this candidate]",
+                elif result is None or \
+                     isinstance(result, expression.types.Inherit):
+                    log("==   skipping in favour of the parent",
                         path, level="DEBUG")
+                    result = None
                 else:
                     break
 
