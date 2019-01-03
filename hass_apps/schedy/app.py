@@ -213,13 +213,27 @@ class SchedyApp(common.App):
         """Sets up a state listener as configured in the given definition
         that triggers schedule re-evaluation in the given rooms."""
 
-        def _cb(*args: T.Any, **kwargs: T.Any) -> None:
-            self.log("State of watched {} changed, triggering re-evaluation in: {}"
-                     .format(repr(entity_id), rooms),
-                     level="DEBUG")
+        def _cb(
+                entity_id: str, attribute: str, old: T.Any, new: T.Any,
+                kwargs: T.Any
+        ) -> None:
+            mode_str = "resetting" if reset else "reevaluating"
+            if len(rooms) == 1:
+                rooms_str = repr(rooms[0])
+            else:
+                rooms_str = "{} rooms".format(len(rooms))
+            if attribute == "all":
+                self.log("State of {} changed, {} {}"
+                         .format(repr(entity_id), mode_str, rooms_str),
+                         prefix=common.LOG_PREFIX_INCOMING)
+            else:
+                self.log("Attribute {} of {} changed to {}, {} {}"
+                         .format(repr(attribute), repr(entity_id), repr(new),
+                                 mode_str, rooms_str),
+                         prefix=common.LOG_PREFIX_INCOMING)
 
             for room in rooms:
-                room.trigger_reevaluation(reset=bool(mode == "reset"))
+                room.trigger_reevaluation(reset=reset)
 
         entity_id = definition["entity"]
         attributes = definition["attributes"]
@@ -229,5 +243,6 @@ class SchedyApp(common.App):
                  .format(repr(entity_id), attributes, rooms, mode),
                  level="DEBUG")
         if mode != "ignore":
+            reset = bool(mode == "reset")
             for attribute in attributes:
                 self.listen_state(_cb, entity_id, attribute=attribute)
