@@ -108,7 +108,7 @@ def compile_expression(expr: str) -> types.CodeType:
         expr = "result = {}".format(expr)
         mode = "single"
 
-    compiled = compile(expr, "expr", mode, dont_inherit=True)  # type: types.CodeType
+    compiled = compile(expr, "expression", mode, dont_inherit=True)  # type: types.CodeType
     return compiled
 
 def deep_merge_dicts(source: dict, dest: dict) -> None:

@@ -340,6 +340,10 @@ class Schedule:
                         expr_cache[rule.expr] = result
                         log("=> {}".format(repr(result)),
                             path, level="DEBUG")
+                    if isinstance(result, Exception):
+                        room.log("Failed expression: {}"
+                                 .format(repr(rule.expr_raw)),
+                                 level="ERROR")
                 elif rule.value is not None:
                     plain_value = True
                     result = rule.value

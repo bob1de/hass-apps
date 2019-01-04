@@ -13,7 +13,10 @@ if T.TYPE_CHECKING:
 
 import datetime
 import functools
+import os
+import sys
 import threading
+import traceback
 
 from .. import common
 from . import expression, util
@@ -390,14 +393,19 @@ class Room:
 
     def eval_expr(self, expr: types.CodeType, env: T.Dict[str, T.Any]) -> T.Any:
         """This is a wrapper around expression.eval_expr().
-        It catches any exception raised during evaluation. In this case,
-        the caught Exception object is returned."""
+        It catches and logs any exception raised during evaluation. In
+        this case, the caught Exception object is returned."""
 
         try:
             return expression.eval_expr(expr, env)
         except Exception as err:  # pylint: disable=broad-except
-            self.log("Error while evaluating expression: {}".format(repr(err)),
+            self.log("Error while evaluating expression:",
                      level="ERROR")
+            tb_exc = traceback.TracebackException(*sys.exc_info())  # type: ignore
+            while tb_exc.stack and tb_exc.stack[0].filename != "expression":
+                del tb_exc.stack[0]
+            for line in tb_exc.format():
+                self.log(line.rstrip(os.linesep), level="ERROR")
             return err
 
     @sync_proxy
@@ -567,6 +575,11 @@ class Room:
                      .format(repr(expr_raw), repr(result)),
                      level="DEBUG")
 
+            if isinstance(result, Exception):
+                self.log("Failed expression: {}".format(repr(expr_raw)),
+                         level="ERROR")
+                return
+
             if isinstance(result, expression_types.Mark):
                 markers.update(result.markers)
                 result = result.result
@@ -574,7 +587,7 @@ class Room:
             not_allowed_result_types = (
                 expression_types.ControlResult,
                 expression_types.Postprocessor,
-                type(None), Exception,
+                type(None),
             )
             value = None
             if isinstance(result, expression_types.IncludeSchedule):
