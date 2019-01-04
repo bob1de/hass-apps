@@ -360,7 +360,8 @@ class Schedule:
                     # lead to a cycle. This happens when a rule of an
                     # included schedule returns Inherit() and the search
                     # then reaches the IncludeSchedule within the parent.
-                    log("==   [skipping this candidate to prevent a cycle]",
+                    log("==   skipping in favour of the parent to prevent "
+                        "a cycle",
                         path, level="DEBUG")
                     result = None
                 elif result is None or \
