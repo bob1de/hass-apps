@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   backwards resolution of rule values still works, it just treats
   ``IncludeSchedule()`` results for schedules already on the stack as
   if they were ``None`` and hence ignores them.
+* The ``filter_entities()`` state helper returned no entities in certain
+  cases.
 
 ### Security
 
