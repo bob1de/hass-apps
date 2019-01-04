@@ -285,7 +285,7 @@ which makes the benefits of this behaviour more obvious.
           - x: "IncludeSchedule(schedule_snippets['somebody_home'])"
             name: include somebody_home snippet
             rules:
-            - { end: "18:00", name: "stop at 6.00 pm" }
+            - { start: "06:00", end: "18:00", name: "stop at 6.00 pm" }
 
 I'm not going to describe what every single rule does. If you want to
 see the actual evaluation flow, put it into your configuration and turn
@@ -293,15 +293,15 @@ on the debug logging.
 
 What I do want to highlight is that each room can have it's own heating
 temperature, without having to define the times redundantly. I can even
-set the ``office`` to always stop ad ``18:00``, and that's where the
-magic kicks in. The ``stop at 6.00 pm`` rule inherits its result from
-its parent rule (``include somebody_home snippet``), which causes the
+limit the ``office`` to heat no longer than until ``18:00``, and that's
+where the magic kicks in. The ``stop at 6.00 pm`` rule inherits its result
+from its parent rule (``include somebody_home snippet``), which causes the
 ``somebody_home`` snippet to be inserted and evaluated. Now, we assume
-that ``always heat when awake switch is on`` returns ``Inherit()``, which
-again causes its parent's value to be used. The nearest parent with a
-value again is ``include somebody_home snippet`` - and there we would get
-an infinite recursion. But Schedy is smart enough to notice that we're
-already inside the ``somebody_home`` snippet and just takes the next
+that ``always heat when awake switch is on`` returns ``Inherit()``,
+which again causes its parent's value to be used. The nearest parent
+with a value again is ``include somebody_home snippet`` - and there we
+would get an infinite recursion. But Schedy is smart enough to notice that
+we're already inside the ``somebody_home`` snippet and just takes the next
 parent's value, which is ``20`` and exactly what we want. Problem solved.
 
 
