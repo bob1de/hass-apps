@@ -10,7 +10,7 @@ if T.TYPE_CHECKING:
 
 __all__ = [
     "Abort", "Break", "IncludeSchedule", "Inherit", "Mark", "Skip",
-    "Add", "And", "Multiply", "Invert", "Negate", "Or", "Postprocess",
+    "Add", "Multiply", "Invert", "Postprocess",
 ]
 
 
@@ -51,15 +51,6 @@ class Add(PostprocessorValueMixin, Postprocessor):
     def __repr__(self) -> str:
         return "Add({})".format(repr(self.value))
 
-class And(PostprocessorValueMixin, Postprocessor):
-    """And-combines a value with the final result."""
-
-    def apply(self, result: T.Any) -> T.Any:
-        return type(result)(result and self.value)
-
-    def __repr__(self) -> str:
-        return "And({})".format(repr(self.value))
-
 class Multiply(PostprocessorValueMixin, Postprocessor):
     """Multiplies a value with the final result."""
 
@@ -89,17 +80,6 @@ class Invert(Postprocessor):
 
     def __repr__(self) -> str:
         return "Invert()"
-
-Negate = Invert
-
-class Or(PostprocessorValueMixin, Postprocessor):
-    """Or-combines a value with the final result."""
-
-    def apply(self, result: T.Any) -> T.Any:
-        return type(result)(result or self.value)
-
-    def __repr__(self) -> str:
-        return "Or({})".format(repr(self.value))
 
 class Postprocess(Postprocessor):
     """A type which can be used for post-processing the later result by

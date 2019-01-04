@@ -32,14 +32,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * The documentation for writing schedules has been restructured.
 
 ### Deprecated
-* 0.3: The old name ``Negate`` for the ``Invert`` postprocessor will
-  be removed.
-* 0.3: The ``And`` and ``Or`` postprocessors will be removed. Use the
-  generic ``Postprocess`` instead.
 * 0.4: The old name ``schedy_reschedule`` for the ``schedy_reevaluate``
   event will be removed.
 
 ### Removed
+* The old name ``Negate`` for the ``Invert`` postprocessor has been
+  removed.
+* The ``And`` and ``Or`` postprocessors habe been removed. Use the generic
+  ``Postprocess`` instead.
 
 
 ## 0.2.0 - 2018-12-23

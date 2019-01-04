@@ -14,13 +14,9 @@ returned, tell Schedy you want to generate a postprocessor that is going
 to alter the later result. Namely, there are:
 
 * ``Add(x)`` to add a value ``x`` to the result.
-* ``And(x)`` to combine the result with ``x`` by the ``and`` Python
-  operator.  [deprecated]
 * ``Multiply(x)`` to multiply the result with ``x``.
 * ``Invert()`` to invert the result. This negates numbers, inverts boolean
   values and swaps the strings ``"on"`` and ``"off"`` for each other.
-* ``Or(x)`` to combine the result with ``x`` by the ``or`` Python
-  operator.  [deprecated]
 * ``Postprocess(func)``, where ``func`` is a callable that takes the
   result as its only argument and returns the post-processed result. This
   can conveniently be used with lambda-closures .
