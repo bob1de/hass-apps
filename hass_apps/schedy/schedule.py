@@ -368,11 +368,12 @@ class Schedule:
                     break
 
             if result is None:
-                log("No expression/value definition found, skipping rule.",
-                    path, level="WARNING")
+                room.log("No expression/value definition found, skipping {}."
+                         .format(path),
+                         level="WARNING")
             elif isinstance(result, Exception):
-                log("Evaluation failed, skipping rule.",
-                    path, level="DEBUG")
+                room.log("Evaluation failed, skipping {}.".format(path),
+                         level="WARNING")
             elif isinstance(result, expression.types.Abort):
                 break
             elif isinstance(result, expression.types.Break):
