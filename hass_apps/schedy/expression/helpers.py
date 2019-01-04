@@ -119,9 +119,8 @@ class StateHelper(HelperBase):
                 if attr == "state": 
                     if state.get("state") != value:
                         break
-                else:
-                    if attributes.get(attr) != value:
-                        break
+                elif attributes.get(attr) != value:
+                    break
             else:
                 yield entity
 
