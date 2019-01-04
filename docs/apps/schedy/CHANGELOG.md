@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Added the ``Inherit()`` result type to inherit the parent rule's
   value. ``None`` will continue to work as well, but ``Inherit()``
   is more explanatory and thus preferred.
+* When an expression fails to evaluate, the traceback is now logged.
 
 ### Changed
 * Various small improvements of the examples for using expressions.
