@@ -223,11 +223,11 @@ class SchedyApp(common.App):
             else:
                 rooms_str = "{} rooms".format(len(rooms))
             if attribute == "all":
-                self.log("State of {} changed, {} {}"
+                self.log("State of {} changed, {} {}."
                          .format(repr(entity_id), mode_str, rooms_str),
                          prefix=common.LOG_PREFIX_INCOMING)
             else:
-                self.log("Attribute {} of {} changed to {}, {} {}"
+                self.log("Attribute {} of {} changed to {}, {} {}."
                          .format(repr(attribute), repr(entity_id), repr(new),
                                  mode_str, rooms_str),
                          prefix=common.LOG_PREFIX_INCOMING)
