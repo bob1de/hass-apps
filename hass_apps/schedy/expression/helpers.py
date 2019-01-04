@@ -116,7 +116,7 @@ class StateHelper(HelperBase):
                 continue
             attributes = state.get("attributes", {})
             for attr, value in criteria.items():
-                if attr == "state": 
+                if attr == "state":
                     if state.get("state") != value:
                         break
                 elif attributes.get(attr) != value:
