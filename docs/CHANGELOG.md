@@ -20,6 +20,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Removed
 
 
+## 0.20190105.0
+
+### Changed
+* Schedy v0.3.0
+
+
 ## 0.20181223.1
 
 ### Changed
