@@ -568,7 +568,14 @@ class Room:
         markers = set()
         now = self.app.datetime()
         if expr_raw is not None:
-            expr = util.compile_expression(expr_raw)
+            try:
+                expr = util.compile_expression(expr_raw)
+            except SyntaxError:
+                for line in traceback.format_exc(limit=0):
+                    self.log(line.rstrip(os.linesep), level="ERROR")
+                self.log("Failed expression: {}".format(repr(expr_raw)),
+                         level="ERROR")
+                return
             env = expression.build_expr_env(self, now)
             result = self.eval_expr(expr, env)
             self.log("Evaluated expression {} to {}."
