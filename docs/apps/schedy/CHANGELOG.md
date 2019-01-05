@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * It's no longer possible to create cycles when including schedules. The
   backwards resolution of rule values still works, it just treats
   ``IncludeSchedule()`` results for schedules already on the stack as
-  if they were ``None`` and hence ignores them.
+  if they were ``Inherit()`` and hence ignores them.
 * The ``filter_entities()`` state helper returned no entities in certain
   cases.
 
