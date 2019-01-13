@@ -3,7 +3,7 @@ Welcome to the documentation of hass-apps!
 
 This is a collection of useful apps to empower Home Assistant even more.
 
-The apps are built ontop of the AppDaemon framework. Each has its own,
+The apps are built on top of the AppDaemon framework. Each has its own,
 detailled documentation and includes a sample configuration. Read the
 :doc:`getting-started` chapter and start empowering your smart home.
 
@@ -96,4 +96,4 @@ If you've got an interesting idea for a new app you'd like to contribute,
 just open an issue on GitHub and we can discuss it there.
 
 All contributions are subject to the :doc:`CODE_OF_CONDUCT`. Don't
-contribute if you don't aggree with that.
+contribute if you don't agree with that.
