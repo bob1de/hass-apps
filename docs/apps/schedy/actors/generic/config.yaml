@@ -30,7 +30,7 @@ attributes:
       # The parameter as which the actual value should be passed in the
       # service data.
       # null means not include the value in the service data.
-      #value_param: null
+      #value_parameter: null
 
     #other_value:
       # ...
