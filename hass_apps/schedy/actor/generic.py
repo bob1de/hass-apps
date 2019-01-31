@@ -11,6 +11,7 @@ from .base import ActorBase
 
 
 ALLOWED_VALUE_TYPES = (float, int, str, type(None))
+ALLOWED_VALUE_TYPES_T = T.Union[float, int, str, None]  # pylint: disable=invalid-name
 
 VALUE_DEF_SCHEMA = vol.Schema(vol.All(
     lambda v: v or {},
@@ -61,32 +62,46 @@ class GenericActor(ActorBase):
                 ),
             ],
         ),
+        vol.Optional("short_values", default=list): vol.All(
+            lambda v: v or [],
+            [
+                vol.Any(WILDCARD_VALUE_SCHEMA, *ALLOWED_VALUE_TYPES),
+                vol.Coerce(tuple),
+            ],
+        ),
     }
 
-    def _get_value_cfg(self, index: int, value: str) -> T.Any:
-        """Returns the value configuration for given attribute index
-        and value or None, if unknown. _other_ is respected as well."""
+    def _get_value_cfg(
+            self, index: int, value: ALLOWED_VALUE_TYPES_T
+    ) -> T.Tuple[ALLOWED_VALUE_TYPES_T, T.Dict]:
+        """Returns the key and value configuration for given attribute
+        index and value.
+        A KeyError is raised when the value is unknown and no _other_
+        is configured."""
 
-        try:
-            return self.cfg["attributes"][index]["values"][value]
-        except KeyError:
-            return self.cfg["attributes"][index]["values"].get("_other_")
+        for key in (value, "_other_"):
+            try:
+                return key, self.cfg["attributes"][index]["values"][key]
+            except KeyError:
+                pass
+
+        raise KeyError(value)
 
     def do_send(self) -> None:
         """Executes the services configured for self._wanted_value."""
 
         value = self._wanted_value
-        if len(self.cfg["attributes"]) == 1:
+        if not isinstance(value, tuple):
             value = (value,)
 
-        for index in range(len(self.cfg["attributes"])):
-            cfg = self._get_value_cfg(index, value[index])
+        for index, item in enumerate(value):
+            _, cfg = self._get_value_cfg(index, item)
             service = cfg["service"]
             service_data = cfg["service_data"].copy()
             if cfg["include_entity_id"]:
                 service_data.setdefault("entity_id", self.entity_id)
             if cfg["value_parameter"] is not None:
-                service_data.setdefault(cfg["value_parameter"], value[index])
+                service_data.setdefault(cfg["value_parameter"], item)
 
             self.log("Calling service {}, data = {}."
                      .format(repr(service), repr(service_data)),
@@ -96,23 +111,45 @@ class GenericActor(ActorBase):
     def filter_set_value(self, value: T.Any) -> T.Any:
         """Checks whether the actor supports this value."""
 
+        def _log_invalid_length() -> None:
+            self.log("The value {} has not the expected number of items "
+                     "({} (actual) vs. {} (expected))."
+                     .format(repr(value), len(value),
+                             len(self.cfg["attributes"])),
+                     level="ERROR")
+
         if not isinstance(value, tuple):
             value = (value,)
-        if len(value) != len(self.cfg["attributes"]):
-            self.log("The value {} has not the expected number of items ({})."
-                     .format(repr(value), len(self.cfg["attributes"])),
-                     level="ERROR")
+        if len(value) > len(self.cfg["attributes"]):
+            _log_invalid_length()
             return None
 
         _value = []
         for index, item in enumerate(value):
-            if self._get_value_cfg(index, item) is None:
-                self.log("VALUe {} for slot {} is not known by this "
+            try:
+                self._get_value_cfg(index, item)
+            except KeyError:
+                self.log("Value {} for slot {} is not known by this "
                          "generic actor, ignoring request to set it."
                          .format(repr(item), index),
                          level="ERROR")
                 return None
             _value.append(item)
+
+        for short in self.cfg["short_values"]:
+            if short == tuple(_value[:len(short)]):
+                if len(_value) > len(short):
+                    self.log("VALUe {} should be shortened to {}, "
+                             "doing it for you now."
+                             .format(repr(_value), repr(short)),
+                             level="WARNING")
+                    _value = short
+                    return None
+                break
+        else:
+            if len(value) != len(self.cfg["attributes"]):
+                _log_invalid_length()
+                return None
 
         return value[0] if len(_value) == 1 else tuple(_value)
 
@@ -120,12 +157,14 @@ class GenericActor(ActorBase):
         """Is called when the entity's state changes."""
 
         items = []  # type: T.List[T.Any]
-        for cfg in self.cfg["attributes"]:
+        path = []  # type: T.List[ALLOWED_VALUE_TYPES_T]
+        for index, cfg in enumerate(self.cfg["attributes"]):
             attr = cfg["attribute"]
             if attr is None:
                 # write-only slot, can never be determined
                 items.append(None)
                 continue
+
             state = attrs.get(attr)
             self.log("Attribute {} is {}."
                      .format(repr(attr), repr(state)),
@@ -133,7 +172,26 @@ class GenericActor(ActorBase):
             if state is None:
                 self.log("Ignoring state of None.", level="DEBUG")
                 return None
+
+            try:
+                key, _ = self._get_value_cfg(index, state)
+            except KeyError:
+                self.log("State {} for slot {} is not known by this "
+                         "generic actor, ignoring state change."
+                         .format(repr(state), index),
+                         level="ERROR")
+                return None
+
             items.append(state)
+            path.append(key)
+
+            for short in self.cfg["short_values"]:
+                if short == tuple(path):
+                    self.log("This is a configured short value {}, breaking."
+                             .format(repr(short)),
+                             level="DEBUG")
+                    break
+
         return items[0] if len(items) == 1 else tuple(items)
 
     @staticmethod

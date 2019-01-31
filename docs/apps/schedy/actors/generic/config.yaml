@@ -44,3 +44,20 @@ attributes:
       # ...
 
 - # Second attribute...
+
+
+# For some types of actors that need multiple attributes to be
+# controlled, there are sometimes attributes that aren't important in
+# a particular state. For instance, a light that's turned off doesn't
+# care about the brightness or color set.
+# For these kind of actors, you can configure short values: values which
+# only need to have the first N attributes set.
+# You of course need to configure the attributes in an order that makes
+# sense, with mandatory ones first and state-specific ones later.
+short_values:
+# When the first attribute is set to "off", don't consider further
+# attributes.
+- ["off"]
+# When the first attribute is set to "on" and the second's value is
+# something catched by the wildcard value, ignore further attributes.
+- ["on", "_other_"]
