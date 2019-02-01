@@ -191,6 +191,9 @@ class GenericActor(ActorBase):
                              .format(repr(short)),
                              level="DEBUG")
                     break
+            else:
+                continue
+            break
 
         return items[0] if len(items) == 1 else tuple(items)
 
