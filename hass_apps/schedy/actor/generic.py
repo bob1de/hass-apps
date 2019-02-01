@@ -163,6 +163,7 @@ class GenericActor(ActorBase):
             if attr is None:
                 # write-only slot, can never be determined
                 items.append(None)
+                path.append(None)
                 continue
 
             state = attrs.get(attr)
@@ -170,7 +171,7 @@ class GenericActor(ActorBase):
                      .format(repr(attr), repr(state)),
                      level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
             if state is None:
-                self.log("Ignoring state of None.", level="DEBUG")
+                self.log("Ignoring incomplete state change.", level="DEBUG")
                 return None
 
             try:
