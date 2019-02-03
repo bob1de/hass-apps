@@ -125,23 +125,15 @@ class Room:
         """Restores a stored state from Home Assistant and.applies it.
         If no state was found, the schedule is just applied."""
 
-        def deserialize(value: T.Any) -> T.Any:
-            """Return the deserialized value or None, if value is None
-            or serialization fails."""
-
+        def _deserialize(value: T.Any) -> T.Any:
             if value is None:
                 return None
-
             assert self.app.actor_type is not None
             return self.app.actor_type.deserialize_value(value)
 
-        def deserialize_dt(value: T.Any) -> T.Optional[datetime.datetime]:
-            """Return the datetime object for the given timestamp or None,
-            if it is None."""
-
+        def _deserialize_dt(value: T.Any) -> T.Optional[datetime.datetime]:
             if not isinstance(value, (float, int)):
                 return None
-
             return datetime.datetime.fromtimestamp(value)
 
         entity_id = self._state_entity_id
@@ -157,22 +149,22 @@ class Room:
             attrs = state.get("attributes", {})
             actor_wanted_values = attrs.get("actor_wanted_values", {})
             for entity_id, value in actor_wanted_values.items():
-                value = deserialize(value)
+                value = _deserialize(value)
                 for actor in self.actors:
                     if actor.entity_id == entity_id:
                         actor.wanted_value = value
-            self._wanted_value = deserialize(state.get("state") or None)
-            self._scheduled_value = deserialize(attrs.get("scheduled_value"))
-            self._rescheduling_time = deserialize_dt(
+            self._wanted_value = _deserialize(state.get("state") or None)
+            self._scheduled_value = _deserialize(attrs.get("scheduled_value"))
+            self._rescheduling_time = _deserialize_dt(
                 attrs.get("rescheduling_time")
             )
-            self._overlaid_wanted_value = deserialize(
+            self._overlaid_wanted_value = _deserialize(
                 attrs.get("overlaid_wanted_value")
             )
-            self._overlaid_scheduled_value = deserialize(
+            self._overlaid_scheduled_value = _deserialize(
                 attrs.get("overlaid_scheduled_value")
             )
-            self._overlaid_rescheduling_time = deserialize_dt(
+            self._overlaid_rescheduling_time = _deserialize_dt(
                 attrs.get("overlaid_rescheduling_time")
             )
 
@@ -243,44 +235,45 @@ class Room:
         """Update the room's state in Home Assistant."""
 
         D = T.TypeVar("D")
-        def serialize(value: T.Any, default: D) -> T.Union[str, D]:
-            """Return the serialized value or the default, if value is None."""
-
+        def _serialize(value: T.Any, default: D) -> T.Union[str, D]:
             if value is None:
                 return default
-
             assert self.app.actor_type is not None
             return self.app.actor_type.serialize_value(value)
 
-        def serialize_dt(
+        def _serialize_dt(
                 value: T.Optional[datetime.datetime]
         ) -> T.Optional[float]:
-            """Return the timestamp of the given datetime or None,
-            if it is None."""
-
             if value is None:
                 return None
-
             return value.timestamp()
 
-        state = serialize(self._wanted_value, "")
+        def _maybe_add(key: str, value: T.Any) -> None:
+            if value is not None:
+                attrs[key] = value
+
+        state = _serialize(self._wanted_value, "")
         attrs = {
             "actor_wanted_values": {
-                actor.entity_id: serialize(actor.wanted_value, None)
+                actor.entity_id: _serialize(actor.wanted_value, None)
                 for actor in self.actors
             },
-            "scheduled_value": serialize(self._scheduled_value, None),
-            "rescheduling_time": serialize_dt(self._rescheduling_time),
-            "overlaid_wanted_value":
-                serialize(self._overlaid_wanted_value, None),
-            "overlaid_scheduled_value":
-                serialize(self._overlaid_scheduled_value, None),
-            "overlaid_rescheduling_time": serialize_dt(
-                self._overlaid_rescheduling_time
-            ),
+            "scheduled_value": _serialize(self._scheduled_value, None),
+            "rescheduling_time": _serialize_dt(self._rescheduling_time),
         }
-        if "friendly_name" in self.cfg:
-            attrs["friendly_name"] = self.cfg["friendly_name"]
+        _maybe_add(
+            "overlaid_wanted_value",
+            _serialize(self._overlaid_wanted_value, None)
+        )
+        _maybe_add(
+            "overlaid_scheduled_value",
+            _serialize(self._overlaid_scheduled_value, None)
+        )
+        _maybe_add(
+            "overlaid_rescheduling_time",
+            _serialize_dt(self._overlaid_rescheduling_time)
+        )
+        _maybe_add("friendly_name", self.cfg.get("friendly_name"))
 
         unchanged = (state, attrs) == self._last_state
         if unchanged:
