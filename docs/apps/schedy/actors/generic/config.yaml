@@ -46,6 +46,12 @@ attributes:
 - # Second attribute...
 
 
+# By default, services for changing the different attributes are called
+# in the order you defined the attributes. Set this flag to true to have
+# the order in which services are called reversed.
+#call_reversed: false
+
+
 # For some types of actors that need multiple attributes to be
 # controlled, there are sometimes attributes that aren't important in
 # a particular state. For instance, a light that's turned off doesn't

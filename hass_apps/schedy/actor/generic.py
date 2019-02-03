@@ -62,6 +62,7 @@ class GenericActor(ActorBase):
                 ),
             ],
         ),
+        vol.Optional("call_reversed", default=False): bool,
         vol.Optional("short_values", default=list): vol.All(
             lambda v: v or [],
             [
@@ -95,7 +96,11 @@ class GenericActor(ActorBase):
         if not isinstance(value, tuple):
             value = (value,)
 
-        for index, item in enumerate(value):
+        iterator = enumerate(value)  # type: T.Iterator[T.Tuple[int, T.Any]]
+        if self.cfg["call_reversed"]:
+            iterator = reversed(list(iterator))
+
+        for index, item in iterator:
             _, cfg = self._get_value_cfg(index, item)
             service = cfg["service"]
             service_data = cfg["service_data"].copy()
