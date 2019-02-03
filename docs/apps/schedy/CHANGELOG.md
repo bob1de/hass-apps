@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 * Fixed name of ``value_parameter`` setting for generic actor in docs.
+* Schedules were re-evaluated when the value of a not watched attribute
+  of a watched entity changes.
 
 ### Security
 

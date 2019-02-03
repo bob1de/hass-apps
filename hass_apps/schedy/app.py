@@ -217,6 +217,9 @@ class SchedyApp(common.App):
                 entity_id: str, attribute: str, old: T.Any, new: T.Any,
                 kwargs: T.Any
         ) -> None:
+            if new == old:
+                return
+
             mode_str = "resetting" if reset else "reevaluating"
             if len(rooms) == 1:
                 rooms_str = repr(rooms[0])
