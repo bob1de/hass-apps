@@ -117,6 +117,7 @@ class Room:
             "value_changed", self.notify_value_changed
         )
         if self._wanted_value is not None and \
+           self.cfg["replicate_changes"] and \
            all([a.is_initialized for a in self.actors]):
             self.set_value(self._wanted_value)
 

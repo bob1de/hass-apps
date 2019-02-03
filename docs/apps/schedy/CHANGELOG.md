@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 ### Changed
+* The wanted value of a room is not sent to actors at startup when
+  ``replicate_changes`` has been disabled in the room's configuration.
 
 ### Deprecated
 * 0.4: The old name ``schedy_reschedule`` for the ``schedy_reevaluate``
