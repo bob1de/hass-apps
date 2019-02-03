@@ -68,6 +68,7 @@ class GenericActor(ActorBase):
                 vol.Any(WILDCARD_VALUE_SCHEMA, *ALLOWED_VALUE_TYPES),
                 vol.Coerce(tuple),
             ],
+            lambda v: sorted(v, key=len, reverse=True),
         ),
     }
 
