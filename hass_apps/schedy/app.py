@@ -227,9 +227,9 @@ class SchedyApp(common.App):
                          .format(repr(entity_id), mode_str, rooms_str),
                          prefix=common.LOG_PREFIX_INCOMING)
             else:
-                self.log("Attribute {} of {} changed to {}, {} {}."
-                         .format(repr(attribute), repr(entity_id), repr(new),
-                                 mode_str, rooms_str),
+                self.log("Attribute {} of {} changed from {} to {}, {} {}."
+                         .format(repr(attribute), repr(entity_id), repr(old),
+                                 repr(new), mode_str, rooms_str),
                          prefix=common.LOG_PREFIX_INCOMING)
 
             for room in rooms:
