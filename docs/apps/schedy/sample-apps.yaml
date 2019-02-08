@@ -140,7 +140,8 @@ schedy:  # An arbitrary name for this instance of Schedy,
       # All actors of this room go here.
       #actors:
 
-        # This could be a sample thermostat.
+        # This could be a thermostat.
+        # NOTE: Don't forget the colon after the actor name.
         #climate.living1:
 
           # Choose the template this actor should inherit its settings
