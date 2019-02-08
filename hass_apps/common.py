@@ -6,6 +6,9 @@ import typing as T
 
 import copy
 
+import voluptuous as vol
+import voluptuous.humanize  # pylint: disable=unused-import
+
 from appdaemon.plugins.hass import hassapi
 from appdaemon.utils import __version__ as AD_VERSION
 
@@ -87,7 +90,14 @@ class App(hassapi.Hass):
             cfg = copy.deepcopy(self.args)
             # Make the app object available during config validation.
             cfg["_app"] = self
-            self.cfg = self.Meta.config_schema(cfg)  # pylint: disable=not-callable
+            try:
+                self.cfg = self.Meta.config_schema(cfg)  # pylint: disable=not-callable
+            except vol.Invalid as err:
+                msg = vol.humanize.humanize_error(cfg, err)
+                self.log("Configuration error: {}".format(msg),
+                         level="ERROR")
+                self.log("Not initializing this app.", level="ERROR")
+                return
 
         self.initialize_inner()
 
