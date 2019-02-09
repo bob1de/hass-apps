@@ -45,8 +45,8 @@ schedy:  # An arbitrary name for this instance of Schedy,
   # Nested inclusion of templates is possible as well.
   actor_templates:
 
-    # Each template needs to have a name.
-    #my_template:
+    # By default, an actor inherits its settings from the "default" template.
+    default:
 
       # Optionally have this template based on another one.
       #template: other_template
@@ -54,6 +54,10 @@ schedy:  # An arbitrary name for this instance of Schedy,
       # Actor type-specific settings can be found in the documentation.
       #foo: bar
       #...
+
+    # More templates ...
+    #other_template:
+    # ...
 
 
   # Add schedule rules you want to have prepended to each room's schedule
@@ -141,7 +145,7 @@ schedy:  # An arbitrary name for this instance of Schedy,
       #actors:
 
         # This could be a thermostat.
-        # NOTE: Don't forget the colon after the actor name.
+        # NOTE: Don't forget the colon after the entity id.
         #climate.living1:
 
           # Choose the template this actor should inherit its settings
@@ -151,8 +155,8 @@ schedy:  # An arbitrary name for this instance of Schedy,
           #template: default
 
           # We could, for instance, overwrite the delta defined in the
-          # template, if any, for this particular thermostat only.
-          #delta: 1.0
+          # template for this particular thermostat only.
+          #delta: 0.0
 
       # The room's schedule, consisting of multiple rules.
       schedule:
