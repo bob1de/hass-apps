@@ -410,6 +410,7 @@ class Schedule:
             elif isinstance(result, expression.types.Skip):
                 continue
             else:
+                postprocessor_markers = set()  # type: T.Set[str]
                 result = room.validate_value(result)
                 if result is None and plain_value:
                     room.log("Maybe this is an expression? If so, set it "
@@ -421,6 +422,8 @@ class Schedule:
                     for postprocessor in postprocessors:
                         if result is None:
                             break
+                        markers.update(postprocessor_markers)
+                        postprocessor_markers.clear()
                         room.log("+ {}".format(repr(postprocessor)),
                                  level="DEBUG")
                         try:
@@ -433,12 +436,16 @@ class Schedule:
                             result = None
                             break
                         room.log("= {}".format(repr(result)), level="DEBUG")
+                        if isinstance(result, expression.types.Mark):
+                            postprocessor_markers.update(result.markers)
+                            result = result.result
                         result = room.validate_value(result)
 
                 if result is None:
                     room.log("Aborting schedule evaluation.",
                              level="ERROR")
                     break
+                markers.update(postprocessor_markers)
 
                 room.log("Final result: {}".format(repr(result)),
                          level="DEBUG")

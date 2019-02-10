@@ -23,7 +23,8 @@ to mark the result ``21`` with the ``OVERLAY`` marker.
 The actual syntax is ``Mark(result, marker1, ..., markerN)``,
 so you can add multiple markers ad once. Markers can be applied to
 :doc:`postprocessors <postprocessors>` as well, but they will be used
-for the final result.
+for the final result. Custom postprocessors (e.g. those defined via
+``Postprocess()``) may also add result markers themselves.
 
 The following markers are available:
 
