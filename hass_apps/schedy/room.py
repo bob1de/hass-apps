@@ -329,15 +329,16 @@ class Room:
                 self._scheduled_value, self._overlaid_scheduled_value
             )
             delay = None  # type: T.Union[None, int, datetime.datetime]
-            if self._overlaid_rescheduling_time:
-                if self._overlaid_rescheduling_time > self.app.datetime():
-                    delay = self._overlaid_rescheduling_time
+            if self._overlaid_rescheduling_time and \
+               self._overlaid_rescheduling_time > self.app.datetime():
+                delay = self._overlaid_rescheduling_time
             elif equal:
                 delay = 0
             self._clear_overlay()
             if delay is None:
                 return False
-            self.log("Restoring overlaid value.")
+            self.log("Restoring overlaid value {}."
+                     .format(repr(overlaid_value)))
             self.set_value_manually(
                 value=overlaid_wanted_value, rescheduling_delay=delay
             )
