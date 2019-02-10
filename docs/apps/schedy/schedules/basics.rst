@@ -42,12 +42,14 @@ but only from 7.00 am to 10.00 pm. This is because it's placed before
 the 16 degrees-rule and Schedy evaluates rules from top to bottom. From
 10.00 pm to next day 7.00 am, the ``16`` degrees do still apply.
 
-That's how schedules work. The first matching rule wins and determines
-the value to set. Consequently, you should design your schedules with
-the most specific rules at the top and gradually generalize to wider
-time frames towards the bottom. Finally, there should be a fallback
-rule without time constraints at all to ensure you have no time slot
-left without a value defined for.
+.. note::
+
+   This is how schedules work. The first matching rule wins and determines
+   the value to set. Consequently, you should design your schedules with
+   the most specific rules at the top and gradually generalize to wider
+   time frames towards the bottom. Finally, there should be a fallback
+   rule without time constraints at all to ensure you have no time slot
+   left without a value defined for.
 
 The ``name`` parameter we specified here is completely optional and
 doesn't influence how the rule is interpreted. A rule's name is shown
