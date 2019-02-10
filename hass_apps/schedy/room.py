@@ -338,7 +338,7 @@ class Room:
             if delay is None:
                 return False
             self.log("Restoring overlaid value {}."
-                     .format(repr(overlaid_value)))
+                     .format(repr(overlaid_wanted_value)))
             self.set_value_manually(
                 value=overlaid_wanted_value, rescheduling_delay=delay
             )
