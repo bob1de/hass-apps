@@ -78,6 +78,7 @@ class Room:
         self._overlaid_wanted_value = None  # type: T.Any
         self._overlaid_scheduled_value = None  # type: T.Any
         self._overlaid_rescheduling_time = None  # type: T.Optional[datetime.datetime]
+        self._overlay_revert_on_no_result = None  # type: T.Optional[bool]
 
         self._last_state = None  # type: T.Optional[T.Tuple[str, T.Dict[str, T.Any]]]
 
@@ -99,6 +100,7 @@ class Room:
         self._overlaid_wanted_value = None
         self._overlaid_scheduled_value = None
         self._overlaid_rescheduling_time = None
+        self._overlay_revert_on_no_result = None
 
     @sync_proxy
     def _initialize_actor_cb(self, kwargs: dict) -> None:
@@ -167,6 +169,7 @@ class Room:
             self._overlaid_rescheduling_time = _deserialize_dt(
                 attrs.get("overlaid_rescheduling_time")
             )
+            self._overlay_revert_on_no_result = attrs.get("overlay_revert_on_no_result")
 
             if self._rescheduling_time:
                 if self._rescheduling_time > self.app.datetime():
@@ -273,6 +276,7 @@ class Room:
             "overlaid_rescheduling_time",
             _serialize_dt(self._overlaid_rescheduling_time)
         )
+        _maybe_add("overlay_revert_on_no_result", self._overlay_revert_on_no_result)
         _maybe_add("friendly_name", self.cfg.get("friendly_name"))
 
         unchanged = (state, attrs) == self._last_state
@@ -315,6 +319,30 @@ class Room:
         These both checks can be skipped by setting reset to True.
         force_resend is passed through to set_value()."""
 
+        def _restore_overlaid_value() -> bool:
+            """Restores and clears an overlaid value.
+            Returns whether a value has actually been set or not."""
+
+            overlaid_wanted_value = self._overlaid_wanted_value
+            assert self.app.actor_type is not None
+            equal = self.app.actor_type.values_equal(
+                self._scheduled_value, self._overlaid_scheduled_value
+            )
+            delay = None  # type: T.Union[None, int, datetime.datetime]
+            if self._overlaid_rescheduling_time:
+                if self._overlaid_rescheduling_time > self.app.datetime():
+                    delay = self._overlaid_rescheduling_time
+            elif equal:
+                delay = 0
+            self._clear_overlay()
+            if delay is None:
+                return False
+            self.log("Restoring overlaid value.")
+            self.set_value_manually(
+                value=overlaid_wanted_value, rescheduling_delay=delay
+            )
+            return True
+
         self.log("Evaluating room's schedule (reset={}, force_resend={})."
                  .format(reset, force_resend),
                  level="DEBUG")
@@ -325,6 +353,9 @@ class Room:
         if result is None:
             self.log("No suitable value found in schedule.",
                      level="DEBUG")
+            if self._overlay_revert_on_no_result:
+                self._scheduled_value = self._overlaid_scheduled_value
+                _restore_overlaid_value()
             return
 
         value, markers = result[:2]
@@ -343,23 +374,10 @@ class Room:
             self._clear_overlay()
         elif expression_types.Mark.OVERLAY in markers:
             self._store_for_overlaying(previous_scheduled_value)
+            self._overlay_revert_on_no_result = \
+                    expression_types.Mark.OVERLAY_REVERT_ON_NO_RESULT in markers
         elif self._overlaid_wanted_value is not None:
-            overlaid_wanted_value = self._overlaid_wanted_value
-            equal = self.app.actor_type.values_equal(
-                value, self._overlaid_scheduled_value
-            )
-            delay = None  # type: T.Union[None, int, datetime.datetime]
-            if self._overlaid_rescheduling_time:
-                if self._overlaid_rescheduling_time > self.app.datetime():
-                    delay = self._overlaid_rescheduling_time
-            elif equal:
-                delay = 0
-            self._clear_overlay()
-            if delay is not None:
-                self.log("Restoring overlaid value.")
-                self.set_value_manually(
-                    value=overlaid_wanted_value, rescheduling_delay=delay
-                )
+            if _restore_overlaid_value():
                 return
         elif self._rescheduling_timer:
             self.log("Not applying the schedule now due to a running "

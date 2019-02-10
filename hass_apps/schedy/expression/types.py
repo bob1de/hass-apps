@@ -144,7 +144,8 @@ class Mark(ControlResult):
     """A result with some markers applied."""
 
     # available markers
-    OVERLAY = "overlay"
+    OVERLAY = "OVERLAY"
+    OVERLAY_REVERT_ON_NO_RESULT = "OVERLAY_REVERT_ON_NO_RESULT"
 
     def __init__(self, result: T.Any, *markers: str) -> None:
         self.markers = set(markers)
