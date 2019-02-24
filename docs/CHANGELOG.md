@@ -14,11 +14,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 
 ### Changed
-* Configuration errors are now logged in a more human-readable format.
 
 ### Deprecated
 
 ### Removed
+
+
+## 0.20190224.0
+
+### Changed
+* Configuration errors are now logged in a more human-readable format.
+* Schedy v0.4.0
 
 
 ## 0.20190105.0
