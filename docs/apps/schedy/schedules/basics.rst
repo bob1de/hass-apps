@@ -71,10 +71,10 @@ the rule we have so far.
     - v: 16
 
 If you omit the ``start`` parameter, Schedy assumes that you mean midnight
-(``00:00``) and fills that in for you. When ``end`` is not specified,
-Schedy sets ``00:00`` for it as well. That's what we did for this
-rule. However, a rule that ends the same moment it starts at wouldn't
-make sense. We expect it to count for the whole day instead.
+(``0:00``) and fills that in for you. When ``end`` is not specified
+(as has been done here), Schedy sets ``0:00`` for it as well. However,
+a rule that ends the same moment it starts at wouldn't make sense. We
+expect it to count for the whole day instead.
 
 In order to express what we actually want, there's another parameter named
 ``end_plus_days`` to tell Schedy how many midnights there are between
@@ -100,7 +100,7 @@ the following rule, which behaves exactly identical to what we begun with.
 
 ::
 
-    - { v: 16,   start: "0:00", end: "0:00", end_plus_days: 1 }
+    - { v: 16, start: "0:00", end: "0:00", end_plus_days: 1 }
 
 Note how the rule has been rewritten to take just a single line. This is
 no special feature of Schedy, it's rather normal YAML. But writing rules
@@ -108,7 +108,7 @@ this way is often more readable, especially if you need to create multiple
 similar ones which, for instance, only differ in weekdays, time or value.
 
 You can now write rules that span midnights, but you still can't create
-schedules based on, for instance, the days of the week. Let's do that
+schedules based on, for instance, the days of the week. Let's do this
 next.
 
 
