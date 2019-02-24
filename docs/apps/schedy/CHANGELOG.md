@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Added new result marker ``OVERLAY_REVERT_ON_NO_RESULT`` to cancel an
   overlay when the schedule produces no result.
 * Result markers can now be added by postprocessors as well.
+* The generic actor has received new features (short values and sending
+  of attributes in reversed order). See the actor sample config for details.
 
 ### Changed
 * The wanted value of a room is not sent to actors at startup when
