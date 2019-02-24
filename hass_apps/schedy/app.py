@@ -198,7 +198,6 @@ class SchedyApp(common.App):
         self.log("Listening for schedy_reevaluate event.",
                  level="DEBUG")
         self.listen_event(self._reevaluate_event_cb, "schedy_reevaluate")
-        self.listen_event(self._reevaluate_event_cb, "schedy_reschedule")
 
         self.log("Listening for schedy_set_value event.",
                  level="DEBUG")

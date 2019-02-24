@@ -25,10 +25,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   ``replicate_changes`` has been disabled in the room's configuration.
 
 ### Deprecated
-* 0.4: The old name ``schedy_reschedule`` for the ``schedy_reevaluate``
-  event will be removed.
 
 ### Removed
+* The old name ``schedy_reschedule`` for the ``schedy_reevaluate``
+  event has been removed.
 
 
 ## 0.3.0 - 2019-01-05
