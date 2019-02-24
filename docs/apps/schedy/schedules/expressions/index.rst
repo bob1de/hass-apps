@@ -16,10 +16,11 @@ make their later evaluation really performant.
    :maxdepth: 1
 
    writing-expressions
+   examples
    helpers/index
    postprocessors
    result-markers
-   examples
+   sub-schedules
 
 
 Security Considerations
