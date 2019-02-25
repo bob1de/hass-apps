@@ -33,6 +33,7 @@ Here is another one:
       start: "7:00"
       end: "22:00"
       name: Fancy Rule
+
     - v: 16
 
 This schedule shares the 16 degrees rule with the previous one,
@@ -55,61 +56,14 @@ The ``name`` parameter we specified here is completely optional and
 doesn't influence how the rule is interpreted. A rule's name is shown
 in logs and may be useful for troubleshooting.
 
-For more fine-grained control, you may also specify seconds in addition to
-hour and minute. ``22:00:30`` means 10.00 pm + 30 seconds, for instance.
+For more fine-grained control, you may also specify seconds in addition
+to hour and minute. ``22:00:30`` means 10.00 pm + 30 seconds, for
+instance. Spanning rules beyond midnight (``start`` >= ``end``) is
+possible as well.
 
-
-Rules Spanning Multiple Days
-----------------------------
-
-Now let's come back to the 16-degrees rule we wrote above and figure
-out why that actually counts as a fallback for the whole day. Here's
-the rule we have so far.
-
-::
-
-    - v: 16
-
-If you omit the ``start`` parameter, Schedy assumes that you mean midnight
-(``0:00``) and fills that in for you. When ``end`` is not specified
-(as has been done here), Schedy sets ``0:00`` for it as well. However,
-a rule that ends the same moment it starts at wouldn't make sense. We
-expect it to count for the whole day instead.
-
-In order to express what we actually want, there's another parameter named
-``end_plus_days`` to tell Schedy how many midnights there are between
-the start and end time. As we didn't specify this parameter explicitly,
-it's value is determined by Schedy. If the end time of the rule is prior
-or equal to its start time, ``end_plus_days`` is assumed to be
-``1``, otherwise ``0``.
-
-.. note::
-
-   The value of ``end_plus_days`` can't be negative, meaning you can't
-   span a rule backwards in time. Only positive integers and ``0``
-   are allowed.
-
-.. note::
-
-   You don't need to care about setting ``end_plus_days`` yourself,
-   unless one of your rules should span more than 24 hours, requiring
-   ``end_plus_days: 2`` or greater.
-
-Having written out what Schedy assumes automatically would result in
-the following rule, which behaves exactly identical to what we begun with.
-
-::
-
-    - { v: 16, start: "0:00", end: "0:00", end_plus_days: 1 }
-
-Note how the rule has been rewritten to take just a single line. This is
-no special feature of Schedy, it's rather normal YAML. But writing rules
-this way is often more readable, especially if you need to create multiple
-similar ones which, for instance, only differ in weekdays, time or value.
-
-You can now write rules that span midnights, but you still can't create
-schedules based on, for instance, the days of the week. Let's do this
-next.
+You can now write rules that specify the value over the day, but you
+still can't create different schedules for, for instance, the days of
+the week. Let's do this next.
 
 
 Constraints
@@ -184,6 +138,55 @@ equivalent to ``months: 1-2,4-12``.
 
    The ``!`` sign has a special meaning in YAML, hence inverted
    specifications have to be enclosed in quotes.
+
+
+Rules Spanning Multiple Days
+----------------------------
+
+Now let's come back to the 16-degrees rule we wrote above and figure
+out why that actually counts as a fallback for the whole day. Here's
+the rule we have so far.
+
+::
+
+    - v: 16
+
+If you omit the ``start`` parameter, Schedy assumes that you mean midnight
+(``0:00``) and fills that in for you. When ``end`` is not specified
+(as has been done here), Schedy sets ``0:00`` for it as well. However,
+a rule that ends the same moment it starts at wouldn't make sense. We
+expect it to count for the whole day instead.
+
+In order to express what we actually want, there's another parameter named
+``end_plus_days`` to tell Schedy how many midnights there are between
+the start and end time. As we didn't specify this parameter explicitly,
+it's value is determined by Schedy. If the end time of the rule is prior
+or equal to its start time, ``end_plus_days`` is assumed to be
+``1``, otherwise ``0``.
+
+.. note::
+
+   The value of ``end_plus_days`` can't be negative, meaning you can't
+   span a rule backwards in time. Only positive integers and ``0``
+   are allowed.
+
+.. note::
+
+   You don't need to care about setting ``end_plus_days`` yourself,
+   unless one of your rules should span more than 24 hours, requiring
+   ``end_plus_days: 2`` or greater.
+
+Having written out what Schedy assumes automatically would result in
+the following rule, which behaves exactly identical to what we begun with.
+
+::
+
+    - { v: 16, start: "0:00", end: "0:00", end_plus_days: 1 }
+
+Note how the rule has been rewritten to take just a single line. This is
+no special feature of Schedy, it's rather normal YAML. But writing rules
+this way is often more readable, especially if you need to create multiple
+similar ones which, for instance, only differ in weekdays, time or value.
 
 
 .. _schedy/schedules/basics/rules-with-sub-schedules:
