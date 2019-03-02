@@ -6,9 +6,14 @@ scheduler for Home Assistant that controls different types of actors
 such as switches and thermostats based on powerful rules while still
 facilitating manual intervention at any time.
 
-The goal is to provide an easily usable solution for basic scheduling,
-while leaving advanced users plenty of room for customization with
-arbitrarily complex rules.
+The goal is to provide an easy solution for conventional scheduling
+(e.g. by time of day and day of week) while leaving advanced users plenty
+of room for customization with arbitrarily complex rules.
+
+.. note::
+
+   Excited? A :doc:`tutorial/index` is provided for getting up and
+   running quickly.
 
 These key features are implemented in Schedy. More are added continuously.
 
@@ -17,13 +22,13 @@ These key features are implemented in Schedy. More are added continuously.
 * One schedule can control a group of actors at once
 * Unlimited number of actor groups (Schedy calls them rooms), each having
   its own schedule
+* Configurable re-scheduling after manual adjustments
 * Optional synchronization of manual changes among all actors in a room
 * Dynamic values based on expressions written in Python, allowing for
   arbitrarily complex rules that can consider any information available
   to Home Assistant
 * Event-driven system enables external control by ordinary Home Assistant
   events
-* Configurable re-scheduling after manual adjustments
 * Re-sending until actors report a change back (for unreliable networks)
 * Collection of individually configurable statistical parameters regarding
   Schedy's operation
@@ -43,7 +48,7 @@ started with Schedy and advanced users needing a reference book for
 implementing complex scenarios.
 
 In order to get started, it is recommended to read the :doc:`chapter about
-the concept <concept>` first and then proceed to the following pages.
+the concept <concept>` first and then proceed to the :doc:`tutorial/index`.
 
 
 .. toctree::
@@ -51,6 +56,7 @@ the concept <concept>` first and then proceed to the following pages.
    :maxdepth: 1
 
    concept
+   tutorial/index
    configuration
    actors/index
    schedules/index
