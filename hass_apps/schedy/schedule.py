@@ -521,7 +521,7 @@ class Schedule:
             occurrence of that time. Midnight transitions are handled
             correctly."""
 
-            if _time < current_time:
+            if _time <= current_time:
                 # midnight transition
                 return datetime.datetime.combine(tomorrow, _time)
 
