@@ -20,7 +20,6 @@ import traceback
 
 from .. import common
 from . import expression, util
-from .expression import types as expression_types
 
 
 def sync_proxy(handler: T.Callable) -> T.Callable:
@@ -373,10 +372,10 @@ class Room:
         if reset:
             self.cancel_rescheduling_timer()
             self._clear_overlay()
-        elif expression_types.Mark.OVERLAY in markers:
+        elif expression.types.Mark.OVERLAY in markers:
             self._store_for_overlaying(previous_scheduled_value)
             self._overlay_revert_on_no_result = \
-                    expression_types.Mark.OVERLAY_REVERT_ON_NO_RESULT in markers
+                    expression.types.Mark.OVERLAY_REVERT_ON_NO_RESULT in markers
         elif self._overlaid_wanted_value is not None:
             if _restore_overlaid_value():
                 return
@@ -578,7 +577,7 @@ class Room:
         if all(_checks) or not any(_checks):
             raise ValueError("specify exactly one of expr_raw and value")
 
-        markers = set()
+        markers = set()  # type: T.Set[str]
         now = self.app.datetime()
         if expr_raw is not None:
             try:
@@ -600,17 +599,16 @@ class Room:
                          level="ERROR")
                 return
 
-            if isinstance(result, expression_types.Mark):
-                markers.update(result.markers)
-                result = result.result
+            if isinstance(result, expression.types.Mark):
+                result = result.unwrap(markers)
 
             not_allowed_result_types = (
-                expression_types.ControlResult,
-                expression_types.Postprocessor,
+                expression.types.ControlResult,
+                expression.types.Postprocessor,
                 type(None),
             )
             value = None
-            if isinstance(result, expression_types.IncludeSchedule):
+            if isinstance(result, expression.types.IncludeSchedule):
                 _result = result.schedule.evaluate(self, now)
                 if _result is not None:
                     value = _result[0]
@@ -625,7 +623,7 @@ class Room:
             self.log("Ignoring value.")
             return
 
-        if expression_types.Mark.OVERLAY in markers:
+        if expression.types.Mark.OVERLAY in markers:
             self._store_for_overlaying(self._scheduled_value)
 
         self.set_value(value, force_resend=force_resend)

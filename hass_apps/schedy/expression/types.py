@@ -150,8 +150,8 @@ class Mark(ControlResult):
     def __init__(self, result: T.Any, *markers: str) -> None:
         self.markers = set(markers)
         if isinstance(result, Mark):
-            self.markers.update(result.markers)
-            self.result = result.result  # type: T.Any
+            # Unwrap the result, combining present markers with our own ones
+            self.result = result.unwrap(self.markers)
         else:
             self.result = result
 
@@ -161,6 +161,14 @@ class Mark(ControlResult):
 
     def __repr__(self) -> str:
         return "Mark({}, {})".format(repr(self.result), self.markers)
+
+    def unwrap(self, markers_set: T.Set[str] = None) -> T.Any:
+        """Returns the real, wrapped result. The applied markers will
+        be added to markers_set, if given."""
+
+        if markers_set is not None:
+            markers_set.update(self.markers)
+        return self.result
 
 class Skip(ControlResult):
     """Result of an expression which should be ignored."""

@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 * Fixed a bug in schedule.next_results() expression helper that caused
   some result changes to be skipped.
+* Simplified the algorithm that decides whether a rule is active or not
+  at a given point in time. It now handles rules spanning multiple
+  days correctly.
 
 ### Security
 

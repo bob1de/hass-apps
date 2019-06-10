@@ -57,7 +57,7 @@ class Rule:
         self.constraints = constraints
 
         # try to simplify the rule
-        if self.is_always_valid:
+        if self.is_always_active:
             self.start_time = midnight
             self.end_time = midnight
             self.end_plus_days = 1
@@ -135,8 +135,32 @@ class Rule:
                 return False
         return True
 
+    def is_active(self, when: datetime.datetime) -> bool:
+        """Returns whether the rule is active at given point in time."""
+
+        _date = when.date()
+        _time = when.time()
+        # We first find the nearest starting day in history. Then we
+        # check whether the rule is still active.
+        for days_back in range(self.end_plus_days + 1):
+            # Always starts with days_back = 0
+            start_date = _date - datetime.timedelta(days=days_back)
+            if not self.check_constraints(start_date):
+                # Rule won't start today, but maybe it started the day before?
+                continue
+            # Found starting day, check if time frame is still active
+            if days_back == 0 and _time < self.start_time:
+                # Rule will start today, but it's too early, try yesterday
+                continue
+            if days_back == self.end_plus_days and _time >= self.end_time:
+                # Rule already ended earlier today, we give up
+                break
+            # Rule is active!
+            return True
+        return False
+
     @property
-    def is_always_valid(self) -> bool:
+    def is_always_active(self) -> bool:
         """Tells whether this rule is universally valid (has no
         constraints and duration >= 1 day)."""
 
@@ -267,7 +291,7 @@ class Schedule:
     ) -> T.Optional[ScheduleEvaluationResultType]:
         """Evaluates the schedule, computing the value for the time the
         given datetime object represents. The resulting value, a set of
-        markers applied to the value and the matched rule are returned.
+        markers applied to the value and the matching rule are returned.
         If no value could be found in the schedule (e.g. all rules
         evaluate to Skip()), None is returned."""
 
@@ -293,21 +317,20 @@ class Schedule:
             prefix = " " * 4 * max(0, len(path.rules) - 1) + "\u251c\u2500"
             room.log("{} {}".format(prefix, msg), *args, **kwargs)
 
-        room.log("Assuming it to be {}.".format(when),
-                 level="DEBUG")
+        room.log("Assuming it to be {}.".format(when), level="DEBUG")
 
-        rules = list(self.get_matching_rules(when))
+        rules = list(self.get_active_rules(when))
         room.log("{} / {} rules of {} are currently valid."
                  .format(len(rules), len(self.rules), self),
                  level="DEBUG")
 
         expr_cache = {}  # type: T.Dict[types.CodeType, T.Any]
         expr_env = None
-        markers = set()
+        markers = set()  # type: T.Set[str]
         postprocessors = []
         paths = []  # type: T.List[RulePath]
-        insert_paths(paths, 0, RulePath(self), rules)
         path_idx = 0
+        insert_paths(paths, path_idx, RulePath(self), rules)
         while path_idx < len(paths):
             path = paths[path_idx]
             path_idx += 1
@@ -316,7 +339,7 @@ class Schedule:
 
             last_rule = path.rules[-1]
             if isinstance(last_rule, SubScheduleRule):
-                _rules = list(last_rule.sub_schedule.get_matching_rules(when))
+                _rules = list(last_rule.sub_schedule.get_active_rules(when))
                 log("{} / {} rules of {} are currently valid."
                     .format(len(_rules), len(last_rule.sub_schedule.rules),
                             last_rule.sub_schedule),
@@ -329,16 +352,17 @@ class Schedule:
             for rule in reversed(rules_with_expr_or_value):
                 if rule.expr is not None:
                     plain_value = False
-                    if rule.expr in expr_cache:
+                    try:
                         result = expr_cache[rule.expr]
-                        log("=> {}  [cache-hit]".format(repr(result)),
-                            path, level="DEBUG")
-                    else:
+                    except KeyError:
                         if expr_env is None:
                             expr_env = expression.build_expr_env(room, when)
                         result = room.eval_expr(rule.expr, expr_env)
                         expr_cache[rule.expr] = result
                         log("=> {}".format(repr(result)),
+                            path, level="DEBUG")
+                    else:
+                        log("=> {}  [cache-hit]".format(repr(result)),
                             path, level="DEBUG")
                     if isinstance(result, Exception):
                         room.log("Failed expression: {}"
@@ -350,9 +374,9 @@ class Schedule:
                     log("=> {}".format(repr(result)),
                         path, level="DEBUG")
 
+                # Unwrap a result with markers
                 if isinstance(result, expression.types.Mark):
-                    markers.update(result.markers)
-                    result = result.result
+                    result = result.unwrap(markers)
 
                 if isinstance(result, expression.types.IncludeSchedule) and \
                    path.includes_schedule(result.schedule):
@@ -389,7 +413,7 @@ class Schedule:
                       paths[path_idx].rules[:prefix_size] == prefix:
                     del paths[path_idx]
             elif isinstance(result, expression.types.IncludeSchedule):
-                _rules = list(result.schedule.get_matching_rules(when))
+                _rules = list(result.schedule.get_active_rules(when))
                 log("{} / {} rules of {} are currently valid."
                     .format(len(_rules), len(result.schedule.rules),
                             result.schedule),
@@ -437,8 +461,7 @@ class Schedule:
                             break
                         room.log("= {}".format(repr(result)), level="DEBUG")
                         if isinstance(result, expression.types.Mark):
-                            postprocessor_markers.update(result.markers)
-                            result = result.result
+                            result = result.unwrap(postprocessor_markers)
                         result = room.validate_value(result)
 
                 if result is None:
@@ -457,45 +480,15 @@ class Schedule:
         room.log("Found no result.", level="DEBUG")
         return None
 
-    def get_matching_rules(
-            self, when: datetime.datetime
-        ) -> T.Iterator[Rule]:
+    def get_active_rules(self, when: datetime.datetime) -> T.Iterator[Rule]:
         """Returns an iterator over all rules of this schedule that are
-        valid at the time represented by the given datetime object,
+        active at the time represented by the given datetime object,
         keeping the order from the rules list. SubScheduleRule objects are
         not expanded and yielded like normal rules."""
 
-        _time = when.time()
         for rule in self.rules:
-            days_back = -1
-            found_start_day = False
-            while days_back < rule.end_plus_days:
-                days_back += 1
-                # starts with days=0 (meaning the current date)
-                _date = when.date() - datetime.timedelta(days=days_back)
-
-                found_start_day = found_start_day or \
-                                  rule.check_constraints(_date)
-                if not found_start_day:
-                    # try next day
-                    continue
-
-                # in first loop run, rule has to start today and not
-                # later than now (rule start <= when.time())
-                if days_back == 0 and rule.start_time > _time:
-                    # maybe there is a next day to try out
-                    continue
-
-                # in last loop run, rule is going to end today and that
-                # has to be later than now (rule end > when.time())
-                if days_back == rule.end_plus_days and \
-                   rule.end_time <= _time:
-                    # rule finally disqualified, continue with next rule
-                    break
-
-                # rule matches!
+            if rule.is_active(when):
                 yield rule
-                break
 
     def get_next_scheduling_datetime(
             self, now: datetime.datetime
@@ -524,7 +517,6 @@ class Schedule:
             if _time <= current_time:
                 # midnight transition
                 return datetime.datetime.combine(tomorrow, _time)
-
             return datetime.datetime.combine(today, _time)
 
         return min(map(map_func, times))
@@ -536,7 +528,7 @@ class Schedule:
         times = set()  # type: T.Set[datetime.time]
         for path in self.unfold():
             for rule in path.rules:
-                if not rule.is_always_valid:
+                if not rule.is_always_active:
                     times.update((rule.start_time, rule.end_time,))
         return times
 
