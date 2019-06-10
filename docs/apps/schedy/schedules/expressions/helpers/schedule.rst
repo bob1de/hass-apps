@@ -40,7 +40,7 @@ Example:
 
     result = schedule.evaluate(
         schedule_snippets["snip"],
-       	end=now+datetime.timedelta(hours=1)
+       	when=now+datetime.timedelta(hours=1),
     )
     if result:
         value = result[0]
@@ -67,7 +67,7 @@ Example:
 
     results = schedule.next_results(
         schedule_snippets["snip"],
-       	end=now+datetime.timedelta(hours=10)
+       	end=now+datetime.timedelta(hours=10),
     )
     for when, (value, markers, rule) in results:
         # do something with the value
