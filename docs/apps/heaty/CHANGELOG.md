@@ -151,7 +151,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   statistical zones, it is possible to get some statistics reported
   back to Home Assistant, where one could then react to changing
   parameters of your heating system with simple automationss.
-  ([more information](statistics.html))
 * Thermostats now have a ``current_temp_state_attr`` setting which
   defaults to ``"current_temperature"``. This specifies a state attribute
   used to fetch the real temperature as measured by the thermostat's
@@ -163,7 +162,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   of the parent rule. The ``temp`` parameter has to be specified in the
   parent rule or in all child rules.
 * Added a ``cancel_running_timer`` parameter to the ``heaty_reschedule``
-  event. ([more information](events.html))
+  event.
 
 ### Changed
 * If the ``end`` time of a schedule rule is equal or prior to its
@@ -184,7 +183,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * The ``heaty_reschedule`` event now only triggers a re-scheduling
   when there is no re-schedule timer running already. In order to get
   the previous behaviour, specify ``cancel_running_timer: true`` in the
-  event data explicitly. ([more information](events.html))
+  event data explicitly.
 
 ### Removed
 * Removed experimental state publishing to AppDaemon because the
