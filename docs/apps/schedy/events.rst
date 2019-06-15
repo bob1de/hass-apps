@@ -65,7 +65,7 @@ control Schedy's behaviour.
 
 All events have an optional ``app_name`` parameter that can be submitted
 when you have multiple instances of Schedy running for different purposes
-and you want to address exactly one of these instances. It's value has
+and you want to address exactly one of these instances. Its value has
 to be the name of the app instance as configured in AppDaemon. If you
 omit this parameter, all Schedy instances will react to the event. The
 app name is the name you start the app's configuration with:

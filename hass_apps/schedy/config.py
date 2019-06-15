@@ -4,7 +4,9 @@ This module contains the CONFIG_SCHEMA for validation with voluptuous.
 
 import typing as T
 
+import datetime
 import traceback
+
 import voluptuous as vol
 
 from . import actor, schedule, util
@@ -33,9 +35,10 @@ def build_schedule_rule(rule: dict) -> schedule.Rule:
             )
 
     kwargs = {
-        "start_time": rule["start"],
-        "end_time": rule["end"],
-        "end_plus_days": rule["end_plus_days"],
+        "start_time": rule["start"][0],
+        "start_plus_days": rule["start"][1],
+        "end_time": rule["end"][0],
+        "end_plus_days": rule["end"][1],
         "constraints": constraints,
         "expr": expr,
         "expr_raw": expr_raw,
@@ -151,12 +154,25 @@ def config_post_hook(cfg: dict) -> dict:
 
     return cfg
 
+
 def schedule_rule_pre_hook(rule: dict) -> dict:
-    """Copy value for the value key over from alternative names."""
+    """Copy value for the expression and value keys over from alternative names."""
 
     rule = rule.copy()
     util.normalize_dict_key(rule, "expression", "x")
     util.normalize_dict_key(rule, "value", "v")
+    # Merge the legacy end_plus_days field into end
+    end = rule.get("end")
+    end_plus_days = rule.pop("end_plus_days", None)
+    if isinstance(end_plus_days, int):
+        if end is None:
+            end = ""
+        if isinstance(end, str) and "+" not in end and "-" not in end:
+            if end_plus_days < 0:
+                end += "{}".format(end_plus_days)
+            else:
+                end += "-{}".format(end_plus_days)
+            rule["end"] = end
     return rule
 
 def validate_rule_paths(sched: schedule.Schedule) -> schedule.Schedule:
@@ -164,7 +180,7 @@ def validate_rule_paths(sched: schedule.Schedule) -> schedule.Schedule:
     each path contains at least one rule with an expression or value.
     A ValueError is raised when this check fails."""
 
-    for path in sched.unfold():
+    for path in sched.unfolded:
         if path.is_final and not list(path.rules_with_expr_or_value):
             raise ValueError(
                 "No expression or value specified along the path {}."
@@ -195,6 +211,10 @@ PARTIAL_DATE_SCHEMA = vol.Schema({
 TIME_VALIDATOR = vol.All(
     vol.Match(util.TIME_REGEXP),
     util.parse_time_string,
+)
+RULE_TIME_VALIDATOR = vol.All(
+    vol.Match(util.RULE_TIME_REGEXP, msg="correct format: [HH:MM[:SS]][{+-}?d]"),
+    util.parse_rule_time_string,
 )
 
 # This schema does no real validation and default value insertion,
@@ -265,10 +285,19 @@ SCHEDULE_RULE_SCHEMA = vol.Schema(vol.All(
         "expression": str,
         "value": object,
         vol.Optional("name", default=None): vol.Any(str, None),
-        vol.Optional("start", default=None): vol.Any(TIME_VALIDATOR, None),
-        vol.Optional("end", default=None): vol.Any(TIME_VALIDATOR, None),
-        vol.Optional("end_plus_days", default=None):
-            vol.Any(vol.All(int, vol.Range(min=0)), None),
+        vol.Optional("start", default=(None, None)):
+            vol.Any(RULE_TIME_VALIDATOR, (None,)),
+        vol.Optional("end", default=(None, None)): vol.Any(
+            vol.All(
+                RULE_TIME_VALIDATOR,
+                (
+                    None,
+                    datetime.time,
+                    vol.Range(min=0, msg="end time can't be shifted backwards"),
+                ),
+            ),
+            (None,),
+        ),
         vol.Optional("years"): build_range_spec_validator(1970, 2099),
         vol.Optional("months"): build_range_spec_validator(1, 12),
         vol.Optional("days"): build_range_spec_validator(1, 31),

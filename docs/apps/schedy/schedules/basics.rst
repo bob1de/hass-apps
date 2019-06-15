@@ -49,7 +49,7 @@ the 16 degrees-rule and Schedy evaluates rules from top to bottom. From
    the value to set. Consequently, you should design your schedules with
    the most specific rules at the top and gradually generalize to wider
    time frames towards the bottom. Finally, there should be a fallback
-   rule without time constraints at all to ensure you have no time slot
+   rule without time restrictions at all to ensure you have no time slot
    left without a value defined for.
 
 The ``name`` parameter we specified here is completely optional and
@@ -65,6 +65,8 @@ You can now write rules that specify the value over the day, but you
 still can't create different schedules for, for instance, the days of
 the week. Let's do this next.
 
+
+.. _schedy/schedules/basics/constraints:
 
 Constraints
 -----------
@@ -83,13 +85,14 @@ Constraints
 
     - v: 15
 
-With your knowledge so far, this should be self-explanatory. The only
-new parameter is ``weekdays``, which is a so called constraint.
+With your knowledge so far, this should be self-explanatory. The only new parameter is
+``weekdays``, which is a so called constraint.
 
-Constraints can be used to limit the starting days on which the rule is
-considered. There are a number of these constraints, namely:
+Constraints can be used to limit the days on which the rule should start to be
+active. There are a number of these constraints, namely:
 
-* ``years``: limit the years (e.g. ``years: 2016-2018``
+* ``years``: limit the years (e.g. ``years: 2016-2018``); only years from 1970 to
+  2099 are supported
 * ``months``: limit based on months of the year (e.g.
   ``months: 1-3, 10-12`` for Jan, Feb, Mar, Oct, Nov and Dec)
 * ``days``: limit based on days of the month (e.g.
@@ -111,11 +114,12 @@ considered. There are a number of these constraints, namely:
   provided, the nearest prior valid date (namely 2018-02-28 in this
   case) is assumed.
 
-All constraints you define need to be fulfilled for the rule to match.
+A date needs to fulfill all constraints you defined for a rule to be considered
+active at that specific date.
 
-The format used to specify values for the first five types of constraints
-is similar to that of crontab files. We call it range specification,
-and only integers are supported, no decimal values.
+The format used to specify values for the first five types of constraints is similar
+to that of crontab files. We call it range specification, and only integers are
+supported, no decimal values.
 
 * ``x``: the single number ``x``
 * ``x-y`` where ``x < y``: range of numbers from ``x`` to ``y``,
@@ -129,15 +133,14 @@ and only integers are supported, no decimal values.
 * ... and so on
 * Any spaces are ignored.
 
-If an exclamation mark (``!``) is prepended to the range specification,
-it's values are inverted. For instance, the constraint ``weekdays:
-"!4-5,7"`` expands to ``weekdays: 1,2,3,6`` and ``months: "!3"`` is
-equivalent to ``months: 1-2,4-12``.
+If an exclamation mark (``!``) is prepended to the range specification, its values are
+inverted. For instance, the constraint ``weekdays: "!4-5,7"`` expands to ``weekdays:
+1,2,3,6`` and ``months: "!3"`` is equivalent to ``months: 1-2,4-12``.
 
 .. note::
 
-   The ``!`` sign has a special meaning in YAML, hence inverted
-   specifications have to be enclosed in quotes.
+   The ``!`` sign has a special meaning in YAML, hence inverted specifications have
+   to be enclosed in quotes.
 
 
 Rules Spanning Multiple Days
@@ -157,36 +160,56 @@ If you omit the ``start`` parameter, Schedy assumes that you mean midnight
 a rule that ends the same moment it starts at wouldn't make sense. We
 expect it to count for the whole day instead.
 
-In order to express what we actually want, there's another parameter named
-``end_plus_days`` to tell Schedy how many midnights there are between
-the start and end time. As we didn't specify this parameter explicitly,
-it's value is determined by Schedy. If the end time of the rule is prior
-or equal to its start time, ``end_plus_days`` is assumed to be
-``1``, otherwise ``0``.
+In order to express what we actually want, we'd have to set ``end`` to ``"00:00+1d"``,
+which tells Schedy that there is one midnight between the start and end times. For
+convenience, Schedy automatically assumes one midnight between start and end when
+you don't specify a number of days explicitly and the start time is prior or equal
+to the end time, as in our case.
 
 .. note::
 
-   The value of ``end_plus_days`` can't be negative, meaning you can't
-   span a rule backwards in time. Only positive integers and ``0``
-   are allowed.
-
-.. note::
-
-   You don't need to care about setting ``end_plus_days`` yourself,
-   unless one of your rules should span more than 24 hours, requiring
-   ``end_plus_days: 2`` or greater.
+   You don't need to care about setting ``+?d`` yourself unless one of your rules
+   should span more than 24 hours, requiring ``+1d`` or greater.
 
 Having written out what Schedy assumes automatically would result in
 the following rule, which behaves exactly identical to what we begun with.
 
 ::
 
-    - { v: 16, start: "0:00", end: "0:00", end_plus_days: 1 }
+    - { v: 16, start: "0:00", end: "0:00+1d" }
 
-Note how the rule has been rewritten to take just a single line. This is
-no special feature of Schedy, it's rather normal YAML. But writing rules
-this way is often more readable, especially if you need to create multiple
-similar ones which, for instance, only differ in weekdays, time or value.
+.. note::
+
+   The rule has been rewritten to take just a single line. This is no
+   special feature of Schedy, it's rather normal YAML. But writing rules
+   this way is often more readable, especially if you need to create
+   multiple similar ones which, for instance, only differ in weekdays,
+   time or value.
+
+Let's get back to :ref:`schedy/schedules/basics/constraints` briefly. We know that
+constraints limit the days on which a rule starts to be active. This explanation is
+not correct in all cases, as you'll see now.
+
+There are some days, such as the last day of a month, which can't be expressed
+using constraints explicitly. To allow targeting such days anyway, the ``start``
+parameter of a rule accepts a day shifting suffix as well. Your constraints are
+checked for some date, but the rule starts being active some days earlier or later,
+relative to the matching date.
+
+Even though you can't specify the last day of a month, you can well specify the
+1st. This rule is active on the last day of February from 6.00 pm to 10.00 pm,
+no matter if in a leap year or not::
+
+    - { v: 22, start: "18:00-1d", end: "22:00", days: 1, months: 3 }
+
+This one even runs until March 1st, 10.00 pm::
+
+    - { v: 22, start: "18:00-1d", end: "22:00+1d", days: 1, months: 3 }
+
+As you noted, the day shift of ``start`` can be negative as well, but not that of
+``end``, meaning your rules can't span backwards in time. This design decision was
+made in order to keep rules readable and the evaluation algorithm simple. It neither
+has a technical reason nor does it reduce the expressiveness of rules.
 
 
 .. _schedy/schedules/basics/rules-with-sub-schedules:

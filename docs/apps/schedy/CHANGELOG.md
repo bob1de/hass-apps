@@ -9,19 +9,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
-* Fixed a bug in schedule.next_results() expression helper that caused
-  some result changes to be skipped.
-* Simplified the algorithm that decides whether a rule is active or not
-  at a given point in time. It now handles rules spanning multiple
-  days correctly.
+* Fixed a bug in schedule.next_results() expression helper that caused some result
+  changes to be skipped.
+* Simplified the algorithm that decides whether a rule is active or not at a given
+  point in time. It should now handle all rules spanning multiple days correctly.
 
 ### Security
 
 ### Added
 
 ### Changed
+* The ``start`` and ``end`` rule parameters now accept day shifts, deprecating the
+  former ``end_plus_days``.
+* Constraints of rules with a sub-schedule attached are now only validated for the
+  day at which a particular rule starts. Hence rules of such sub-schedules spanning
+  midnight will now run until they're intended to end.
 
 ### Deprecated
+* 0.6: The ``end_plus_days`` rule parameter will be removed in favor of the new day
+  shifts specified with ``start`` and ``end``.
 
 ### Removed
 

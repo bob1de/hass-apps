@@ -9,6 +9,9 @@ if T.TYPE_CHECKING:
     from .room import Room
 
 import datetime
+import functools
+
+from cached_property import cached_property
 
 from . import util
 from . import expression
@@ -26,10 +29,11 @@ class Rule:
 
     def __init__(  # pylint: disable=too-many-arguments
             self, name: str = None,
-            start_time: datetime.time = None, end_time: datetime.time = None,
-            end_plus_days: int = None, constraints: T.Dict[str, T.Any] = None,
+            start_time: datetime.time = None, start_plus_days: int = None,
+            end_time: datetime.time = None, end_plus_days: int = None,
+            constraints: T.Dict[str, T.Any] = None,
             expr: "types.CodeType" = None, expr_raw: str = None,
-            value: T.Any = None
+            value: T.Any = None,
     ) -> None:
         _checks = [expr is None, expr_raw is None]
         if any(_checks) and not all(_checks):
@@ -39,33 +43,23 @@ class Rule:
 
         self.name = name
 
-        midnight = datetime.time(0, 0)
-        if start_time is None:
-            start_time = midnight
         self.start_time = start_time
-
-        if end_time is None:
-            end_time = midnight
+        self.start_plus_days = start_plus_days
         self.end_time = end_time
-
-        if end_plus_days is None:
-            end_plus_days = 1 if end_time <= start_time else 0
         self.end_plus_days = end_plus_days
 
         if constraints is None:
             constraints = {}
         self.constraints = constraints
 
-        # try to simplify the rule
-        if self.is_always_active:
-            self.start_time = midnight
-            self.end_time = midnight
-            self.end_plus_days = 1
-
         self.expr = expr
         self.expr_raw = expr_raw
-
         self.value = value
+
+        # We cache constraint check results for the latest-checked 64 days
+        self.check_constraints = functools.lru_cache(maxsize=64)(
+            self._check_constraints,
+        )
 
     def __repr__(self) -> str:
         return "<Rule {}{}>".format(
@@ -73,29 +67,44 @@ class Rule:
             ", ".join(self._get_repr_tokens())
         )
 
+    @staticmethod
+    def _format_constraint(data: T.Any) -> str:
+        """Formats constraint values for use in __repr__."""
+
+        return str(data).replace(" ", "").replace("'", "")
+
+    @staticmethod
+    def _format_time(_time: datetime.time = None, days: int = None) -> str:
+        """Formats time + shift days as a string for use in __repr__."""
+
+        if _time is None:
+            time_repr = "??:??"
+        else:
+            time_repr = _time.strftime("%H:%M:%S" if _time.second else "%H:%M")
+        if days is None:
+            days_repr = ""
+        elif days < 0:
+            days_repr = "{}d".format(days)
+        else:
+            days_repr = "+{}d".format(days)
+        return "{}{}".format(time_repr, days_repr)
+
     def _get_repr_tokens(self) -> T.List[str]:
         """Returns a list of tokens to be shown in repr()."""
 
         tokens = []  # type: T.List[str]
 
-        midnight = datetime.time(0, 0)
-        if self.start_time != midnight or self.end_time != midnight:
-            fmt_t = lambda t: t.strftime(
-                "%H:%M:%S" if t.second else "%H:%M"
-            )  # type: T.Callable[[datetime.time], str]
+        if self.start_time is not None or self.start_plus_days is not None or \
+           self.end_time is not None or self.end_plus_days is not None:
             times = "from {} to {}".format(
-                fmt_t(self.start_time), fmt_t(self.end_time)
+                self._format_time(self.start_time, self.start_plus_days),
+                self._format_time(self.end_time, self.end_plus_days),
             )
-            if self.end_plus_days:
-                times += "+{}d".format(self.end_plus_days)
             tokens.append(times)
-        elif self.end_plus_days > 1:
-            tokens.append("+{}d".format(self.end_plus_days - 1))
 
-        fmt_c = lambda x: str(x).replace(" ", "").replace("'", "")  # type: T.Callable[[T.Any], str]
         for constraint in sorted(self.constraints):
             tokens.append("{}={}".format(
-                constraint, fmt_c(self.constraints[constraint])
+                constraint, self._format_constraint(self.constraints[constraint]),
             ))
 
         if self.expr_raw is not None:
@@ -109,67 +118,28 @@ class Rule:
 
         return tokens
 
-    def check_constraints(self, date: datetime.date) -> bool:
+    def _check_constraints(self, date: datetime.date) -> bool:
         """Checks all constraints of this rule against the given date
         and returns whether they are fulfilled"""
 
-        # pylint: disable=too-many-return-statements
+        if not self.constraints:
+            return True
 
         year, week, weekday = date.isocalendar()
+        checks = {
+            "years": lambda a: year in a,
+            "months": lambda a: date.month in a,
+            "days": lambda a: date.day in a,
+            "weeks": lambda a: week in a,
+            "weekdays": lambda a: weekday in a,
+            "start_date": lambda a: date >= util.build_date_from_constraint(a, date, 1),
+            "end_date": lambda a: date <= util.build_date_from_constraint(a, date, -1),
+        }
+
         for constraint, allowed in self.constraints.items():
-            if constraint == "years" and year not in allowed:
-                return False
-            if constraint == "months" and date.month not in allowed:
-                return False
-            if constraint == "days" and date.day not in allowed:
-                return False
-            if constraint == "weeks" and week not in allowed:
-                return False
-            if constraint == "weekdays" and weekday not in allowed:
-                return False
-            if constraint == "start_date" and \
-               date < util.build_date_from_constraint(allowed, date, 1):
-                return False
-            if constraint == "end_date" and \
-               date > util.build_date_from_constraint(allowed, date, -1):
+            if not checks[constraint](allowed):  # type: ignore
                 return False
         return True
-
-    def is_active(self, when: datetime.datetime) -> bool:
-        """Returns whether the rule is active at given point in time."""
-
-        _date = when.date()
-        _time = when.time()
-        # We first find the nearest starting day in history. Then we
-        # check whether the rule is still active.
-        for days_back in range(self.end_plus_days + 1):
-            # Always starts with days_back = 0
-            start_date = _date - datetime.timedelta(days=days_back)
-            if not self.check_constraints(start_date):
-                # Rule won't start today, but maybe it started the day before?
-                continue
-            # Found starting day, check if time frame is still active
-            if days_back == 0 and _time < self.start_time:
-                # Rule will start today, but it's too early, try yesterday
-                continue
-            if days_back == self.end_plus_days and _time >= self.end_time:
-                # Rule already ended earlier today, we give up
-                break
-            # Rule is active!
-            return True
-        return False
-
-    @property
-    def is_always_active(self) -> bool:
-        """Tells whether this rule is universally valid (has no
-        constraints and duration >= 1 day)."""
-
-        if self.constraints:
-            return False
-        if self.end_time < self.start_time:
-            return self.end_plus_days > 1
-        return self.end_plus_days >= 1
-
 
 class RulePath:
     """A chain of rules starting from a root schedule through sub-schedule
@@ -179,9 +149,23 @@ class RulePath:
         self.root_schedule = root_schedule
         self.rules = []  # type: T.List[Rule]
 
+    def __add__(self, other: "RulePath") -> "RulePath":
+        """Creates a new RulePath with rules of self and another path.
+        The paths have to fit together, meaning the root schedule of the other path
+        must be the sub schedule of the rightmost rule of this path."""
+
+        if not isinstance(other, RulePath) or not self.rules or \
+           not isinstance(self.rules[-1], SubScheduleRule) or \
+           self.rules[-1].sub_schedule is not other.root_schedule:
+            raise ValueError("{!r} and {!r} don't fit together".format(self, other))
+
+        path = self.copy()
+        path.extend(other.rules)
+        return path
+
     def __repr__(self) -> str:
         if not self.rules:
-            return "<{}/<empty rule path>".format(self.root_schedule)
+            return "<{}/empty rule path>".format(self.root_schedule)
 
         locs = []
         sched = self.root_schedule
@@ -197,7 +181,16 @@ class RulePath:
 
         return "<{}/{}:{}>".format(self.root_schedule, "/".join(locs), rule)  # pylint: disable=undefined-loop-variable
 
-    def add(self, rule: Rule) -> None:
+    def _clear_cache(self) -> None:
+        """Clears out all cached properties. For internal use only."""
+
+        for attr in ("rules_with_expr_or_value", "times"):
+            try:
+                del self.__dict__[attr]
+            except KeyError:
+                pass
+
+    def append(self, rule: Rule, clear_cache: bool = True) -> None:
         """Add's a rule to the end of the path.
         A ValueError is raised when the previous rule is a final rule."""
 
@@ -206,43 +199,154 @@ class RulePath:
                 "The previous rule in the path ({}) is no SubScheduleRule."
                 .format(self.rules[-1])
             )
+
         self.rules.append(rule)
 
+        if clear_cache:
+            self._clear_cache()
+
     def copy(self) -> "RulePath":
-        """Creates a mutable copy of this path and returns it."""
+        """Returns a mutable copy of this path."""
 
         path = type(self)(self.root_schedule)
-        for rule in self.rules:
-            path.add(rule)
+        path.extend(self.rules)
         return path
+
+    def extend(self, rules: T.Iterable[Rule]) -> None:
+        """Appends each of the supplied rules to the path.
+        If append() raises a ValueError for one of the rules to add, all rules already
+        appended successfully are removed again before the exception is re-raised.
+        Note: This method is not thread-safe!"""
+
+        added = 0
+        try:
+            for rule in rules:
+                self.append(rule, clear_cache=False)
+                added += 1
+        except ValueError:
+            for _ in range(added):
+                self.pop(clear_cache=False)
+            added = 0
+            raise
+        finally:
+            if added:
+                self._clear_cache()
 
     def includes_schedule(self, schedule: "Schedule") -> bool:
         """Checks whether the given schedule is included in this path."""
 
         if schedule is self.root_schedule:
             return True
+
         for rule in self.rules:
-            if isinstance(rule, SubScheduleRule) and \
-               rule.sub_schedule is schedule:
+            if isinstance(rule, SubScheduleRule) and rule.sub_schedule is schedule:
                 return True
+        return False
+
+    def check_constraints(self, date: datetime.date) -> bool:
+        """Checks constraints of all rules along this path against the
+        given date and returns whether they are all fulfilled."""
+
+        for rule in self.rules:
+            if not rule.check_constraints(date):
+                return False
+        return True
+
+    def is_active(self, when: datetime.datetime) -> bool:
+        """Returns whether the rule this path leads to is active at
+        given point in time."""
+
+        _date, _time = when.date(), when.time()
+        start_time, start_plus_days, end_time, end_plus_days = self.times
+
+        # We first build a list of possible dates on which the path could start
+        # being active, then we check whether one of these dates fulfills the path's
+        # constraints.
+        shift_list = list(range(end_plus_days + 1))
+        # List isn't empty, 0 will always be included
+        if _time >= end_time:
+            # Don't check the most distant date, already ended earlier today
+            del shift_list[-1]
+        if shift_list and _time < start_time:
+            # Today can't be the starting day, it's too early
+            del shift_list[0]
+
+        # Now check the constraints for each possible starting date
+        for days_back in shift_list:
+            start_date = _date - datetime.timedelta(days=days_back + start_plus_days)
+            if not self.check_constraints(start_date):
+                # Not starting this day, try next one
+                continue
+            # Found valid starting day, path is active now
+            return True
         return False
 
     @property
     def is_final(self) -> bool:
-        """Tells whether the last rule in the path is no SubScheduleRule."""
+        """Returns whether the last rule in the path is no SubScheduleRule."""
 
         if not self.rules:
             return False
         return not isinstance(self.rules[-1], SubScheduleRule)
 
-    @property
+    def pop(self, clear_cache: bool = True) -> Rule:
+        """Removes and returns the rightmost rule of this path.
+        IndexError is raised when there is no rule to pop."""
+
+        try:
+            rule = self.rules.pop()
+        except IndexError:
+            raise IndexError("no rule to pop")
+        if clear_cache:
+            self._clear_cache()
+        return rule
+
+    @cached_property
     def rules_with_expr_or_value(self) -> T.Tuple[Rule, ...]:
         """A tuple with rules of the path containing an expression or value,
         sorted from left to right."""
 
         return tuple(filter(
-            lambda r: r.expr is not None or r.value is not None, self.rules
+            lambda r: r.expr is not None or r.value is not None,
+            self.rules,
         ))
+
+    @cached_property
+    def times(self) -> T.Tuple[datetime.time, int, datetime.time, int]:
+        """Returns (start_time, start_plus_days, end_time, end_plus_days) for this
+        path. Rules are searched for these values from right to left.
+        Missing times are assumed to be midnight. If not set explicitly, end_plus_days
+        is 1 if start <= end else 0."""
+
+        for rule in reversed(self.rules):
+            if rule.start_time is not None:
+                start_time = rule.start_time
+                break
+        else:
+            start_time = datetime.time(0, 0)
+
+        for rule in reversed(self.rules):
+            if rule.start_plus_days is not None:
+                start_plus_days = rule.start_plus_days
+                break
+        else:
+            start_plus_days = 0
+
+        for rule in reversed(self.rules):
+            if rule.end_time is not None:
+                end_time = rule.end_time
+                break
+        else:
+            end_time = datetime.time(0, 0)
+
+        for rule in reversed(self.rules):
+            if rule.end_plus_days is not None:
+                end_plus_days = rule.end_plus_days
+                break
+        else:
+            end_plus_days = 1 if start_time >= end_time else 0
+
+        return start_time, start_plus_days, end_time, end_plus_days
 
 
 class SubScheduleRule(Rule):
@@ -295,19 +399,6 @@ class Schedule:
         If no value could be found in the schedule (e.g. all rules
         evaluate to Skip()), None is returned."""
 
-        def insert_paths(
-                paths: T.List[RulePath], first_index: int,
-                path_prefix: RulePath, rules: T.Iterable[Rule]
-        ) -> None:
-            """Helper to append each single of a set of rules to a commmon
-            path prefix and insert the resulting paths into a list."""
-
-            for rule in rules:
-                path = path_prefix.copy()
-                path.add(rule)
-                paths.insert(first_index, path)
-                first_index += 1
-
         def log(
                 msg: str, path: RulePath, *args: T.Any, **kwargs: T.Any
         ) -> None:
@@ -319,37 +410,28 @@ class Schedule:
 
         room.log("Assuming it to be {}.".format(when), level="DEBUG")
 
-        rules = list(self.get_active_rules(when))
-        room.log("{} / {} rules of {} are currently valid."
-                 .format(len(rules), len(self.rules), self),
-                 level="DEBUG")
-
         expr_cache = {}  # type: T.Dict[types.CodeType, T.Any]
         expr_env = None
         markers = set()  # type: T.Set[str]
         postprocessors = []
-        paths = []  # type: T.List[RulePath]
+        paths = list(self.unfolded)
         path_idx = 0
-        insert_paths(paths, path_idx, RulePath(self), rules)
         while path_idx < len(paths):
             path = paths[path_idx]
             path_idx += 1
 
-            log("{}".format(path), path, level="DEBUG")
-
             last_rule = path.rules[-1]
             if isinstance(last_rule, SubScheduleRule):
-                _rules = list(last_rule.sub_schedule.get_active_rules(when))
-                log("{} / {} rules of {} are currently valid."
-                    .format(len(_rules), len(last_rule.sub_schedule.rules),
-                            last_rule.sub_schedule),
-                    path, level="DEBUG")
-                insert_paths(paths, path_idx, path, _rules)
+                log("{}  [descending]".format(path), path, level="DEBUG")
                 continue
+            elif not path.is_active(when):
+                log("{}  [inactive]".format(path), path, level="DEBUG")
+                continue
+            else:
+                log("{}".format(path), path, level="DEBUG")
 
             result = None
-            rules_with_expr_or_value = path.rules_with_expr_or_value
-            for rule in reversed(rules_with_expr_or_value):
+            for rule in reversed(path.rules_with_expr_or_value):
                 if rule.expr is not None:
                     plain_value = False
                     try:
@@ -408,20 +490,19 @@ class Schedule:
             elif isinstance(result, expression.types.Break):
                 prefix_size = max(0, len(path.rules) - result.levels)
                 prefix = path.rules[:prefix_size]
+                log("== breaking out of {}".format(prefix), path, level="DEBUG")
                 while path_idx < len(paths) and \
                       paths[path_idx].root_schedule == path.root_schedule and \
                       paths[path_idx].rules[:prefix_size] == prefix:
                     del paths[path_idx]
             elif isinstance(result, expression.types.IncludeSchedule):
-                _rules = list(result.schedule.get_active_rules(when))
-                log("{} / {} rules of {} are currently valid."
-                    .format(len(_rules), len(result.schedule.rules),
-                            result.schedule),
-                    path, level="DEBUG")
+                # Replace the current rule with a dynamic SubScheduleRule
                 _path = path.copy()
-                del _path.rules[-1]
-                _path.add(SubScheduleRule(result.schedule))
-                insert_paths(paths, path_idx, _path, _rules)
+                _path.pop()
+                _path.append(SubScheduleRule(result.schedule))
+                paths.insert(path_idx, _path)
+                for i, sub_path in enumerate(result.schedule.unfolded):
+                    paths.insert(path_idx + i + 1, _path + sub_path)
             elif isinstance(result, expression.types.Postprocessor):
                 if isinstance(result, expression.types.PostprocessorValueMixin):
                     value = room.validate_value(result.value)
@@ -480,16 +561,6 @@ class Schedule:
         room.log("Found no result.", level="DEBUG")
         return None
 
-    def get_active_rules(self, when: datetime.datetime) -> T.Iterator[Rule]:
-        """Returns an iterator over all rules of this schedule that are
-        active at the time represented by the given datetime object,
-        keeping the order from the rules list. SubScheduleRule objects are
-        not expanded and yielded like normal rules."""
-
-        for rule in self.rules:
-            if rule.is_active(when):
-                yield rule
-
     def get_next_scheduling_datetime(
             self, now: datetime.datetime
     ) -> T.Optional[datetime.datetime]:
@@ -497,12 +568,11 @@ class Schedule:
         re-scheduling should be done. now should be a datetime object
         containing the current date and time.
         SubScheduleRule objects and their rules are considered as well.
-        None is returned in case there are no rules in the schedule
-        which are not universally valid anyway."""
+        None is returned in case there are no rules in the schedule."""
 
         times = self.get_scheduling_times()
         if not times:
-            # no constrained rules in schedule
+            # no rules in schedule
             return None
 
         current_time = now.time()
@@ -526,25 +596,30 @@ class Schedule:
         at. Rules of sub-schedules are considered as well."""
 
         times = set()  # type: T.Set[datetime.time]
-        for path in self.unfold():
-            for rule in path.rules:
-                if not rule.is_always_active:
-                    times.update((rule.start_time, rule.end_time,))
+        for path in self.unfolded:
+            start_time, _, end_time, _ = path.times
+            times.update((start_time, end_time,))
         return times
 
-    def unfold(self) -> T.Iterator[RulePath]:
-        """Returns an iterator over rule paths.
-        The last rule of a path may either be a SubScheduleRule (meaning
-        the path leads to a node) or a Rule (meaning the path leads to
-        a leaf). A node is returned first, followed by it's successors
-        (like in depth-first search)."""
+    def unfolded_gen(self) -> T.Generator[RulePath, None, None]:
+        """Implements recursive building of RulePath objects as a generator.
+        It's like the unfolded property, but without being cached."""
 
         for rule in self.rules:
             path = RulePath(self)
-            path.add(rule)
+            path.append(rule)
             yield path
             if isinstance(rule, SubScheduleRule):
-                for path in rule.sub_schedule.unfold():
-                    path.root_schedule = self
-                    path.rules.insert(0, rule)
-                    yield path
+                for sub_path in rule.sub_schedule.unfolded_gen():
+                    yield path + sub_path
+
+    @cached_property
+    def unfolded(self) -> T.Tuple[RulePath, ...]:
+        """Returns a tuple of rule paths.
+        The last rule of a path may either be a SubScheduleRule (meaning
+        the path leads to a node) or a Rule (meaning the path leads to
+        a leaf). A node is returned first, followed by it's successors
+        (like in depth-first search).
+        NOTE: This is a cached property and only evaluated once."""
+
+        return tuple(self.unfolded_gen())

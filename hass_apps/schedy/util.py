@@ -19,9 +19,16 @@ RANGE_PATTERN = re.compile(r"^(?:(\*)|(\d+)(?:\-(\d+))?)(?:\/([1-9]\d*))?$")
 
 # strftime-compatible format string for military time
 TIME_FORMAT = "%H:%M:%S"
-# regular expression for time formats, group 1 is hours, group 2 is minutes,
-# optional group 3 is seconds
-TIME_REGEXP = re.compile(r"^ *([01]?\d|2[0-3]) *\: *([0-5]\d) *(?:\: *([0-5]\d) *)?$")
+# regular expression for time formats
+TIME_REGEXP = re.compile(
+    r"^ *(?P<h>[01]?\d|2[0-3]) *\: *(?P<m>[0-5]\d) *(?:\: *(?P<s>[0-5]\d) *)?$"
+)
+
+# Regular expression for rule start/end times with day shift
+RULE_TIME_REGEXP = re.compile(
+    r"^(?P<time> *(?P<h>[01]?\d|2[0-3]) *\: *(?P<m>[0-5]\d) *"
+    r"(?:\: *(?P<s>[0-5]\d) *)?)? *(?:(?P<days>[+-] *\d+) *d)?$"
+)
 
 # used instead of vol.Extra to ensure keys are strings
 CONF_STR_KEY = vol.Coerce(str)
@@ -211,16 +218,32 @@ def normalize_dict_key(
                 del obj[alt_key]
 
 def parse_time_string(time_str: str) -> datetime.time:
-    """Parses a string recognizable by TIME_REGEXP format into
-    a datetime.time object. If the string has an invalid format, a
-    ValueError is raised."""
+    """Parses a string recognizable by TIME_REGEXP into a datetime.time object. If
+    the string has an invalid format, a ValueError is raised."""
 
     match = TIME_REGEXP.match(time_str)
     if match is None:
         raise ValueError("time string {} has an invalid format"
                          .format(repr(time_str)))
-    components = [int(comp) for comp in match.groups() if comp is not None]
-    return datetime.time(*components)  # type: ignore
+    groups = match.groupdict()
+    return datetime.time(int(groups["h"]), int(groups["m"]), int(groups["s"] or 0))
+
+def parse_rule_time_string(
+        time_str: str,
+) -> T.Tuple[T.Optional[datetime.time], T.Optional[int]]:
+    """Parses a string recognizable by RULE_TIME_REGEXP into a (datetime.time,
+    int) tuple. Both time and days are optional and None if not specified. If the
+    string has an invalid format, a ValueError is raised."""
+
+    match = RULE_TIME_REGEXP.match(time_str)
+    if match is None:
+        raise ValueError("time string {} has invalid format".format(repr(time_str)))
+    groups = match.groupdict()
+    _time = None
+    if groups["time"]:
+        _time = datetime.time(int(groups["h"]), int(groups["m"]), int(groups["s"] or 0))
+    days = None if groups["days"] is None else int(groups["days"])
+    return _time, days
 
 def round_number(
         number: T.Union[float, int], places: int

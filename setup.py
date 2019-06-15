@@ -28,6 +28,7 @@ setup(
     packages = find_packages("."),
     install_requires = [
         "appdaemon >= 3.0",
+        "cached-property >= 1.5.1",
         "observable >= 1.0",
         "voluptuous >= 0.11",
     ],
