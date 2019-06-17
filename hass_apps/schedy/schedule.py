@@ -422,13 +422,12 @@ class Schedule:
 
             last_rule = path.rules[-1]
             if isinstance(last_rule, SubScheduleRule):
-                log("{}  [descending]".format(path), path, level="DEBUG")
+                log("[SUB]  {}".format(path), path, level="DEBUG")
                 continue
             elif not path.is_active(when):
-                log("{}  [inactive]".format(path), path, level="DEBUG")
+                log("[INA]  {}".format(path), path, level="DEBUG")
                 continue
-            else:
-                log("{}".format(path), path, level="DEBUG")
+            log("[ACT]  {}".format(path), path, level="DEBUG")
 
             result = None
             for rule in reversed(path.rules_with_expr_or_value):
