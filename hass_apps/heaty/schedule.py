@@ -59,7 +59,7 @@ class Rule:
             except ValueError:
                 # this is a temperature expression, precompile it
                 assert isinstance(temp_expr, str)
-                self.temp_expr = compile(temp_expr, "temp_expr", "eval")  # type: expr.ExprType
+                self.temp_expr = compile(temp_expr, "temp_expr", "eval")
             else:
                 self.temp_expr = temp
 
