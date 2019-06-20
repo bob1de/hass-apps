@@ -217,11 +217,8 @@ has a technical reason nor does it reduce the expressiveness of rules.
 Rules with Sub-Schedules
 ------------------------
 
-Imagine you need to turn on heating three times a day for one hour,
-but only on working days from January to April. The obvious way of doing
-this is to define four rules:
-
-::
+Imagine you need to turn on heating three times a day for one hour, but only on working
+days from January to April. The obvious way of doing this is to define four rules::
 
     schedule:
     - { v: 23, start: "06:00", end: "07:00", months: "1-4", weekdays: "1-5" }
@@ -229,12 +226,10 @@ this is to define four rules:
     - { v: 20, start: "18:00", end: "19:00", months: "1-4", weekdays: "1-5" }
     - { v: "OFF" }
 
-But what if you want to extend the schedule to heat on Saturdays as
-well? You'd end up changing this at three different places.
+But what if you want to extend the schedule to heat on Saturdays as well? You'd end
+up changing this at three different places.
 
-The more elegant way involves so-called sub-schedule rules. Look at this:
-
-::
+The more elegant way involves so-called sub-schedule rules. Look at this::
 
     schedule:
     - months: 1-4
@@ -245,15 +240,19 @@ The more elegant way involves so-called sub-schedule rules. Look at this:
       - { v: 20, start: "18:00", end: "19:00" }
     - v: "OFF"
 
-The first, outer rule containing the ``rules`` parameter isn't considered
-for evaluation itself. Instead, it's child rules - those defined under
-``rules:`` - are considered, but only when the constraints of the parent
-rule (``months`` and ``weekdays`` in this case) are fulfilled.
+The first, outer rule containing the ``rules`` parameter isn't considered for
+evaluation itself. Instead, it's child rules (those defined under ``rules:``) are
+considered, but with all constraints of the outer rule (``months`` and ``weekdays``
+in this case) applied to them.
 
-We can go even further and move the ``v: 20`` one level up, so that
-it counts for all child rules which don't have their own ``v`` defined.
+.. note::
 
-::
+   The delegation of constraints works not only for one level of
+   sub-schedules. Sub-schedules can be nested as deep as desired and constraints
+   are cumulated correctly.
+
+We can go even further and move the ``v: 20`` one level up, so that it counts for
+all child rules which don't have their own ``v`` defined::
 
     schedule:
     - v: 20
@@ -265,18 +264,18 @@ it counts for all child rules which don't have their own ``v`` defined.
       - { start: "18:00", end: "19:00" }
     - v: "OFF"
 
-Note how the ``v`` for a rule is chosen. To find the value to use for a
-particular rule, the rule is first considered itself. In case it has no
-own ``v`` defined, all sub-schedule rules that led to this rule are then
-scanned for a ``v`` until one is found. When looking at the indentation
-of the YAML, this lookup is done from right to left.
+Note how the ``v`` for a rule is chosen. To find the value to use for a particular
+rule, the rule is first considered itself. In case it has no own ``v`` defined, all
+sub-schedule rules that led to this rule are then traversed and scanned for a ``v``
+until one is found. When looking at the indentation of the YAML, this lookup is done
+from right to left, so that the innermost value is used. The exact same approach is
+taken for ``start`` and ``end``.
 
-I've to admit that this was a small and well arranged example, but the
-benefit becomes clearer when you start to write longer schedules, maybe
-with separate sections for the different seasons.
+I've to admit that this was a small and well arranged example, but the benefit becomes
+clearer when you start to write longer schedules, maybe with separate sections for
+the different seasons.
 
-With this knowledge, writing quite powerful Schedy schedules should be
-easy and quick.
+With this knowledge, writing basic Schedy schedules should be straightforward.
 
-The next chapter deals with expressions, which finally give you the
-power to do whatever you can do with Python, right inside your schedules.
+The next chapter deals with expressions, which finally give you the power to do
+whatever you can do with Python, right inside your schedules.

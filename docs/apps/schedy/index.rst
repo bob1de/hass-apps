@@ -12,8 +12,7 @@ of room for customization with arbitrarily complex rules.
 
 .. note::
 
-   Excited? A :doc:`tutorial/index` is provided for getting up and
-   running quickly.
+   Excited? A :doc:`tutorial` is provided for getting up and running quickly.
 
 These key features are implemented in Schedy. More are added continuously.
 
@@ -48,7 +47,7 @@ started with Schedy and advanced users needing a reference book for
 implementing complex scenarios.
 
 In order to get started, it is recommended to read the :doc:`chapter about
-the concept <concept>` first and then proceed to the :doc:`tutorial/index`.
+the concept <concept>` first and then proceed to the :doc:`tutorial`.
 
 
 .. toctree::
@@ -56,7 +55,7 @@ the concept <concept>` first and then proceed to the :doc:`tutorial/index`.
    :maxdepth: 1
 
    concept
-   tutorial/index
+   tutorial
    configuration
    actors/index
    schedules/index

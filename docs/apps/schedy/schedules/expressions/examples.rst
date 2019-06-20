@@ -83,6 +83,8 @@ dynamic throttling that slowly decreases as you near with almost zero
 configuration effort.
 
 
+.. _schedy/schedules/expressions/examples/conditional-sub-schedules:
+
 Conditional Sub-Schedules Using ``Break()``
 -------------------------------------------
 
@@ -162,6 +164,8 @@ holiday and normal modes.
     - "input_boolean.away"
     - "input_boolean.holidays"
 
+
+.. _schedy/schedules/expressions/examples/includeschedule:
 
 Including Schedules Dynamically with ``IncludeSchedule()``
 ----------------------------------------------------------
