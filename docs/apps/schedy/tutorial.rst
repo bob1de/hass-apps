@@ -27,6 +27,9 @@ In each room, there's a window with window sensor attached. We want the heatings
 in the particular room to be turned off when a window is opened and the previous
 setting be restored when it's closed again.
 
+Furthermore, we make some enhancements to our schedules, allowing for dynamic schedule
+switching and more. Stay tuned!
+
 
 Configuration Skeleton
 ----------------------
@@ -328,6 +331,28 @@ it to the global list and have it count for all rooms::
     - input_select.heating_mode
 
 
+Using ``expression_environment`` to Make Rules More Concise
+-----------------------------------------------------------
+
+We've got four schedule rules with expressions that all use
+``state('input_select.heating_mode')`` to query the heating mode currently selected
+from Home Assistant. This is quite repetitive and makes the rules long and unwieldy.
+
+There is the ``expression_environment`` setting, which allows us to built custom Python
+objects we can then use in all our rule expressions. We utilize this functionality
+and create a new function, ``heating_mode()``::
+
+    expression_environment: |
+      def heating_mode():
+          return state("input_select.heating_mode")
+
+The individual rules then change to something like::
+
+    - x: "Skip() if heating_mode() == 'All Home' else Break()"
+
+The remaining ones are left to do for you.
+
+
 .. _schedy/tutorial/final-config:
 
 Final Configuration
@@ -343,6 +368,10 @@ Here is the final outcome of our work as a full Schedy configuration.
 
       actor_type: thermostat
 
+      expression_environment: |
+        def heating_mode():
+            return state("input_select.heating_mode")
+
       schedule_snippets:
         kids:
         - v: 20
@@ -350,11 +379,11 @@ Here is the final outcome of our work as a full Schedy configuration.
           - weekdays: 1-5
             rules:
             - rules:
-              - x: "Skip() if state('input_select.heating_mode') != 'All Home' else Break()"
+              - x: "Skip() if heating_mode() != 'All Home' else Break()"
               - { start: "06:00", end: "07:30" }
               - { start: "15:00", end: "19:00" }
             - rules:
-              - x: "Skip() if state('input_select.heating_mode') == 'All Home' else Break()"
+              - x: "Skip() if heating_mode() == 'All Home' else Break()"
               - { start: "07:30", end: "20:00" }
           - weekdays: 6-7
             rules:
@@ -384,11 +413,11 @@ Here is the final outcome of our work as a full Schedy configuration.
             - weekdays: 1-5
               rules:
               - rules:
-                - x: "Skip() if state('input_select.heating_mode') == 'Normal' else Break()"
+                - x: "Skip() if heating_mode() == 'Normal' else Break()"
                 - { start: "06:00", end: "07:30" }
                 - { start: "15:00", end: "22:30" }
               - rules:
-                - x: "Skip() if state('input_select.heating_mode') != 'Normal' else Break()"
+                - x: "Skip() if heating_mode() != 'Normal' else Break()"
                 - { start: "08:00", end: "23:30" }
             - weekdays: 6-7
               rules:
