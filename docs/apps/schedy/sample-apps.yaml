@@ -22,6 +22,22 @@ schedy:  # An arbitrary name for this instance of Schedy,
   # in schedy_set_value events are evaluated.
   #expressions_from_events: false
 
+  # This Python script is executed when a schedule rule expression needs to be
+  # evaluated. All modules you import and variables you set here will be available when
+  # your expression is evaluated. You can even declare classes and functions. The
+  # result types and expression helpers can be used in this script as well.
+  # Note: Don't expect this script to be executed as often as the number of rules
+  # you have in your schedules. The expression evaluation environment is built the
+  # first time a rule needs to be evaluated and then reused for all subsequent
+  # rules during that schedule evaluation turn.
+  #expression_environment: |
+  #  import math
+  #  import time as _time
+  #  something = "value"
+
+  ##########################################
+  # DEPRECATED: Use expression_environment #
+  ##########################################
   # Here you can define Python modules that should be available
   # inside your expressions. These modules are imported upon Schedy's
   # initialization, hence you have to restart AppDaemon after making

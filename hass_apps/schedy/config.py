@@ -192,7 +192,7 @@ def validate_rule_paths(sched: schedule.Schedule) -> schedule.Schedule:
 
 ########## MISCELLANEOUS
 
-def build_range_spec_validator(min_value: int, max_value: int) -> vol.Schema:
+def build_range_spec_validator(min_value: int, max_value: int) -> vol.Schema:  # type: ignore
     """Returns a validator for range specifications with the given
     min/max values."""
 
@@ -354,6 +354,7 @@ CONFIG_SCHEMA = vol.Schema(vol.All(
     vol.Schema({
         vol.Optional("reset_at_startup", default=False): bool,
         vol.Optional("expressions_from_events", default=False): bool,
+        vol.Optional("expression_environment", default=None): vol.Any(str, None),
         vol.Optional("expression_modules", default=dict):
             EXPRESSION_MODULES_SCHEMA,
         vol.Required("actor_type"): vol.All(

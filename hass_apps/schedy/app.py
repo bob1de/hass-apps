@@ -34,7 +34,8 @@ class SchedyApp(common.App):
         self.actor_type = None  # type: T.Optional[T.Type[ActorBase]]
         self.rooms = []  # type: T.List[Room]
         self.stats_params = []  # type: T.List[StatisticalParameter]
-        self.expression_modules = {}  # type: T.Dict[str, types.ModuleType]
+        self.expression_environment_script = None  # type: T.Optional[types.CodeType]
+        self.expression_modules = {}  # type: T.Dict[str, T.Any]
 
     def _check_accept_event(self, event: str, data: dict) -> bool:
         """Returns whether this Schedy instance is addressed by the
@@ -172,22 +173,34 @@ class SchedyApp(common.App):
         assert self.actor_type is not None
         self.log("Actor type is: {}".format(repr(self.actor_type.name)))
 
-        self.log("Importing modules for use in expressions.",
-                 level="DEBUG")
-        for mod_name, mod_data in self.cfg["expression_modules"].items():
-            as_name = util.escape_var_name(mod_data.get("as", mod_name))
-            self.log("Importing module {} as {}."
-                     .format(repr(mod_name), repr(as_name)),
+        if self.cfg["expression_environment"]:
+            self.log("Compiling the expression_environment script.", level="DEBUG")
+            self.expression_environment_script = compile(
+                self.cfg["expression_environment"], "expression_environment", "exec",
+                dont_inherit=True,
+            )
+
+        if self.cfg["expression_modules"]:
+            self.log("Importing modules for use in expressions.",
                      level="DEBUG")
-            try:
-                mod = importlib.import_module(mod_name)
-            except Exception as err:  # pylint: disable=broad-except
-                self.log("Error while importing module {}: {}"
-                         .format(repr(mod_name), repr(err)),
-                         level="ERROR")
-                self.log("Module won't be available.", level="ERROR")
-            else:
-                self.expression_modules[as_name] = mod
+            self.log("The expression_modules config option is deprecated "
+                     "and will be removed in version 0.6. Please switch to "
+                     "expression_environment.",
+                     level="WARNING")
+            for mod_name, mod_data in self.cfg["expression_modules"].items():
+                as_name = util.escape_var_name(mod_data.get("as", mod_name))
+                self.log("Importing module {} as {}."
+                         .format(repr(mod_name), repr(as_name)),
+                         level="DEBUG")
+                try:
+                    mod = importlib.import_module(mod_name)
+                except Exception as err:  # pylint: disable=broad-except
+                    self.log("Error while importing module {}: {}"
+                             .format(repr(mod_name), repr(err)),
+                             level="ERROR")
+                    self.log("Module won't be available.", level="ERROR")
+                else:
+                    self.expression_modules[as_name] = mod
 
         for room in self.rooms:
             room.initialize(reset=self.cfg["reset_at_startup"])

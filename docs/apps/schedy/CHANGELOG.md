@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
+* Added ``expression_environment`` setting which allows providing arbitrary variables
+  for the expression evaluation environment.
 
 ### Changed
 * The ``start`` and ``end`` rule parameters now accept day shifts, deprecating the
@@ -28,6 +30,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Deprecated
 * 0.6: The ``end_plus_days`` rule parameter will be removed in favor of the new day
   shifts specified with ``start`` and ``end``.
+* 0.6: The ``expression_modules`` setting will be removed in favor of the new
+  ``expression_environment``.
 
 ### Removed
 

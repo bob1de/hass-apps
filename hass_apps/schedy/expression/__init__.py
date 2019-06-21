@@ -10,6 +10,7 @@ if T.TYPE_CHECKING:
     from ..room import Room
 
 import datetime
+import inspect
 
 from . import helpers
 from . import types  # pylint: disable=reimported
@@ -23,30 +24,26 @@ def build_expr_env(room: "Room", now: datetime.datetime) -> T.Dict[str, T.Any]:
     Additionally, helpers provided by the .helpers module and the actor
     type will be constructed based on the Room object"""
 
-    def _add_helper(helper_type: T.Type[helpers.HelperBase]) -> None:
-        helper = helper_type(room, now)
-        if helper.namespace:
-            env[helper.namespace] = helper
-        else:
-            for member in dir(helper):
-                if not member.startswith("_") and \
-                   not hasattr(helpers.HelperBase, member):
-                    env[member] = getattr(helper, member)
-
     env = {}  # type: T.Dict[str, T.Any]
+    for member_name in types.__all__:
+        env[member_name] = getattr(types, member_name)
 
-    for member in types.__all__:
-        env[member] = getattr(types, member)
-
-    for member in dir(helpers):
-        obj = getattr(helpers, member)
-        if obj is not helpers.HelperBase and \
-           isinstance(obj, type) and issubclass(obj, helpers.HelperBase):
-            _add_helper(obj)
+    helper_types = []
+    for member_name, member in inspect.getmembers(helpers):
+        if member is not helpers.HelperBase and \
+           isinstance(member, type) and issubclass(member, helpers.HelperBase):
+            helper_types.append(member)
 
     assert room.app.actor_type is not None
-    for helper_type in room.app.actor_type.expression_helpers:
-        _add_helper(helper_type)
+    helper_types.extend(room.app.actor_type.expression_helpers)
+
+    helper_types.sort(key=lambda t: t.order)
+    for helper_type in helper_types:
+        room.log("Initializing expression helper: {}, order = {}"
+                 .format(helper_type.__name__, helper_type.order),
+                 level="DEBUG")
+        helper = helper_type(room, now, env)
+        helper.update_environment()
 
     return env
 

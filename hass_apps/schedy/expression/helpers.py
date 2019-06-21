@@ -9,18 +9,38 @@ if T.TYPE_CHECKING:
     from ..room import Room
 
 import datetime
+import inspect
 import itertools
 
 
 class HelperBase:
     """A base for helpers to be available in the evaluation environment."""
 
+    # Name under which helper should be available in environment
     namespace = ""
 
-    def __init__(self, room: "Room", now: datetime.datetime) -> None:
+    # Helpers are applied in ascending order
+    order = 0
+
+    def __init__(
+            self, room: "Room", now: datetime.datetime, env: T.Dict[str, T.Any]
+    ) -> None:
         self._room = room
         self._app = room.app
         self._now = now
+        self._env = env
+
+    def update_environment(self) -> None:
+        """Adds this helper instance or its attributes to the environment, depending
+        on namespace."""
+
+        if self.namespace:
+            self._env[self.namespace] = self
+        else:
+            base_member_names = dir(HelperBase)
+            for name, member in inspect.getmembers(self):
+                if not name.startswith("_") and name not in base_member_names:
+                    self._env[name] = member
 
 
 class BasicHelper(HelperBase):
@@ -73,13 +93,22 @@ class BasicHelper(HelperBase):
         return value
 
 
-class CustomModulesHelper(HelperBase):
-    """Adds the modules configured for expression_modules."""
+class CustomEnvironmentHelper(HelperBase):
+    """Merges the environment configured using expression_environment in."""
 
-    def __init__(self, *args: T.Any, **kwargs: T.Any) -> None:
-        super().__init__(*args, **kwargs)
+    order = 1000
 
-        self.__dict__.update(self._app.expression_modules)
+    def update_environment(self) -> None:
+        """Executes the expression_environment script."""
+
+        # For backwards compatibility only
+        self._env.update(self._app.expression_modules)
+
+        script = self._app.expression_environment_script
+        if script is not None:
+            self._room.log("Executing the expression_environment script.",
+                           level="DEBUG")
+            exec(script, self._env)  # pylint: disable=exec-used
 
 
 class StateHelper(HelperBase):

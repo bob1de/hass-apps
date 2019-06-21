@@ -22,7 +22,7 @@ LOG_PREFIX_INCOMING = "-->"
 LOG_PREFIX_OUTGOING = "<--"
 
 
-class App(hassapi.Hass):
+class App(hassapi.Hass):  # type: ignore
     """
     This is a sub-class of hassapi.Hass which adds some common
     functionality. It's used by all apps included in hass_apps.
