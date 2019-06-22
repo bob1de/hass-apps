@@ -169,9 +169,9 @@ def schedule_rule_pre_hook(rule: dict) -> dict:
             end = ""
         if isinstance(end, str) and "+" not in end and "-" not in end:
             if end_plus_days < 0:
-                end += "{}".format(end_plus_days)
+                end += "{}d".format(end_plus_days)
             else:
-                end += "-{}".format(end_plus_days)
+                end += "+{}d".format(end_plus_days)
             rule["end"] = end
     return rule
 

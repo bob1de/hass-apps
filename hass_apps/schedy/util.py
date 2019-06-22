@@ -27,7 +27,7 @@ TIME_REGEXP = re.compile(
 # Regular expression for rule start/end times with day shift
 RULE_TIME_REGEXP = re.compile(
     r"^(?P<time> *(?P<h>[01]?\d|2[0-3]) *\: *(?P<m>[0-5]\d) *"
-    r"(?:\: *(?P<s>[0-5]\d) *)?)? *(?:(?P<days>[+-] *\d+) *d)?$"
+    r"(?:\: *(?P<s>[0-5]\d) *)?)?(?:(?P<days>[+-] *\d+) *d)?$"
 )
 
 # used instead of vol.Extra to ensure keys are strings
