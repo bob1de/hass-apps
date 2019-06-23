@@ -213,7 +213,9 @@ TIME_VALIDATOR = vol.All(
     util.parse_time_string,
 )
 RULE_TIME_VALIDATOR = vol.All(
-    vol.Match(util.RULE_TIME_REGEXP, msg="correct format: [HH:MM[:SS]][{+-}?d]"),
+    vol.Match(
+        util.RULE_TIME_REGEXP, msg="correct format: [<HH>:<MM>[:<SS>]][{+-}<days>d]"
+    ),
     util.parse_rule_time_string,
 )
 
