@@ -72,13 +72,19 @@ class ActorBase:
 
         self._resending_timer = None
 
+        tries = self.cfg["send_retries"]
         left_tries = kwargs["left_tries"]
+        if left_tries < tries - 1:
+            self.log("Re-sending value due to missing feedback.", level="WARNING")
+
         self.log("Setting value {} (left tries = {})."
                  .format(self._wanted_value, left_tries),
                  level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
         self.do_send()
 
         if not left_tries:
+            self.log("Gave up sending value after {} tries.".format(tries),
+                     level="WARNING")
             self._gave_up_sending = True
             return
 
@@ -165,8 +171,7 @@ class ActorBase:
 
     @property
     def gave_up_sending(self) -> bool:
-        """Tells whether the actor gave up sending and is still waiting
-        for a receipt."""
+        """Tells whether actor gave up sending and is still waiting for a receipt."""
 
         return self._gave_up_sending
 
