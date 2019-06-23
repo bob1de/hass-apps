@@ -3,6 +3,7 @@ A multi-purpose scheduler for Home Assistant + AppDaemon.
 """
 
 import typing as T
+
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     import types
@@ -43,16 +44,15 @@ class SchedyApp(common.App):
 
         app_name = data.get("app_name", self.name)
         if app_name != self.name:
-            self.log("Ignoring {} event for app_name '{}', "
-                     "ours is '{}'."
-                     .format(event, app_name, self.name),
-                     level="DEBUG")
+            self.log(
+                "Ignoring {} event for app_name '{}', "
+                "ours is '{}'.".format(event, app_name, self.name),
+                level="DEBUG",
+            )
             return False
         return True
 
-    def _get_event_rooms(
-            self, event: str, room_names: T.Any
-    ) -> T.Iterable["Room"]:
+    def _get_event_rooms(self, event: str, room_names: T.Any) -> T.Iterable["Room"]:
         """Returns an iterable over the rooms whose names were passed
         for the given event name. Passing None as room_names causes all
         rooms to be returned. A string or list of strings is converted
@@ -71,15 +71,16 @@ class SchedyApp(common.App):
                 if room:
                     rooms.append(room)
                 else:
-                    self.log("Ignoring {} event for unknown room {}."
-                             .format(event, repr(room_name)),
-                             level="WARNING")
+                    self.log(
+                        "Ignoring {} event for unknown room {}.".format(
+                            event, repr(room_name)
+                        ),
+                        level="WARNING",
+                    )
 
         return rooms
 
-    def _reevaluate_event_cb(
-            self, event: str, data: dict, kwargs: dict
-    ) -> None:
+    def _reevaluate_event_cb(self, event: str, data: dict, kwargs: dict) -> None:
         """This callback executes when a schedy_reevaluate event is received.
         data may contain a "room_name", which limits the re-evaluation
         to the given room.
@@ -92,23 +93,21 @@ class SchedyApp(common.App):
 
         mode = data.get("mode", "reevaluate")
         if mode not in ("reset", "reevaluate"):
-            self.log("Unknown mode {}."
-                     .format(repr(mode)),
-                     level="ERROR")
+            self.log("Unknown mode {}.".format(repr(mode)), level="ERROR")
             return
 
         rooms = self._get_event_rooms(event, data.get("room"))
-        self.log("Re-evaluate event received for: {} [mode={}]"
-                 .format(", ".join([str(room) for room in rooms]),
-                         repr(mode)),
-                 prefix=common.LOG_PREFIX_INCOMING)
+        self.log(
+            "Re-evaluate event received for: {} [mode={}]".format(
+                ", ".join([str(room) for room in rooms]), repr(mode)
+            ),
+            prefix=common.LOG_PREFIX_INCOMING,
+        )
 
         for room in rooms:
             room.trigger_reevaluation(reset=bool(mode == "reset"))
 
-    def _set_value_event_cb(
-            self, event: str, data: dict, kwargs: dict
-    ) -> None:
+    def _set_value_event_cb(self, event: str, data: dict, kwargs: dict) -> None:
         """This callback executes when a schedy_set_value event is received.
         data must contain a "room_name" and an "expression"/"x" or
         "value"/"v".
@@ -125,8 +124,7 @@ class SchedyApp(common.App):
                 rescheduling_delay = float(rescheduling_delay)
             if not isinstance(rescheduling_delay, (type(None), float, int)):
                 raise TypeError()
-            if isinstance(rescheduling_delay, (float, int)) and \
-               rescheduling_delay < 0:
+            if isinstance(rescheduling_delay, (float, int)) and rescheduling_delay < 0:
                 raise ValueError()
             util.normalize_dict_key(data, "expression", "x")
             expr = data.get("expression")
@@ -136,26 +134,29 @@ class SchedyApp(common.App):
                 raise ValueError()
             if expr is not None:
                 if not self.cfg["expressions_from_events"]:
-                    self.log("Received a {} event with an expression, "
-                             "but expressions_from_events is not enabled "
-                             "in your config. Ignoring event."
-                             .format(event),
-                             level="ERROR")
+                    self.log(
+                        "Received a {} event with an expression, "
+                        "but expressions_from_events is not enabled "
+                        "in your config. Ignoring event.".format(event),
+                        level="ERROR",
+                    )
                     raise ValueError()
             elif value is None:
                 raise ValueError()
         except (TypeError, ValueError):
-            self.log("Ignoring {} event with invalid data: {}"
-                     .format(event, repr(data)),
-                     level="WARNING")
+            self.log(
+                "Ignoring {} event with invalid data: {}".format(event, repr(data)),
+                level="WARNING",
+            )
             return
 
         rooms = self._get_event_rooms(event, data.get("room"))
         for room in rooms:
             room.notify_set_value_event(
-                expr_raw=expr, value=value,
+                expr_raw=expr,
+                value=value,
                 force_resend=bool(data.get("force_resend")),
-                rescheduling_delay=rescheduling_delay
+                rescheduling_delay=rescheduling_delay,
             )
 
     def get_room(self, room_name: str) -> T.Optional["Room"]:
@@ -176,28 +177,35 @@ class SchedyApp(common.App):
         if self.cfg["expression_environment"]:
             self.log("Compiling the expression_environment script.", level="DEBUG")
             self.expression_environment_script = compile(
-                self.cfg["expression_environment"], "expression_environment", "exec",
+                self.cfg["expression_environment"],
+                "expression_environment",
+                "exec",
                 dont_inherit=True,
             )
 
         if self.cfg["expression_modules"]:
-            self.log("Importing modules for use in expressions.",
-                     level="DEBUG")
-            self.log("The expression_modules config option is deprecated "
-                     "and will be removed in version 0.6. Please switch to "
-                     "expression_environment.",
-                     level="WARNING")
+            self.log("Importing modules for use in expressions.", level="DEBUG")
+            self.log(
+                "The expression_modules config option is deprecated "
+                "and will be removed in version 0.6. Please switch to "
+                "expression_environment.",
+                level="WARNING",
+            )
             for mod_name, mod_data in self.cfg["expression_modules"].items():
                 as_name = util.escape_var_name(mod_data.get("as", mod_name))
-                self.log("Importing module {} as {}."
-                         .format(repr(mod_name), repr(as_name)),
-                         level="DEBUG")
+                self.log(
+                    "Importing module {} as {}.".format(repr(mod_name), repr(as_name)),
+                    level="DEBUG",
+                )
                 try:
                     mod = importlib.import_module(mod_name)
                 except Exception as err:  # pylint: disable=broad-except
-                    self.log("Error while importing module {}: {}"
-                             .format(repr(mod_name), repr(err)),
-                             level="ERROR")
+                    self.log(
+                        "Error while importing module {}: {}".format(
+                            repr(mod_name), repr(err)
+                        ),
+                        level="ERROR",
+                    )
                     self.log("Module won't be available.", level="ERROR")
                 else:
                     self.expression_modules[as_name] = mod
@@ -208,26 +216,23 @@ class SchedyApp(common.App):
         for definition in self.cfg["watched_entities"]:
             self.watch_entity(definition, self.rooms)
 
-        self.log("Listening for schedy_reevaluate event.",
-                 level="DEBUG")
+        self.log("Listening for schedy_reevaluate event.", level="DEBUG")
         self.listen_event(self._reevaluate_event_cb, "schedy_reevaluate")
 
-        self.log("Listening for schedy_set_value event.",
-                 level="DEBUG")
+        self.log("Listening for schedy_set_value event.", level="DEBUG")
         self.listen_event(self._set_value_event_cb, "schedy_set_value")
 
         for stats_param in self.stats_params:
             stats_param.initialize()
 
     def watch_entity(
-            self, definition: T.Dict[str, T.Any], rooms: T.List["Room"]
+        self, definition: T.Dict[str, T.Any], rooms: T.List["Room"]
     ) -> None:
         """Sets up a state listener as configured in the given definition
         that triggers schedule re-evaluation in the given rooms."""
 
         def _cb(
-                entity_id: str, attribute: str, old: T.Any, new: T.Any,
-                kwargs: T.Any
+            entity_id: str, attribute: str, old: T.Any, new: T.Any, kwargs: T.Any
         ) -> None:
             if new == old:
                 return
@@ -238,14 +243,24 @@ class SchedyApp(common.App):
             else:
                 rooms_str = "{} rooms".format(len(rooms))
             if attribute == "all":
-                self.log("State of {} changed, {} {}."
-                         .format(repr(entity_id), mode_str, rooms_str),
-                         prefix=common.LOG_PREFIX_INCOMING)
+                self.log(
+                    "State of {} changed, {} {}.".format(
+                        repr(entity_id), mode_str, rooms_str
+                    ),
+                    prefix=common.LOG_PREFIX_INCOMING,
+                )
             else:
-                self.log("Attribute {} of {} changed from {} to {}, {} {}."
-                         .format(repr(attribute), repr(entity_id), repr(old),
-                                 repr(new), mode_str, rooms_str),
-                         prefix=common.LOG_PREFIX_INCOMING)
+                self.log(
+                    "Attribute {} of {} changed from {} to {}, {} {}.".format(
+                        repr(attribute),
+                        repr(entity_id),
+                        repr(old),
+                        repr(new),
+                        mode_str,
+                        rooms_str,
+                    ),
+                    prefix=common.LOG_PREFIX_INCOMING,
+                )
 
             for room in rooms:
                 room.trigger_reevaluation(reset=reset)
@@ -254,9 +269,12 @@ class SchedyApp(common.App):
         attributes = definition["attributes"]
         mode = definition["mode"]
 
-        self.log("Watching {} for changes [attributes={}, rooms={}, mode={}]"
-                 .format(repr(entity_id), attributes, rooms, mode),
-                 level="DEBUG")
+        self.log(
+            "Watching {} for changes [attributes={}, rooms={}, mode={}]".format(
+                repr(entity_id), attributes, rooms, mode
+            ),
+            level="DEBUG",
+        )
         if mode != "ignore":
             reset = bool(mode == "reset")
             for attribute in attributes:

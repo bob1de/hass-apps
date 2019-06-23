@@ -4,6 +4,7 @@ Module containing functionality to evaluate expressions.
 
 import types as _types
 import typing as T
+
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     from .. import schedule
@@ -30,8 +31,11 @@ def build_expr_env(room: "Room", now: datetime.datetime) -> T.Dict[str, T.Any]:
 
     helper_types = []
     for member_name, member in inspect.getmembers(helpers):
-        if member is not helpers.HelperBase and \
-           isinstance(member, type) and issubclass(member, helpers.HelperBase):
+        if (
+            member is not helpers.HelperBase
+            and isinstance(member, type)
+            and issubclass(member, helpers.HelperBase)
+        ):
             helper_types.append(member)
 
     assert room.app.actor_type is not None
@@ -39,17 +43,19 @@ def build_expr_env(room: "Room", now: datetime.datetime) -> T.Dict[str, T.Any]:
 
     helper_types.sort(key=lambda t: t.order)
     for helper_type in helper_types:
-        room.log("Initializing expression helper: {}, order = {}"
-                 .format(helper_type.__name__, helper_type.order),
-                 level="DEBUG")
+        room.log(
+            "Initializing expression helper: {}, order = {}".format(
+                helper_type.__name__, helper_type.order
+            ),
+            level="DEBUG",
+        )
         helper = helper_type(room, now, env)
         helper.update_environment()
 
     return env
 
-def eval_expr(
-        expr: _types.CodeType, env: T.Dict[str, T.Any]
-) -> T.Any:
+
+def eval_expr(expr: _types.CodeType, env: T.Dict[str, T.Any]) -> T.Any:
     """This method evaluates the given expression. The evaluation result
     is returned. The items of the env dict are added to the globals
     available during evaluation."""

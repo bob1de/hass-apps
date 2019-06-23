@@ -42,10 +42,14 @@ class RangingSet(set):
                 range_start = num
             ranges[range_start] = num
 
-        return "{{{}}}".format(", ".join(
-            [str(start) if start == end else "{}-{}".format(start, end)
-             for start, end in ranges.items()]
-        ))
+        return "{{{}}}".format(
+            ", ".join(
+                [
+                    str(start) if start == end else "{}-{}".format(start, end)
+                    for start, end in ranges.items()
+                ]
+            )
+        )
 
 
 def escape_var_name(name: str) -> str:
@@ -58,6 +62,7 @@ def escape_var_name(name: str) -> str:
     if name.startswith(digits):
         name = "_" + name
     return name
+
 
 def expand_range_string(range_string: T.Union[float, int, str]) -> T.Set[int]:
     """Expands strings of the form '1,2-4,9,11-12 to set(1,2,3,4,9,11,12).
@@ -77,9 +82,9 @@ def expand_range_string(range_string: T.Union[float, int, str]) -> T.Set[int]:
             numbers.add(int(part))
     return numbers
 
+
 def build_date_from_constraint(
-        constraint: T.Dict[str, int], default_date: datetime.date,
-        direction: int = 0
+    constraint: T.Dict[str, int], default_date: datetime.date, direction: int = 0
 ) -> datetime.date:
     """Builds and returns a datetime.date object from the given constraint,
     taking missing values from the given default_date.
@@ -117,6 +122,7 @@ def build_date_from_constraint(
                 fields["month"] = 1
                 fields["year"] += 1
 
+
 def format_sensor_value(value: T.Any) -> str:
     """Formats values as strings for usage as HA sensor state.
     Floats are rounded to 2 decimal digits."""
@@ -130,17 +136,20 @@ def format_sensor_value(value: T.Any) -> str:
 
     return state
 
+
 def format_time(when: datetime.time, format_str: str = TIME_FORMAT) -> str:
     """Returns a string representing the given datetime.time object.
     If no strftime-compatible format is provided, the default is used."""
 
     return when.strftime(format_str)
 
+
 def mixin_dict(dest: dict, mixin: dict) -> dict:
     """Updates the first dict with the items from the second and returns it."""
 
     dest.update(mixin)
     return dest
+
 
 def parse_time_string(time_str: str) -> datetime.time:
     """Parses a string recognizable by TIME_REGEXP format into
@@ -149,7 +158,6 @@ def parse_time_string(time_str: str) -> datetime.time:
 
     match = TIME_REGEXP.match(time_str)
     if match is None:
-        raise ValueError("time string {} has an invalid format"
-                         .format(repr(time_str)))
+        raise ValueError("time string {} has an invalid format".format(repr(time_str)))
     components = [int(comp) for comp in match.groups() if comp is not None]
     return datetime.time(*components)  # type: ignore

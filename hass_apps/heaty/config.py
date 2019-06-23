@@ -34,6 +34,7 @@ def build_schedule_rule(rule: dict) -> schedule.Rule:
         return schedule.SubScheduleRule(rule["rules"], **kwargs)
     return schedule.Rule(**kwargs)
 
+
 def build_schedule(rules: T.Iterable[dict]) -> schedule.Schedule:
     """Compiles the given rules and returns a schedule containing them."""
 
@@ -41,6 +42,7 @@ def build_schedule(rules: T.Iterable[dict]) -> schedule.Schedule:
     for rule in rules:
         sched.rules.append(build_schedule_rule(rule))
     return sched
+
 
 def config_post_hook(cfg: dict) -> dict:
     """Creates Room and other objects after config has been parsed."""
@@ -70,8 +72,7 @@ def config_post_hook(cfg: dict) -> dict:
             wsensors[wsensor_name] = wsensor_data
 
         # complete the room's schedule.
-        sched = cfg["schedule_prepend"] + room_data["schedule"] + \
-                cfg["schedule_append"]
+        sched = cfg["schedule_prepend"] + room_data["schedule"] + cfg["schedule_append"]
         sched.name = room_name
 
         del room_data["thermostats"]
@@ -102,6 +103,7 @@ def config_post_hook(cfg: dict) -> dict:
 
     return cfg
 
+
 def schedule_rule_pre_hook(rule: dict) -> dict:
     """Copy value for the value key over from alternative names."""
 
@@ -112,6 +114,7 @@ def schedule_rule_pre_hook(rule: dict) -> dict:
             del rule[key]
     return rule
 
+
 def validate_rule_paths(sched: schedule.Schedule) -> schedule.Schedule:
     """A validator to be run after schedule creation to ensure
     each path contains at least one rule with a temperature expression.
@@ -120,8 +123,7 @@ def validate_rule_paths(sched: schedule.Schedule) -> schedule.Schedule:
     for path in sched.unfold():
         if path.is_final and not list(path.rules_with_temp):
             raise ValueError(
-                "No temperature specified for any rule along the path {}."
-                .format(path)
+                "No temperature specified for any rule along the path {}.".format(path)
             )
 
     return sched
@@ -131,253 +133,252 @@ def validate_rule_paths(sched: schedule.Schedule) -> schedule.Schedule:
 
 ENTITY_ID_SCHEMA = vol.Schema(vol.Match(r"^[A-Za-z_]+\.[A-Za-z0-9_]+$"))
 PYTHON_VAR_SCHEMA = vol.Schema(vol.Match(r"^[a-zA-Z_]+[a-zA-Z0-9_]*$"))
-RANGE_STRING_SCHEMA = vol.Schema(vol.All(
-    vol.Any(
-        int,
-        vol.Match(r"^ *\d+( *\- *\d+)?( *\, *\d+( *\- *\d+)?)* *$"),
-    ),
-    util.expand_range_string,
-))
-PARTIAL_DATE_SCHEMA = vol.Schema({
-    vol.Optional("year"): vol.All(int, vol.Range(min=1970, max=9999)),
-    vol.Optional("month"): vol.All(int, vol.Range(min=1, max=12)),
-    vol.Optional("day"): vol.All(int, vol.Range(min=1, max=31)),
-})
-TIME_SCHEMA = vol.Schema(vol.All(
-    vol.Match(util.TIME_REGEXP),
-    util.parse_time_string,
-))
-TEMP_SCHEMA = vol.Schema(vol.All(
-    vol.Any(float, int, expr.Off, vol.All(str, lambda v: v.upper(), "OFF")),
-    lambda v: expr.Temp(v),  # pylint: disable=unnecessary-lambda
-))
+RANGE_STRING_SCHEMA = vol.Schema(
+    vol.All(
+        vol.Any(int, vol.Match(r"^ *\d+( *\- *\d+)?( *\, *\d+( *\- *\d+)?)* *$")),
+        util.expand_range_string,
+    )
+)
+PARTIAL_DATE_SCHEMA = vol.Schema(
+    {
+        vol.Optional("year"): vol.All(int, vol.Range(min=1970, max=9999)),
+        vol.Optional("month"): vol.All(int, vol.Range(min=1, max=12)),
+        vol.Optional("day"): vol.All(int, vol.Range(min=1, max=31)),
+    }
+)
+TIME_SCHEMA = vol.Schema(vol.All(vol.Match(util.TIME_REGEXP), util.parse_time_string))
+TEMP_SCHEMA = vol.Schema(
+    vol.All(
+        vol.Any(float, int, expr.Off, vol.All(str, lambda v: v.upper(), "OFF")),
+        lambda v: expr.Temp(v),  # pylint: disable=unnecessary-lambda
+    )
+)
 TEMP_EXPRESSION_SCHEMA = vol.Schema(str)
 
 # This schema does no real validation and default value insertion,
 # it just ensures a dictionary containing dictionaries is returned.
-DICTS_IN_DICT_SCHEMA = vol.Schema(vol.All(
-    lambda v: v or {},
-    {vol.Extra: lambda v: v or {}},
-))
+DICTS_IN_DICT_SCHEMA = vol.Schema(
+    vol.All(lambda v: v or {}, {vol.Extra: lambda v: v or {}})
+)
 
-TEMP_EXPRESSION_MODULE_SCHEMA = vol.Schema(vol.All(
-    lambda v: v or {},
-    {
-        "as": PYTHON_VAR_SCHEMA,
-    },
-))
-TEMP_EXPRESSION_MODULES_SCHEMA = vol.Schema(vol.All(
-    lambda v: v or {},
-    {
-        vol.Extra: TEMP_EXPRESSION_MODULE_SCHEMA,
-    },
-))
+TEMP_EXPRESSION_MODULE_SCHEMA = vol.Schema(
+    vol.All(lambda v: v or {}, {"as": PYTHON_VAR_SCHEMA})
+)
+TEMP_EXPRESSION_MODULES_SCHEMA = vol.Schema(
+    vol.All(lambda v: v or {}, {vol.Extra: TEMP_EXPRESSION_MODULE_SCHEMA})
+)
 
 
 ########## THERMOSTATS
 
-THERMOSTAT_SCHEMA = vol.Schema(vol.All(
-    lambda v: v or {},
-    {
-        "friendly_name": str,
-        vol.Optional("delta", default=0): vol.Any(float, int),
-        vol.Optional("min_temp", default=None): vol.Any(
-            vol.All(TEMP_SCHEMA, vol.NotIn([expr.Temp(expr.OFF)])),
-            None,
-        ),
-        vol.Optional("max_temp", default=None): vol.Any(
-            vol.All(TEMP_SCHEMA, vol.NotIn([expr.Temp(expr.OFF)])),
-            None,
-        ),
-        vol.Optional("off_temp", default=expr.OFF): TEMP_SCHEMA,
-        vol.Optional("set_temp_retries", default=10):
-            vol.All(int, vol.Range(min=-1)),
-        vol.Optional("set_temp_retry_interval", default=30):
-            vol.All(int, vol.Range(min=1)),
-        vol.Optional("supports_opmodes", default=True): bool,
-        vol.Optional("supports_temps", default=True): bool,
-        vol.Optional("opmode_heat", default="heat"): str,
-        vol.Optional("opmode_off", default="off"): str,
-        vol.Optional(
-            "opmode_heat_service", default="climate/set_operation_mode"
-        ): str,
-        vol.Optional(
-            "opmode_off_service", default="climate/set_operation_mode"
-        ): str,
-        vol.Optional("opmode_heat_service_attr", default="operation_mode"):
-            vol.Any(str, None),
-        vol.Optional("opmode_off_service_attr", default="operation_mode"):
-            vol.Any(str, None),
-        vol.Optional("opmode_state_attr", default="operation_mode"): str,
-        vol.Optional(
-            "target_temp_service", default="climate/set_temperature"
-        ): str,
-        vol.Optional("target_temp_service_attr", default="temperature"): str,
-        vol.Optional("target_temp_state_attr", default="temperature"): str,
-        vol.Optional(
-            "current_temp_state_attr", default="current_temperature"
-        ): vol.Any(str, None),
-    },
-))
+THERMOSTAT_SCHEMA = vol.Schema(
+    vol.All(
+        lambda v: v or {},
+        {
+            "friendly_name": str,
+            vol.Optional("delta", default=0): vol.Any(float, int),
+            vol.Optional("min_temp", default=None): vol.Any(
+                vol.All(TEMP_SCHEMA, vol.NotIn([expr.Temp(expr.OFF)])), None
+            ),
+            vol.Optional("max_temp", default=None): vol.Any(
+                vol.All(TEMP_SCHEMA, vol.NotIn([expr.Temp(expr.OFF)])), None
+            ),
+            vol.Optional("off_temp", default=expr.OFF): TEMP_SCHEMA,
+            vol.Optional("set_temp_retries", default=10): vol.All(
+                int, vol.Range(min=-1)
+            ),
+            vol.Optional("set_temp_retry_interval", default=30): vol.All(
+                int, vol.Range(min=1)
+            ),
+            vol.Optional("supports_opmodes", default=True): bool,
+            vol.Optional("supports_temps", default=True): bool,
+            vol.Optional("opmode_heat", default="heat"): str,
+            vol.Optional("opmode_off", default="off"): str,
+            vol.Optional(
+                "opmode_heat_service", default="climate/set_operation_mode"
+            ): str,
+            vol.Optional(
+                "opmode_off_service", default="climate/set_operation_mode"
+            ): str,
+            vol.Optional("opmode_heat_service_attr", default="operation_mode"): vol.Any(
+                str, None
+            ),
+            vol.Optional("opmode_off_service_attr", default="operation_mode"): vol.Any(
+                str, None
+            ),
+            vol.Optional("opmode_state_attr", default="operation_mode"): str,
+            vol.Optional("target_temp_service", default="climate/set_temperature"): str,
+            vol.Optional("target_temp_service_attr", default="temperature"): str,
+            vol.Optional("target_temp_state_attr", default="temperature"): str,
+            vol.Optional(
+                "current_temp_state_attr", default="current_temperature"
+            ): vol.Any(str, None),
+        },
+    )
+)
 
 
 ########## WINDOW SENSORS
 
 STATE_SCHEMA = vol.Schema(vol.Any(float, int, str))
-WINDOW_SENSOR_SCHEMA = vol.Schema(vol.All(
-    lambda v: v or {},
-    {
-        "friendly_name": str,
-        vol.Optional("delay", default=10): vol.All(int, vol.Range(min=0)),
-        vol.Optional("open_state", default="on"):
-            vol.Any(STATE_SCHEMA, [STATE_SCHEMA]),
-    },
-))
+WINDOW_SENSOR_SCHEMA = vol.Schema(
+    vol.All(
+        lambda v: v or {},
+        {
+            "friendly_name": str,
+            vol.Optional("delay", default=10): vol.All(int, vol.Range(min=0)),
+            vol.Optional("open_state", default="on"): vol.Any(
+                STATE_SCHEMA, [STATE_SCHEMA]
+            ),
+        },
+    )
+)
 
 
 ########## SCHEDULES
 
-SCHEDULE_RULE_SCHEMA = vol.Schema(vol.All(
-    lambda v: v or {},
-    schedule_rule_pre_hook,
-    {
-        "rules": lambda v: SCHEDULE_SCHEMA(v),  # type: ignore  # pylint: disable=unnecessary-lambda
-        "value": vol.Any(TEMP_SCHEMA, TEMP_EXPRESSION_SCHEMA),
-        vol.Optional("name", default=None): vol.Any(str, None),
-        vol.Optional("start", default=None): vol.Any(TIME_SCHEMA, None),
-        vol.Optional("end", default=None): vol.Any(TIME_SCHEMA, None),
-        vol.Optional("end_plus_days", default=None):
-            vol.Any(vol.All(int, vol.Range(min=0)), None),
-        vol.Optional("years"): RANGE_STRING_SCHEMA,
-        vol.Optional("months"): RANGE_STRING_SCHEMA,
-        vol.Optional("days"): RANGE_STRING_SCHEMA,
-        vol.Optional("weeks"): RANGE_STRING_SCHEMA,
-        vol.Optional("weekdays"): RANGE_STRING_SCHEMA,
-        vol.Optional("start_date"): PARTIAL_DATE_SCHEMA,
-        vol.Optional("end_date"): PARTIAL_DATE_SCHEMA,
-    },
-))
-SCHEDULE_SCHEMA = vol.Schema(vol.All(
-    lambda v: v or [],
-    [SCHEDULE_RULE_SCHEMA],
-    build_schedule,
-))
+SCHEDULE_RULE_SCHEMA = vol.Schema(
+    vol.All(
+        lambda v: v or {},
+        schedule_rule_pre_hook,
+        {
+            "rules": lambda v: SCHEDULE_SCHEMA(  # type: ignore  # pylint: disable=unnecessary-lambda
+                v
+            ),
+            "value": vol.Any(TEMP_SCHEMA, TEMP_EXPRESSION_SCHEMA),
+            vol.Optional("name", default=None): vol.Any(str, None),
+            vol.Optional("start", default=None): vol.Any(TIME_SCHEMA, None),
+            vol.Optional("end", default=None): vol.Any(TIME_SCHEMA, None),
+            vol.Optional("end_plus_days", default=None): vol.Any(
+                vol.All(int, vol.Range(min=0)), None
+            ),
+            vol.Optional("years"): RANGE_STRING_SCHEMA,
+            vol.Optional("months"): RANGE_STRING_SCHEMA,
+            vol.Optional("days"): RANGE_STRING_SCHEMA,
+            vol.Optional("weeks"): RANGE_STRING_SCHEMA,
+            vol.Optional("weekdays"): RANGE_STRING_SCHEMA,
+            vol.Optional("start_date"): PARTIAL_DATE_SCHEMA,
+            vol.Optional("end_date"): PARTIAL_DATE_SCHEMA,
+        },
+    )
+)
+SCHEDULE_SCHEMA = vol.Schema(
+    vol.All(lambda v: v or [], [SCHEDULE_RULE_SCHEMA], build_schedule)
+)
 
-SCHEDULE_SNIPPETS_SCHEMA = vol.Schema(vol.All(
-    lambda v: v or {},
-    {
-        vol.Extra: vol.All(
-            SCHEDULE_SCHEMA,
-            validate_rule_paths,
-        ),
-    },
-))
+SCHEDULE_SNIPPETS_SCHEMA = vol.Schema(
+    vol.All(
+        lambda v: v or {}, {vol.Extra: vol.All(SCHEDULE_SCHEMA, validate_rule_paths)}
+    )
+)
 
 
 ########## ROOMS
 
-ROOM_SCHEMA = vol.Schema(vol.All(
-    lambda v: v or {},
-    {
-        "friendly_name": str,
-        vol.Optional("replicate_changes", default=True): bool,
-        vol.Optional("reschedule_delay", default=0):
-            vol.All(int, vol.Range(min=0)),
-        vol.Optional("thermostats", default=dict): DICTS_IN_DICT_SCHEMA,
-        vol.Optional("window_sensors", default=dict): DICTS_IN_DICT_SCHEMA,
-        vol.Optional("schedule", default=list): vol.All(
-            SCHEDULE_SCHEMA,
-            validate_rule_paths,
-        ),
-    },
-))
+ROOM_SCHEMA = vol.Schema(
+    vol.All(
+        lambda v: v or {},
+        {
+            "friendly_name": str,
+            vol.Optional("replicate_changes", default=True): bool,
+            vol.Optional("reschedule_delay", default=0): vol.All(int, vol.Range(min=0)),
+            vol.Optional("thermostats", default=dict): DICTS_IN_DICT_SCHEMA,
+            vol.Optional("window_sensors", default=dict): DICTS_IN_DICT_SCHEMA,
+            vol.Optional("schedule", default=list): vol.All(
+                SCHEDULE_SCHEMA, validate_rule_paths
+            ),
+        },
+    )
+)
 
 
 ########## STATISTICS
 
-STATS_ZONE_ROOM_SCHEMA = vol.Schema(vol.All(
-    lambda v: v or {},
-    {
-        # More parameters may be added here in the future.
-    },
-))
+STATS_ZONE_ROOM_SCHEMA = vol.Schema(
+    vol.All(
+        lambda v: v or {},
+        {
+            # More parameters may be added here in the future.
+        },
+    )
+)
 
 STATS_ZONE_PARAM_THERMOSTAT_SETTINGS_ADDIN = {
     vol.Optional("thermostat_factors", default=dict): vol.All(
         lambda v: v or {},
-        {
-            vol.Extra: vol.All(vol.Any(float, int),
-                               vol.Range(min=0), min_included=False),
-        },
+        {vol.Extra: vol.All(vol.Any(float, int), vol.Range(min=0), min_included=False)},
     ),
     vol.Optional("thermostat_weights", default=dict): vol.All(
-        lambda v: v or {},
-        {
-            vol.Extra: vol.All(vol.Any(float, int), vol.Range(min=0)),
-        },
+        lambda v: v or {}, {vol.Extra: vol.All(vol.Any(float, int), vol.Range(min=0))}
     ),
 }
 
-STATS_ZONE_SCHEMA = vol.Schema(vol.All(
-    lambda v: v or {},
-    {
-        "friendly_name": str,
-        vol.Optional("rooms", default=dict): vol.All(
-            lambda v: v or {},
-            {vol.Extra: STATS_ZONE_ROOM_SCHEMA},
-        ),
-        vol.Optional("parameters", default=dict): vol.All(
-            lambda v: v or {},
-            {
-                "temp_delta": vol.All(
-                    lambda v: v or {},
-                    util.mixin_dict({
-                        vol.Optional("off_value", default=0): vol.Any(
-                            float, int, None
+STATS_ZONE_SCHEMA = vol.Schema(
+    vol.All(
+        lambda v: v or {},
+        {
+            "friendly_name": str,
+            vol.Optional("rooms", default=dict): vol.All(
+                lambda v: v or {}, {vol.Extra: STATS_ZONE_ROOM_SCHEMA}
+            ),
+            vol.Optional("parameters", default=dict): vol.All(
+                lambda v: v or {},
+                {
+                    "temp_delta": vol.All(
+                        lambda v: v or {},
+                        util.mixin_dict(
+                            {
+                                vol.Optional("off_value", default=0): vol.Any(
+                                    float, int, None
+                                )
+                            },
+                            STATS_ZONE_PARAM_THERMOSTAT_SETTINGS_ADDIN,
                         ),
-                    }, STATS_ZONE_PARAM_THERMOSTAT_SETTINGS_ADDIN),
-                ),
-            },
-        ),
-    },
-))
+                    )
+                },
+            ),
+        },
+    )
+)
 
 
 ########## MAIN CONFIG SCHEMA
 
-CONFIG_SCHEMA = vol.Schema(vol.All(
-    vol.Schema({
-        vol.Optional("heaty_id", default="default"): str,
-        vol.Optional("master_switch", default=None):
-            vol.Any(ENTITY_ID_SCHEMA, None),
-        vol.Optional("master_off_temp", default=expr.OFF): TEMP_SCHEMA,
-        vol.Optional("window_open_temp", default=expr.OFF): TEMP_SCHEMA,
-        vol.Optional("reschedule_at_startup", default=True): bool,
-        vol.Optional("untrusted_temp_expressions", default=False): bool,
-        vol.Optional("temp_expression_modules", default=dict):
-            TEMP_EXPRESSION_MODULES_SCHEMA,
-        vol.Optional("thermostat_defaults", default=dict):
-            lambda v: v or {},
-        vol.Optional("window_sensor_defaults", default=dict):
-            lambda v: v or {},
-        vol.Optional("schedule_prepend", default=list): vol.All(
-            SCHEDULE_SCHEMA,
-            validate_rule_paths,
+CONFIG_SCHEMA = vol.Schema(
+    vol.All(
+        vol.Schema(
+            {
+                vol.Optional("heaty_id", default="default"): str,
+                vol.Optional("master_switch", default=None): vol.Any(
+                    ENTITY_ID_SCHEMA, None
+                ),
+                vol.Optional("master_off_temp", default=expr.OFF): TEMP_SCHEMA,
+                vol.Optional("window_open_temp", default=expr.OFF): TEMP_SCHEMA,
+                vol.Optional("reschedule_at_startup", default=True): bool,
+                vol.Optional("untrusted_temp_expressions", default=False): bool,
+                vol.Optional(
+                    "temp_expression_modules", default=dict
+                ): TEMP_EXPRESSION_MODULES_SCHEMA,
+                vol.Optional("thermostat_defaults", default=dict): lambda v: v or {},
+                vol.Optional("window_sensor_defaults", default=dict): lambda v: v or {},
+                vol.Optional("schedule_prepend", default=list): vol.All(
+                    SCHEDULE_SCHEMA, validate_rule_paths
+                ),
+                vol.Optional("schedule_append", default=list): vol.All(
+                    SCHEDULE_SCHEMA, validate_rule_paths
+                ),
+                vol.Optional(
+                    "schedule_snippets", default=dict
+                ): SCHEDULE_SNIPPETS_SCHEMA,
+                vol.Optional("rooms", default=dict): vol.All(
+                    lambda v: v or {}, {vol.Extra: ROOM_SCHEMA}
+                ),
+                vol.Optional("statistics", default=dict): vol.All(
+                    lambda v: v or {}, {vol.Extra: STATS_ZONE_SCHEMA}
+                ),
+            },
+            extra=True,
         ),
-        vol.Optional("schedule_append", default=list): vol.All(
-            SCHEDULE_SCHEMA,
-            validate_rule_paths,
-        ),
-        vol.Optional("schedule_snippets", default=dict):
-            SCHEDULE_SNIPPETS_SCHEMA,
-        vol.Optional("rooms", default=dict): vol.All(
-            lambda v: v or {},
-            {vol.Extra: ROOM_SCHEMA},
-        ),
-        vol.Optional("statistics", default=dict): vol.All(
-            lambda v: v or {},
-            {vol.Extra: STATS_ZONE_SCHEMA},
-        ),
-    }, extra=True),
-    config_post_hook,
-))
+        config_post_hook,
+    )
+)

@@ -3,6 +3,7 @@ This module implements the ActorBase parent class.
 """
 
 import typing as T
+
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     import uuid
@@ -26,10 +27,8 @@ class ActorBase:
     config_defaults = {}  # type: T.Dict[T.Any, T.Any]
     config_schema_dict = {
         "friendly_name": str,
-        vol.Optional("send_retries", default=10):
-            vol.All(int, vol.Range(min=-1)),
-        vol.Optional("send_retry_interval", default=30):
-            vol.All(int, vol.Range(min=1)),
+        vol.Optional("send_retries", default=10): vol.All(int, vol.Range(min=-1)),
+        vol.Optional("send_retry_interval", default=30): vol.All(int, vol.Range(min=1)),
     }
 
     expression_helpers = []  # type: T.List[T.Type[ExpressionHelperBase]]
@@ -77,21 +76,24 @@ class ActorBase:
         if left_tries < tries - 1:
             self.log("Re-sending value due to missing feedback.", level="WARNING")
 
-        self.log("Setting value {} (left tries = {})."
-                 .format(self._wanted_value, left_tries),
-                 level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
+        self.log(
+            "Setting value {} (left tries = {}).".format(
+                self._wanted_value, left_tries
+            ),
+            level="DEBUG",
+            prefix=common.LOG_PREFIX_OUTGOING,
+        )
         self.do_send()
 
         if not left_tries:
-            self.log("Gave up sending value after {} tries.".format(tries),
-                     level="WARNING")
+            self.log(
+                "Gave up sending value after {} tries.".format(tries), level="WARNING"
+            )
             self._gave_up_sending = True
             return
 
         interval = self.cfg["send_retry_interval"]
-        self.log("Re-sending in {} seconds."
-                 .format(interval),
-                 level="DEBUG")
+        self.log("Re-sending in {} seconds.".format(interval), level="DEBUG")
         self._resending_timer = self.app.run_in(
             self._resending_cb, interval, left_tries=left_tries - 1
         )
@@ -99,16 +101,21 @@ class ActorBase:
 
     @sync_proxy
     def _state_cb(
-            self, entity: str, attr: str,
-            old: T.Optional[dict], new: T.Optional[dict],
-            kwargs: dict,
+        self,
+        entity: str,
+        attr: str,
+        old: T.Optional[dict],
+        new: T.Optional[dict],
+        kwargs: dict,
     ) -> None:
         """Is called when any of the actor's state attributes changes."""
 
         attrs = self._preprocess_state(new)
 
         previous_value = self._current_value
-        new_value = self.notify_state_changed(attrs)  # pylint: disable=assignment-from-none
+        new_value = self.notify_state_changed(  # pylint: disable=assignment-from-none
+            attrs
+        )
         if new_value is None:
             return
 
@@ -118,8 +125,10 @@ class ActorBase:
 
         if not self.values_equal(new_value, previous_value):
             self._current_value = new_value
-            self.log("Received value of {}.".format(repr(new_value)),
-                     prefix=common.LOG_PREFIX_INCOMING)
+            self.log(
+                "Received value of {}.".format(repr(new_value)),
+                prefix=common.LOG_PREFIX_INCOMING,
+            )
             self.events.trigger("value_changed", self, new_value)
 
     def after_initialization(self) -> None:
@@ -186,17 +195,23 @@ class ActorBase:
         """Tells whether the actor's current value is the wanted one and
         re-sending neither is in progress nor has failed."""
 
-        return not self._resending_timer and not self._gave_up_sending and \
-               self._current_value is not None and \
-               self._wanted_value is not None and \
-               self.values_equal(self._current_value, self._wanted_value)
+        return (
+            not self._resending_timer
+            and not self._gave_up_sending
+            and self._current_value is not None
+            and self._wanted_value is not None
+            and self.values_equal(self._current_value, self._wanted_value)
+        )
 
     def log(self, msg: str, *args: T.Any, **kwargs: T.Any) -> None:
         """Prefixes the actor to log messages."""
+
         msg = "[{}] {}".format(self, msg)
         self.room.log(msg, *args, **kwargs)
 
-    def notify_state_changed(self, attrs: dict) -> T.Any:  # pylint: disable=no-self-use,unused-argument
+    def notify_state_changed(  # pylint: disable=no-self-use,unused-argument
+        self, attrs: dict
+    ) -> T.Any:
         """Is called when the entity's state has changed with the new
         attributes dict as argument. It should return the new value or
         None, if undetectable."""
@@ -208,25 +223,29 @@ class ActorBase:
         timers.
         Returns whether initialization was successful."""
 
-        self.log("Initializing actor (entity_id={}, type={})."
-                 .format(repr(self.entity_id), repr(self.name)),
-                 level="DEBUG")
+        self.log(
+            "Initializing actor (entity_id={}, type={}).".format(
+                repr(self.entity_id), repr(self.name)
+            ),
+            level="DEBUG",
+        )
 
-        self.log("Fetching initial state.",
-                 level="DEBUG")
+        self.log("Fetching initial state.", level="DEBUG")
         state = self.app.get_state(self.entity_id, attribute="all")
         if state is None:
-            self.log("State of entity {} is None, not initializing it now."
-                     .format(repr(self.entity_id)),
-                     level="WARNING")
+            self.log(
+                "State of entity {} is None, not initializing it now.".format(
+                    repr(self.entity_id)
+                ),
+                level="WARNING",
+            )
             return False
         self.check_config_plausibility(self._preprocess_state(state))
         # populate self._current_value etc. by simulating a
         # state change
         self._state_cb(self.entity_id, "all", state, state, {})
 
-        self.log("Listening for state changes.",
-                 level="DEBUG")
+        self.log("Listening for state changes.", level="DEBUG")
         self.app.listen_state(self._state_cb, self.entity_id, attribute="all")
 
         self.after_initialization()
@@ -246,7 +265,7 @@ class ActorBase:
             raise ValueError("can't serialize to JSON: {}".format(err))
 
     def set_value(
-            self, value: T.Any, force_resend: bool = False
+        self, value: T.Any, force_resend: bool = False
     ) -> T.Tuple[bool, T.Any]:
         """Is called in order to change the actor's value. It isn't
         re-sent unless force_resend is True.
@@ -259,9 +278,9 @@ class ActorBase:
 
         self._wanted_value = value
         if not force_resend and self.is_synced:
-            self.log("Not sending value {} redundantly."
-                     .format(repr(value)),
-                     level="DEBUG")
+            self.log(
+                "Not sending value {} redundantly.".format(repr(value)), level="DEBUG"
+            )
             return False, value
 
         self.cancel_resending_timer()

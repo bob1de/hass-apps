@@ -3,9 +3,11 @@ This module implements the StatisticsZone class for collecting statistics.
 """
 
 import typing as T
+
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     import uuid
+
     # pylint: disable=cyclic-import,unused-import
     from .app import HeatyApp
     from .room import Room
@@ -22,8 +24,7 @@ class _WeightedValue:
         self.weight = weight
 
     def __repr__(self) -> str:
-        return "{}(weight={})" \
-               .format(util.format_sensor_value(self.value), self.weight)
+        return "{}(weight={})".format(util.format_sensor_value(self.value), self.weight)
 
 
 class StatisticsZone:
@@ -52,22 +53,24 @@ class StatisticsZone:
                     # ignore this thermostat
                     continue
 
-                if therm.current_temp is None or \
-                   therm.current_target_temp is None or \
-                   therm.current_temp.is_off or \
-                   therm.current_target_temp.is_off:
+                if (
+                    therm.current_temp is None
+                    or therm.current_target_temp is None
+                    or therm.current_temp.is_off
+                    or therm.current_target_temp.is_off
+                ):
                     if off_value is None:
                         # thermostats that are off should be excluded
                         continue
                     temp_delta = float(off_value)
                 else:
-                    temp_delta = float(therm.current_target_temp -
-                                       therm.current_temp)
+                    temp_delta = float(therm.current_target_temp - therm.current_temp)
                     factor = cfg["thermostat_factors"].get(therm.entity_id, 1)
                     temp_delta *= factor
                 value = _WeightedValue(temp_delta, weight)
-                self.log("Value for {} in {} is {}".format(therm, room, value),
-                         level="DEBUG")
+                self.log(
+                    "Value for {} in {} is {}".format(therm, room, value), level="DEBUG"
+                )
                 values.append(value)
         return values
 
@@ -77,26 +80,29 @@ class StatisticsZone:
         self._stats_timer = None
 
         if not self.cfg["parameters"]:
-            self.log("No parameters configured, nothing to update.",
-                     level="DEBUG")
+            self.log("No parameters configured, nothing to update.", level="DEBUG")
             return
 
         params = {}  # type: T.Dict[str, T.List[_WeightedValue]]
         for param in self.cfg["parameters"]:
-            self.log("Collecting {}".format(param),
-                     level="DEBUG")
+            self.log("Collecting {}".format(param), level="DEBUG")
             cfg = self.cfg["parameters"][param]
             params[param] = getattr(self, "_collect_{}".format(param))(cfg)
 
         fmt = util.format_sensor_value
         for param, values in params.items():
             _min = fmt(min([v.value for v in values]) if values else 0)
-            _avg = fmt(sum([v.value * v.weight for v in values]) /
-                       sum([v.weight for v in values]) if values else 0)
+            _avg = fmt(
+                sum([v.value * v.weight for v in values])
+                / sum([v.weight for v in values])
+                if values
+                else 0
+            )
             _max = fmt(max([v.value for v in values]) if values else 0)
-            self.log("{} (min/avg/max): {} / {} / {}"
-                     .format(param, _min, _avg, _max),
-                     level="DEBUG")
+            self.log(
+                "{} (min/avg/max): {} / {} / {}".format(param, _min, _avg, _max),
+                level="DEBUG",
+            )
             self._set_sensor("min_{}".format(param), _min)
             self._set_sensor("avg_{}".format(param), _avg)
             self._set_sensor("max_{}".format(param), _max)
@@ -104,20 +110,24 @@ class StatisticsZone:
     def _set_sensor(self, param: str, state: T.Any) -> None:
         """Updates the sensor for given parameter in HA."""
 
-        entity_id = "sensor.heaty_{}_zone_{}_{}" \
-                    .format(self.app.cfg["heaty_id"], self.name, param)
-        self.log("Setting state of {} to {}."
-                 .format(repr(entity_id), repr(state)),
-                 level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
+        entity_id = "sensor.heaty_{}_zone_{}_{}".format(
+            self.app.cfg["heaty_id"], self.name, param
+        )
+        self.log(
+            "Setting state of {} to {}.".format(repr(entity_id), repr(state)),
+            level="DEBUG",
+            prefix=common.LOG_PREFIX_OUTGOING,
+        )
         self.app.set_state(entity_id, state=state)
 
     def initialize(self) -> None:
         """Fetches the Room objects and sets up internal data structures
         before triggering an initial statistics update."""
 
-        self.log("Initializing statistics zone (name={})."
-                 .format(repr(self.name)),
-                 level="DEBUG")
+        self.log(
+            "Initializing statistics zone (name={}).".format(repr(self.name)),
+            level="DEBUG",
+        )
 
         if not self.cfg["parameters"]:
             self.log("No parameters configured.", level="WARNING")
@@ -125,20 +135,26 @@ class StatisticsZone:
         for room_name in self.cfg["rooms"]:
             room = self.app.get_room(room_name)
             if room is None:
-                self.log("Room named '{}' not found, not adding it to "
-                         "statistics zone."
-                         .format(room_name),
-                         level="ERROR")
+                self.log(
+                    "Room named '{}' not found, not adding it to "
+                    "statistics zone.".format(room_name),
+                    level="ERROR",
+                )
                 continue
             self.rooms.append(room)
             for therm in room.thermostats:
-                self.log("Listening for temperature changes of {} in {}."
-                         .format(therm, room),
-                         level="DEBUG")
-                therm.events.on("current_temp_changed",
-                                lambda *a, **kw: self.update_stats())
-                therm.events.on("target_temp_changed",
-                                lambda *a, **kw: self.update_stats())
+                self.log(
+                    "Listening for temperature changes of {} in {}.".format(
+                        therm, room
+                    ),
+                    level="DEBUG",
+                )
+                therm.events.on(
+                    "current_temp_changed", lambda *a, **kw: self.update_stats()
+                )
+                therm.events.on(
+                    "target_temp_changed", lambda *a, **kw: self.update_stats()
+                )
 
         if not self.rooms:
             self.log("No rooms configured.", level="WARNING")
@@ -154,12 +170,8 @@ class StatisticsZone:
         """Registers a timer for sending statistics to HA in 3 seconds."""
 
         if self._stats_timer:
-            self.log("Statistics update  pending already.",
-                     level="DEBUG")
+            self.log("Statistics update  pending already.", level="DEBUG")
             return
 
-        self.log("Going to update statistics in 3 seconds.",
-                 level="DEBUG")
-        self._stats_timer = self.app.run_in(
-            lambda *a: self._do_update_stats(), 3
-        )
+        self.log("Going to update statistics in 3 seconds.", level="DEBUG")
+        self._stats_timer = self.app.run_in(lambda *a: self._do_update_stats(), 3)

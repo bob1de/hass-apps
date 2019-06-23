@@ -3,6 +3,7 @@ This module implements various classes for collecting statistics.
 """
 
 import typing as T
+
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     import uuid
@@ -46,7 +47,9 @@ class StatisticalParameter:
     def __str__(self) -> str:
         return "SP:{}".format(self.name)
 
-    def generate_entries(self) -> T.Dict[str, StatisticalValueType]:  # pylint: disable=no-self-use
+    def generate_entries(  # pylint: disable=no-self-use
+        self
+    ) -> T.Dict[str, StatisticalValueType]:
         """Should generate the entries to be added to the parameter."""
 
         return {}
@@ -65,13 +68,13 @@ class StatisticalParameter:
 
         unchanged = attrs == self._last_state
         if unchanged:
-            self.log("Unchanged HA state: attributes={}"
-                     .format(attrs),
-                     level="DEBUG")
+            self.log("Unchanged HA state: attributes={}".format(attrs), level="DEBUG")
             return
-        self.log("Sending state to HA: attributes={}"
-                 .format(attrs),
-                 level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
+        self.log(
+            "Sending state to HA: attributes={}".format(attrs),
+            level="DEBUG",
+            prefix=common.LOG_PREFIX_OUTGOING,
+        )
 
         entity_id = self._state_entity_id
         self.app.set_state(entity_id, state="", attributes=attrs)
@@ -86,9 +89,10 @@ class StatisticalParameter:
     def initialize(self) -> None:
         """Initializes state listeners and triggers an initial update."""
 
-        self.log("Initializing statistical parameter (name={})."
-                 .format(repr(self.name)),
-                 level="DEBUG")
+        self.log(
+            "Initializing statistical parameter (name={}).".format(repr(self.name)),
+            level="DEBUG",
+        )
 
         self.initialize_listeners()
 
@@ -108,17 +112,15 @@ class StatisticalParameter:
         """Registers a timer for sending statistics to HA in 3 seconds."""
 
         if self._update_timer:
-            self.log("Statistics update  pending already.",
-                     level="DEBUG")
+            self.log("Statistics update  pending already.", level="DEBUG")
             return
 
-        self.log("Going to update statistics in 3 seconds.",
-                 level="DEBUG")
-        self._update_timer = self.app.run_in(
-            lambda *a, **kw: self._do_update(), 3
-        )
+        self.log("Going to update statistics in 3 seconds.", level="DEBUG")
+        self._update_timer = self.app.run_in(lambda *a, **kw: self._do_update(), 3)
 
-    def update_handler(self, *args: T.Any, **kwargs: T.Any) -> None:  # pylint: disable=unused-argument
+    def update_handler(
+        self, *args: T.Any, **kwargs: T.Any  # pylint: disable=unused-argument
+    ) -> None:
         """A convenience wrapper around self.update(), accepting any
         positional and wildcard argument. It is intended to be used
         with events that pass arguments to their handler we're not
@@ -134,12 +136,16 @@ class RoomBasedParameter(StatisticalParameter):
         **StatisticalParameter.config_schema_dict,
         vol.Optional("rooms", default=dict): vol.All(
             lambda v: v or {},
-            {util.CONF_STR_KEY: vol.Schema(vol.All(
-                lambda v: v or {},
-                {
-                    # no settings yet
-                },
-            ))},
+            {
+                util.CONF_STR_KEY: vol.Schema(
+                    vol.All(
+                        lambda v: v or {},
+                        {
+                            # no settings yet
+                        },
+                    )
+                )
+            },
         ),
     }
 
@@ -157,8 +163,9 @@ class RoomBasedParameter(StatisticalParameter):
                     break
             else:
                 raise ValueError(
-                    "Room {} for statistical parameter {} not found."
-                    .format(repr(room_name), repr(self.name))
+                    "Room {} for statistical parameter {} not found.".format(
+                        repr(room_name), repr(self.name)
+                    )
                 )
         if not self.cfg["rooms"]:
             # add all rooms if none are specified
@@ -169,7 +176,7 @@ class AbstractValueCollectorMixin:
     """Abstract class for creating custom value collectors."""
 
     def collect_values(  # pylint: disable=no-self-use
-            self
+        self
     ) -> T.Iterable[T.Tuple[T.Any, T.Union[float, int]]]:
         """Should collect the implementation-specific values from which
         entries are built. The first item of each tuple is an identifier
@@ -178,37 +185,39 @@ class AbstractValueCollectorMixin:
 
         return []
 
-class ActorValueCollectorMixin(
-        AbstractValueCollectorMixin, RoomBasedParameter
-):
+
+class ActorValueCollectorMixin(AbstractValueCollectorMixin, RoomBasedParameter):
     """Helps collecting a value per actor."""
 
-    def collect_values(
-            self
-    ) -> T.Iterable[T.Tuple[T.Any, T.Union[float, int]]]:
+    def collect_values(self) -> T.Iterable[T.Tuple[T.Any, T.Union[float, int]]]:
         """Calls self.collect_actor_value() for all actors of the
         associated rooms and returns the collected values."""
 
         values = []
         for room in self.rooms:
             for actor in filter(lambda a: a.is_initialized, room.actors):
-                value = self.collect_actor_value(actor)  # pylint: disable=assignment-from-none
-                self.log("Value for {} in {} is {}."
-                         .format(actor, room, value),
-                         level="DEBUG")
+                value = self.collect_actor_value(  # pylint: disable=assignment-from-none
+                    actor
+                )
+                self.log(
+                    "Value for {} in {} is {}.".format(actor, room, value),
+                    level="DEBUG",
+                )
                 if value is not None:
                     values.append((actor.entity_id, value))
         return values
 
     def collect_actor_value(  # pylint: disable=no-self-use,unused-argument
-            self, actor: "ActorBase"
+        self, actor: "ActorBase"
     ) -> T.Union[float, int, None]:
         """Should generate a value for the given actor or None, if the
         actor should be excluded."""
 
         return None
 
-    def initialize_actor_listeners(self, actor: "ActorBase") -> None:  # pylint: disable=no-self-use,unused-argument
+    def initialize_actor_listeners(
+        self, actor: "ActorBase"
+    ) -> None:  # pylint: disable=no-self-use,unused-argument
         """Should initialize the appropriate state listeners for the
         given actor."""
 
@@ -234,9 +243,11 @@ class MinAvgMaxParameter(AbstractValueCollectorMixin, StatisticalParameter):
         **StatisticalParameter.config_schema_dict,
         vol.Optional("factors", default=dict): vol.All(
             lambda v: v or {},
-            {util.CONF_STR_KEY: vol.All(
-                vol.Any(float, int), vol.Range(min=0, min_included=False),
-            )},
+            {
+                util.CONF_STR_KEY: vol.All(
+                    vol.Any(float, int), vol.Range(min=0, min_included=False)
+                )
+            },
         ),
         vol.Optional("weights", default=dict): vol.All(
             lambda v: v or {},

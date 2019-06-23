@@ -15,13 +15,9 @@ class SwitchActor(GenericActor):
             {
                 "attribute": "state",
                 "values": {
-                    "on": {
-                        "service": "homeassistant/turn_on",
-                    },
-                    "off": {
-                        "service": "homeassistant/turn_off",
-                    },
+                    "on": {"service": "homeassistant/turn_on"},
+                    "off": {"service": "homeassistant/turn_off"},
                 },
-            },
+            }
         ],
     }

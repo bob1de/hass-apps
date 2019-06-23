@@ -1,5 +1,6 @@
 [pylint]
 disable =
+    bad-continuation,
     duplicate-code,
     too-few-public-methods,
     wrong-import-position

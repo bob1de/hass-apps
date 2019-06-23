@@ -3,6 +3,7 @@ Helpers to be available in the expression evaluation environment.
 """
 
 import typing as T
+
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     from .. import schedule as schedule_mod
@@ -23,7 +24,7 @@ class HelperBase:
     order = 0
 
     def __init__(
-            self, room: "Room", now: datetime.datetime, env: T.Dict[str, T.Any]
+        self, room: "Room", now: datetime.datetime, env: T.Dict[str, T.Any]
     ) -> None:
         self._room = room
         self._app = room.app
@@ -78,8 +79,9 @@ class BasicHelper(HelperBase):
 
     @staticmethod
     def round_to_step(
-            value: T.Union[float, int], step: T.Union[float, int],
-            decimal_places: int = None
+        value: T.Union[float, int],
+        step: T.Union[float, int],
+        decimal_places: int = None,
     ) -> T.Union[float, int]:
         """Round the value to the nearest step and, optionally, the
         given number of decimal places.
@@ -106,8 +108,9 @@ class CustomEnvironmentHelper(HelperBase):
 
         script = self._app.expression_environment_script
         if script is not None:
-            self._room.log("Executing the expression_environment script.",
-                           level="DEBUG")
+            self._room.log(
+                "Executing the expression_environment script.", level="DEBUG"
+            )
             exec(script, self._env)  # pylint: disable=exec-used
 
 
@@ -115,7 +118,7 @@ class StateHelper(HelperBase):
     """Various state-related helpers."""
 
     def filter_entities(
-            self, entities: T.Union[str, T.List[str]] = None, **criteria: T.Any
+        self, entities: T.Union[str, T.List[str]] = None, **criteria: T.Any
     ) -> T.Iterable[str]:
         """From a given set of entities, this function yields only those
         with a state and/or attributes matching all given criteria.
@@ -165,15 +168,16 @@ class StateHelper(HelperBase):
 
         if entity and "." in entity:
             watched_entities = itertools.chain(
-                self._room.cfg["watched_entities"],
-                self._app.cfg["watched_entities"],
+                self._room.cfg["watched_entities"], self._app.cfg["watched_entities"]
             )
             _attribute = attribute or "state"
             for watched in watched_entities:
                 if entity != watched["entity"]:
                     continue
-                if _attribute in watched["attributes"] or \
-                   "all" in watched["attributes"]:
+                if (
+                    _attribute in watched["attributes"]
+                    or "all" in watched["attributes"]
+                ):
                     break
             else:
                 suggestion = [entity]
@@ -181,9 +185,10 @@ class StateHelper(HelperBase):
                     suggestion.append(attribute)
                 self._room.log(
                     "You query {} from an expression, but didn't specify it "
-                    "in the watched_entities config."
-                    .format(repr(":".join(suggestion))),
-                    level="WARNING"
+                    "in the watched_entities config.".format(
+                        repr(":".join(suggestion))
+                    ),
+                    level="WARNING",
                 )
 
         if entity:
@@ -199,8 +204,7 @@ class ScheduleHelper(HelperBase):
     namespace = "schedule"
 
     def evaluate(
-            self, schedule: "schedule_mod.Schedule",
-            when: datetime.datetime = None
+        self, schedule: "schedule_mod.Schedule", when: datetime.datetime = None
     ) -> T.Any:
         """Evaluates the given schedule for the given point in time."""
 
@@ -208,11 +212,15 @@ class ScheduleHelper(HelperBase):
         return schedule.evaluate(self._room, when)
 
     def next_results(
-            self, schedule: "schedule_mod.Schedule",
-            start: datetime.datetime = None, end: datetime.datetime = None
-    ) -> T.Generator[T.Tuple[
-        datetime.datetime, "schedule_mod.ScheduleEvaluationResultType"
-    ], None, None]:
+        self,
+        schedule: "schedule_mod.Schedule",
+        start: datetime.datetime = None,
+        end: datetime.datetime = None,
+    ) -> T.Generator[
+        T.Tuple[datetime.datetime, "schedule_mod.ScheduleEvaluationResultType"],
+        None,
+        None,
+    ]:
         """Returns a generator that yields tuples of datetime objects
         and schedule evaluation results. At each of these datetimes,
         the scheduling result will change to the returned one.
@@ -239,8 +247,9 @@ class PatternHelper(HelperBase):
 
     @staticmethod
     def linear(
-            start_value: T.Union[float, int], end_value: T.Union[float, int],
-            percentage: T.Union[float, int]
+        start_value: T.Union[float, int],
+        end_value: T.Union[float, int],
+        percentage: T.Union[float, int],
     ) -> float:
         """Calculate the value at a given percentage between start_value
         and end_value."""

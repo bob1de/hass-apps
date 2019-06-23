@@ -3,19 +3,29 @@ Module containing types to be used during expression evaluation.
 """
 
 import typing as T
+
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     from .. import schedule
 
 
 __all__ = [
-    "Abort", "Break", "IncludeSchedule", "Inherit", "Mark", "Skip",
-    "Add", "Multiply", "Invert", "Postprocess",
+    "Abort",
+    "Break",
+    "IncludeSchedule",
+    "Inherit",
+    "Mark",
+    "Skip",
+    "Add",
+    "Multiply",
+    "Invert",
+    "Postprocess",
 ]
 
 
 class PostprocessingError(Exception):
     """Raised when Postprocessor.apply() fails."""
+
 
 class PostprocessorValueMixin:
     """Makes a Postprocessor having a value to be validated by the used
@@ -26,6 +36,7 @@ class PostprocessorValueMixin:
 
     def __eq__(self, other: T.Any) -> bool:
         return super().__eq__(other) and self.value == other.value
+
 
 class Postprocessor:
     """A postprocessor for the scheduling result."""
@@ -39,6 +50,7 @@ class Postprocessor:
 
         raise NotImplementedError()
 
+
 class Add(PostprocessorValueMixin, Postprocessor):
     """Adds a value to the final result."""
 
@@ -50,6 +62,7 @@ class Add(PostprocessorValueMixin, Postprocessor):
 
     def __repr__(self) -> str:
         return "Add({})".format(repr(self.value))
+
 
 class Multiply(PostprocessorValueMixin, Postprocessor):
     """Multiplies a value with the final result."""
@@ -63,11 +76,12 @@ class Multiply(PostprocessorValueMixin, Postprocessor):
     def __repr__(self) -> str:
         return "Multiply({})".format(repr(self.value))
 
+
 class Invert(Postprocessor):
     """Negates the final result by calling __neg__().
     Booleans and the strings "on"/"off" are inverted instead."""
 
-    specials = {True:False, False:True, "on":"off", "off":"on"}
+    specials = {True: False, False: True, "on": "off", "off": "on"}
 
     def apply(self, result: T.Any) -> T.Any:
         try:
@@ -80,6 +94,7 @@ class Invert(Postprocessor):
 
     def __repr__(self) -> str:
         return "Invert()"
+
 
 class Postprocess(Postprocessor):
     """A type which can be used for post-processing the later result by
@@ -98,12 +113,14 @@ class ControlResult:
     def __eq__(self, other: T.Any) -> bool:
         return type(self) is type(other)
 
+
 class Abort(ControlResult):
     """Result of an expression that should cause scheduling to be aborted
     and the value left unchanged."""
 
     def __repr__(self) -> str:
         return "Abort()"
+
 
 class Break(ControlResult):
     """Result of an expression that should cause the rest of a
@@ -122,6 +139,7 @@ class Break(ControlResult):
     def __repr__(self) -> str:
         return "Break({})".format(self.levels if self.levels != 1 else "")
 
+
 class IncludeSchedule(ControlResult):
     """Result that inserts a schedule in place for further processing."""
 
@@ -134,11 +152,13 @@ class IncludeSchedule(ControlResult):
     def __repr__(self) -> str:
         return "IncludeSchedule({})".format(self.schedule)
 
+
 class Inherit(ControlResult):
     """Causes the next parent's value to be used as the result."""
 
     def __repr__(self) -> str:
         return "Inherit()"
+
 
 class Mark(ControlResult):
     """A result with some markers applied."""
@@ -156,8 +176,11 @@ class Mark(ControlResult):
             self.result = result
 
     def __eq__(self, other: T.Any) -> bool:
-        return super().__eq__(other) and self.result == other.result and \
-               self.markers == other.markers
+        return (
+            super().__eq__(other)
+            and self.result == other.result
+            and self.markers == other.markers
+        )
 
     def __repr__(self) -> str:
         return "Mark({}, {})".format(repr(self.result), self.markers)
@@ -169,6 +192,7 @@ class Mark(ControlResult):
         if markers_set is not None:
             markers_set.update(self.markers)
         return self.result
+
 
 class Skip(ControlResult):
     """Result of an expression which should be ignored."""

@@ -3,6 +3,7 @@ This module implements the WindowSensor class.
 """
 
 import typing as T
+
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     from .room import Room
@@ -32,15 +33,21 @@ class WindowSensor:
         return "W:{}".format(self.cfg.get("friendly_name", self.entity_id))
 
     def _state_cb(
-            self, entity: str, attr: str,
-            old: T.Optional[dict], new: T.Optional[dict],
-            kwargs: dict
+        self,
+        entity: str,
+        attr: str,
+        old: T.Optional[dict],
+        new: T.Optional[dict],
+        kwargs: dict,
     ) -> None:
         """Is called when the window sensor's state has changed.
         This method triggers the opened/closed event."""
 
-        self.log("State is now {}.".format(new),
-                 level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
+        self.log(
+            "State is now {}.".format(new),
+            level="DEBUG",
+            prefix=common.LOG_PREFIX_INCOMING,
+        )
 
         self.events.trigger("open_close", self, self.is_open)
 
@@ -48,15 +55,18 @@ class WindowSensor:
         """Should be called in order to register state listeners and
         timers."""
 
-        self.log("Initializing window sensor (entity_id={})."
-                 .format(repr(self.entity_id)),
-                 level="DEBUG")
+        self.log(
+            "Initializing window sensor (entity_id={}).".format(repr(self.entity_id)),
+            level="DEBUG",
+        )
 
-        self.log("Listening for state changes (delay={})."
-                 .format(self.cfg["delay"]),
-                 level="DEBUG")
-        self.app.listen_state(self._state_cb, self.entity_id,
-                              duration=self.cfg["delay"])
+        self.log(
+            "Listening for state changes (delay={}).".format(self.cfg["delay"]),
+            level="DEBUG",
+        )
+        self.app.listen_state(
+            self._state_cb, self.entity_id, duration=self.cfg["delay"]
+        )
 
     @property
     def is_open(self) -> bool:

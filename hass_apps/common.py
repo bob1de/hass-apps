@@ -39,8 +39,7 @@ class App(hassapi.Hass):  # type: ignore
         config_schema = None  # type: T.Optional[T.Callable]
 
     def log(  # pylint: disable=arguments-differ
-            self, msg: str, level: str = "INFO",
-            prefix: T.Optional[str] = None
+        self, msg: str, level: str = "INFO", prefix: T.Optional[str] = None
     ) -> None:
         """Wrapper around super().log() which changes the log level
         from DEBUG to INFO if debug config option is enabled.
@@ -72,8 +71,11 @@ class App(hassapi.Hass):  # type: ignore
             kwargs["prefix"] = LOG_PREFIX_ALERT
             self.log(*args, **kwargs)
 
-        alert("Welcome to {} {}, running on AppDaemon {}."
-              .format(self.Meta.name, self.Meta.version, AD_VERSION))
+        alert(
+            "Welcome to {} {}, running on AppDaemon {}.".format(
+                self.Meta.name, self.Meta.version, AD_VERSION
+            )
+        )
         alert("")
         alert("This is an app from the hass-apps package.")
         alert("  DOCS: https://hass-apps.readthedocs.io/en/stable/")
@@ -94,8 +96,7 @@ class App(hassapi.Hass):  # type: ignore
                 self.cfg = self.Meta.config_schema(cfg)  # pylint: disable=not-callable
             except vol.Invalid as err:
                 msg = vol.humanize.humanize_error(cfg, err)
-                self.log("Configuration error: {}".format(msg),
-                         level="ERROR")
+                self.log("Configuration error: {}".format(msg), level="ERROR")
                 self.log("Not initializing this app.", level="ERROR")
                 return
 

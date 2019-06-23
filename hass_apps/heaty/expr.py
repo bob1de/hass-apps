@@ -3,6 +3,7 @@ Module containing functionality to evaluate temperature expressions.
 """
 
 import typing as T
+
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     from . import schedule
@@ -13,8 +14,17 @@ import datetime
 import functools
 
 
-__all__ = ["Abort", "Add", "Break", "IncludeSchedule", "OFF", "Off", "Result",
-           "Skip", "Temp"]
+__all__ = [
+    "Abort",
+    "Add",
+    "Break",
+    "IncludeSchedule",
+    "OFF",
+    "Off",
+    "Result",
+    "Skip",
+    "Temp",
+]
 
 
 # type of an evaluable expression
@@ -32,17 +42,20 @@ class AddibleMixin:
     def __eq__(self, other: T.Any) -> bool:
         return type(self) is type(other) and self.value == other.value
 
+
 class ResultBase:
     """Holds the result of a temperature expression."""
 
     def __eq__(self, other: T.Any) -> bool:
         return type(self) is type(other)
 
+
 class Result(ResultBase, AddibleMixin):
     """Final result of a temperature expression."""
 
     def __repr__(self) -> str:
         return "Result({})".format(self.value)
+
 
 class Abort(ResultBase):
     """Result of a temperature expression that should cause scheduling
@@ -51,19 +64,22 @@ class Abort(ResultBase):
     def __repr__(self) -> str:
         return "Abort()"
 
+
 class Add(ResultBase, AddibleMixin):
     """Result of a temperature expression to which the result of a
     consequent expression should be added."""
 
     def __add__(self, other: ResultBase) -> ResultBase:
         if not isinstance(other, AddibleMixin):
-            raise TypeError("can't add {} and {}"
-                            .format(repr(type(self)), repr(type(other))))
+            raise TypeError(
+                "can't add {} and {}".format(repr(type(self)), repr(type(other)))
+            )
 
         return type(other)(self.value + other.value)
 
     def __repr__(self) -> str:
         return "Add({})".format(self.value)
+
 
 class Break(ResultBase):
     """Result of a temperature expression that should cause the rest of
@@ -79,6 +95,7 @@ class Break(ResultBase):
     def __repr__(self) -> str:
         return "Break({})".format(self.levels if self.levels != 1 else "")
 
+
 class IncludeSchedule(ResultBase):
     """Result that inserts a schedule in place for further processing."""
 
@@ -87,6 +104,7 @@ class IncludeSchedule(ResultBase):
 
     def __repr__(self) -> str:
         return "IncludeSchedule({})".format(self.schedule)
+
 
 class Skip(ResultBase):
     """Result of a temperature expression which should be ignored."""
@@ -117,7 +135,9 @@ class Off:
     def __sub__(self, other: T.Any) -> "Off":
         return self
 
+
 OFF = Off()
+
 
 @functools.total_ordering
 class Temp:
@@ -131,8 +151,7 @@ class Temp:
             parsed = self.parse_temp(temp_value)
 
         if parsed is None:
-            raise ValueError("{} is no valid temperature"
-                             .format(repr(temp_value)))
+            raise ValueError("{} is no valid temperature".format(repr(temp_value)))
 
         self.value = parsed  # type: T.Union[float, Off]
 
@@ -140,8 +159,9 @@ class Temp:
         if isinstance(other, (float, int)):
             other = type(self)(other)
         elif not isinstance(other, type(self)):
-            raise TypeError("can't add {} and {}"
-                            .format(repr(type(self)), repr(type(other))))
+            raise TypeError(
+                "can't add {} and {}".format(repr(type(self)), repr(type(other)))
+            )
 
         # OFF + something is OFF
         if self.is_off or other.is_off:
@@ -165,13 +185,13 @@ class Temp:
             other = Temp(other)
 
         if type(self) is not type(other):
-            raise TypeError("can't compare {} and {}"
-                            .format(repr(type(self)), repr(type(other))))
+            raise TypeError(
+                "can't compare {} and {}".format(repr(type(self)), repr(type(other)))
+            )
 
         if not self.is_off and other.is_off:
             return False
-        if self.is_off and not other.is_off or \
-           self.value < other.value:
+        if self.is_off and not other.is_off or self.value < other.value:
             return True
         return False
 
@@ -237,10 +257,8 @@ def build_expr_env(app: "HeatyApp") -> T.Dict[str, T.Any]:
         "date": now.date(),
         "time": now.time(),
         "state": app.get_state,
-        "is_on":
-            lambda entity_id: str(app.get_state(entity_id)).lower() == "on",
-        "is_off":
-            lambda entity_id: str(app.get_state(entity_id)).lower() == "off",
+        "is_on": lambda entity_id: str(app.get_state(entity_id)).lower() == "on",
+        "is_off": lambda entity_id: str(app.get_state(entity_id)).lower() == "off",
     }
 
     globs = globals()
@@ -251,10 +269,11 @@ def build_expr_env(app: "HeatyApp") -> T.Dict[str, T.Any]:
 
     return env
 
+
 def eval_temp_expr(
-        temp_expr: ExprType,
-        app: "HeatyApp",
-        extra_env: T.Optional[T.Dict[str, T.Any]] = None
+    temp_expr: ExprType,
+    app: "HeatyApp",
+    extra_env: T.Optional[T.Dict[str, T.Any]] = None,
 ) -> T.Optional[ResultBase]:
     """This method evaluates the given temperature expression.
     The evaluation result is returned. The items of the extra_env

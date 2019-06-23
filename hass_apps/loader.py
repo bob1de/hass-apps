@@ -23,6 +23,7 @@ def _import_app_module(package: str) -> types.ModuleType:
         mod_name = "{}.{}".format(__package__, mod_name)
     return importlib.import_module(mod_name)
 
+
 def _build_app_loader(app_package: str, app_class_name: str) -> T.Callable:
     def _proxy_loader(*args, **kwargs):  # type: ignore
         app_mod = _import_app_module(app_package)
@@ -31,6 +32,7 @@ def _build_app_loader(app_package: str, app_class_name: str) -> T.Callable:
 
     return _proxy_loader
 
+
 def _generate_app_loaders() -> T.Iterable[T.Tuple[str, T.Callable]]:
     """Scans for apps and yields tuples of the app class name and a
     deferred loader for each app found."""
@@ -38,8 +40,7 @@ def _generate_app_loaders() -> T.Iterable[T.Tuple[str, T.Callable]]:
     dirpath = os.path.realpath(os.path.dirname(__file__))
     for name in os.listdir(dirpath):
         path = os.path.join(dirpath, name)
-        if not os.path.isdir(path) or \
-           not os.path.isfile(os.path.join(path, "app.py")):
+        if not os.path.isdir(path) or not os.path.isfile(os.path.join(path, "app.py")):
             continue
         parts = [part.capitalize() for part in name.split("_")]
         attr = "{}App".format("".join(parts))

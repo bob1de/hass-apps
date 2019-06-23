@@ -4,6 +4,7 @@ This module implements the Room class.
 
 import types
 import typing as T
+
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     import uuid
@@ -107,19 +108,20 @@ class Room:
 
         actor = kwargs["actor"]
         if not actor.initialize():
-            self.log("Actor {} couldn't be initialized, "
-                     "retrying in 10 seconds."
-                     .format(repr(actor)),
-                     level="WARNING")
+            self.log(
+                "Actor {} couldn't be initialized, "
+                "retrying in 10 seconds.".format(repr(actor)),
+                level="WARNING",
+            )
             self.app.run_in(self._initialize_actor_cb, 10, actor=actor)
             return
 
-        actor.events.on(
-            "value_changed", self.notify_value_changed
-        )
-        if self._wanted_value is not None and \
-           self.cfg["replicate_changes"] and \
-           all([a.is_initialized for a in self.actors]):
+        actor.events.on("value_changed", self.notify_value_changed)
+        if (
+            self._wanted_value is not None
+            and self.cfg["replicate_changes"]
+            and all([a.is_initialized for a in self.actors])
+        ):
             self.set_value(self._wanted_value)
 
     def _restore_state(self) -> None:
@@ -138,12 +140,17 @@ class Room:
             return datetime.datetime.fromtimestamp(value)
 
         entity_id = self._state_entity_id
-        self.log("Loading state of {} from Home Assistant."
-                 .format(repr(entity_id)),
-                 level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
+        self.log(
+            "Loading state of {} from Home Assistant.".format(repr(entity_id)),
+            level="DEBUG",
+            prefix=common.LOG_PREFIX_OUTGOING,
+        )
         state = self.app.get_state(entity_id, attribute="all")
-        self.log("  = {}".format(repr(state)),
-                 level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
+        self.log(
+            "  = {}".format(repr(state)),
+            level="DEBUG",
+            prefix=common.LOG_PREFIX_INCOMING,
+        )
 
         reset = False
         if isinstance(state, dict):
@@ -156,9 +163,7 @@ class Room:
                         actor.wanted_value = value
             self._wanted_value = _deserialize(state.get("state") or None)
             self._scheduled_value = _deserialize(attrs.get("scheduled_value"))
-            self._rescheduling_time = _deserialize_dt(
-                attrs.get("rescheduling_time")
-            )
+            self._rescheduling_time = _deserialize_dt(attrs.get("rescheduling_time"))
             self._overlaid_wanted_value = _deserialize(
                 attrs.get("overlaid_wanted_value")
             )
@@ -196,8 +201,7 @@ class Room:
     def _scheduling_timer_cb(self, kwargs: dict) -> None:
         """Is called whenever a scheduling timer fires."""
 
-        self.log("Scheduling timer fired.",
-                 level="DEBUG")
+        self.log("Scheduling timer fired.", level="DEBUG")
         self.apply_schedule()
 
     @property
@@ -221,11 +225,13 @@ class Room:
         values_differ = not self.app.actor_type.values_equal(
             scheduled_value, self._wanted_value
         )
-        if self._overlaid_wanted_value is None and \
-           (values_differ or self._rescheduling_timer):
-            self.log("Storing currently wanted value {} before an overlay "
-                     "is applied."
-                     .format(repr(self._wanted_value)))
+        if self._overlaid_wanted_value is None and (
+            values_differ or self._rescheduling_timer
+        ):
+            self.log(
+                "Storing currently wanted value {} before an overlay "
+                "is applied.".format(repr(self._wanted_value))
+            )
             self._overlaid_wanted_value = self._wanted_value
             self._overlaid_scheduled_value = scheduled_value
             self._overlaid_rescheduling_time = self._rescheduling_time
@@ -237,15 +243,14 @@ class Room:
         """Update the room's state in Home Assistant."""
 
         D = T.TypeVar("D")
+
         def _serialize(value: T.Any, default: D) -> T.Union[str, D]:
             if value is None:
                 return default
             assert self.app.actor_type is not None
             return self.app.actor_type.serialize_value(value)
 
-        def _serialize_dt(
-                value: T.Optional[datetime.datetime]
-        ) -> T.Optional[float]:
+        def _serialize_dt(value: T.Optional[datetime.datetime]) -> T.Optional[float]:
             if value is None:
                 return None
             return value.timestamp()
@@ -264,29 +269,32 @@ class Room:
             "rescheduling_time": _serialize_dt(self._rescheduling_time),
         }
         _maybe_add(
-            "overlaid_wanted_value",
-            _serialize(self._overlaid_wanted_value, None)
+            "overlaid_wanted_value", _serialize(self._overlaid_wanted_value, None)
         )
         _maybe_add(
-            "overlaid_scheduled_value",
-            _serialize(self._overlaid_scheduled_value, None)
+            "overlaid_scheduled_value", _serialize(self._overlaid_scheduled_value, None)
         )
         _maybe_add(
             "overlaid_rescheduling_time",
-            _serialize_dt(self._overlaid_rescheduling_time)
+            _serialize_dt(self._overlaid_rescheduling_time),
         )
         _maybe_add("overlay_revert_on_no_result", self._overlay_revert_on_no_result)
         _maybe_add("friendly_name", self.cfg.get("friendly_name"))
 
         unchanged = (state, attrs) == self._last_state
         if unchanged:
-            self.log("Unchanged HA state: state={}, attributes={}"
-                     .format(repr(state), attrs),
-                     level="DEBUG")
+            self.log(
+                "Unchanged HA state: state={}, attributes={}".format(
+                    repr(state), attrs
+                ),
+                level="DEBUG",
+            )
             return
-        self.log("Sending state to HA: state={}, attributes={}"
-                 .format(repr(state), attrs),
-                 level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
+        self.log(
+            "Sending state to HA: state={}, attributes={}".format(repr(state), attrs),
+            level="DEBUG",
+            prefix=common.LOG_PREFIX_OUTGOING,
+        )
 
         entity_id = self._state_entity_id
         self.app.set_state(entity_id, state=state, attributes=attrs)
@@ -300,16 +308,17 @@ class Room:
         try:
             value = self.app.actor_type.validate_value(value)
         except ValueError as err:
-            self.log("Invalid value {} for actor type {}: {}"
-                     .format(repr(value), repr(self.app.actor_type.name), err),
-                     level="ERROR")
+            self.log(
+                "Invalid value {} for actor type {}: {}".format(
+                    repr(value), repr(self.app.actor_type.name), err
+                ),
+                level="ERROR",
+            )
             return None
         return value
 
     @sync_proxy
-    def apply_schedule(
-            self, reset: bool = False, force_resend: bool = False
-    ) -> None:
+    def apply_schedule(self, reset: bool = False, force_resend: bool = False) -> None:
         """Applies the value scheduled for the current date and time.
         It detects when the result hasn't changed compared to the last
         run and prevent re-setting it in that case.
@@ -328,31 +337,34 @@ class Room:
                 self._scheduled_value, self._overlaid_scheduled_value
             )
             delay = None  # type: T.Union[None, int, datetime.datetime]
-            if self._overlaid_rescheduling_time and \
-               self._overlaid_rescheduling_time > self.app.datetime():
+            if (
+                self._overlaid_rescheduling_time
+                and self._overlaid_rescheduling_time > self.app.datetime()
+            ):
                 delay = self._overlaid_rescheduling_time
             elif equal:
                 delay = 0
             self._clear_overlay()
             if delay is None:
                 return False
-            self.log("Restoring overlaid value {}."
-                     .format(repr(overlaid_wanted_value)))
+            self.log("Restoring overlaid value {}.".format(repr(overlaid_wanted_value)))
             self.set_value_manually(
                 value=overlaid_wanted_value, rescheduling_delay=delay
             )
             return True
 
-        self.log("Evaluating room's schedule (reset={}, force_resend={})."
-                 .format(reset, force_resend),
-                 level="DEBUG")
+        self.log(
+            "Evaluating room's schedule (reset={}, force_resend={}).".format(
+                reset, force_resend
+            ),
+            level="DEBUG",
+        )
 
         result = None
         if self.schedule:
             result = self.schedule.evaluate(self, self.app.datetime())
         if result is None:
-            self.log("No suitable value found in schedule.",
-                     level="DEBUG")
+            self.log("No suitable value found in schedule.", level="DEBUG")
             if self._overlay_revert_on_no_result:
                 self._scheduled_value = self._overlaid_scheduled_value
                 _restore_overlaid_value()
@@ -360,10 +372,12 @@ class Room:
 
         value, markers = result[:2]
         assert self.app.actor_type is not None
-        if self.app.actor_type.values_equal(value, self._scheduled_value) and \
-           not reset and not force_resend:
-            self.log("Result didn't change, not setting it again.",
-                     level="DEBUG")
+        if (
+            self.app.actor_type.values_equal(value, self._scheduled_value)
+            and not reset
+            and not force_resend
+        ):
+            self.log("Result didn't change, not setting it again.", level="DEBUG")
             return
 
         previous_scheduled_value = self._scheduled_value
@@ -374,15 +388,18 @@ class Room:
             self._clear_overlay()
         elif expression.types.Mark.OVERLAY in markers:
             self._store_for_overlaying(previous_scheduled_value)
-            self._overlay_revert_on_no_result = \
-                    expression.types.Mark.OVERLAY_REVERT_ON_NO_RESULT in markers
+            self._overlay_revert_on_no_result = (
+                expression.types.Mark.OVERLAY_REVERT_ON_NO_RESULT in markers
+            )
         elif self._overlaid_wanted_value is not None:
             if _restore_overlaid_value():
                 return
         elif self._rescheduling_timer:
-            self.log("Not applying the schedule now due to a running "
-                     "re-scheduling timer.",
-                     level="DEBUG")
+            self.log(
+                "Not applying the schedule now due to a running "
+                "re-scheduling timer.",
+                level="DEBUG",
+            )
             return
 
         self.set_value(value, force_resend=force_resend)
@@ -411,8 +428,7 @@ class Room:
         try:
             return expression.eval_expr(expr, env)
         except Exception as err:  # pylint: disable=broad-except
-            self.log("Error while evaluating expression:",
-                     level="ERROR")
+            self.log("Error while evaluating expression:", level="ERROR")
             tb_exc = traceback.TracebackException(*sys.exc_info())  # type: ignore
             while tb_exc.stack and tb_exc.stack[0].filename != "expression":
                 del tb_exc.stack[0]
@@ -427,9 +443,7 @@ class Room:
         If reset is True, the previous state won't be restored from Home
         Assistant and the schedule will be applied instead."""
 
-        self.log("Initializing room (name={})."
-                 .format(repr(self.name)),
-                 level="DEBUG")
+        self.log("Initializing room (name={}).".format(repr(self.name)), level="DEBUG")
 
         for actor in self.actors:
             self._initialize_actor_cb({"actor": actor})
@@ -438,9 +452,12 @@ class Room:
         times = self.schedule.get_scheduling_times()
         for snippet in self.app.cfg["schedule_snippets"].values():
             times.update(snippet.get_scheduling_times())
-        self.log("Registering scheduling timers at: {{{}}}"
-                 .format(", ".join([str(_time) for _time in times])),
-                 level="DEBUG")
+        self.log(
+            "Registering scheduling timers at: {{{}}}".format(
+                ", ".join([str(_time) for _time in times])
+            ),
+            level="DEBUG",
+        )
         for _time in times:
             self.app.run_daily(self._scheduling_timer_cb, _time)
 
@@ -460,60 +477,73 @@ class Room:
 
     @sync_proxy
     def notify_set_value_event(
-            self, expr_raw: str = None, value: T.Any = None,
-            force_resend: bool = False,
-            rescheduling_delay: T.Union[float, int, None] = None
+        self,
+        expr_raw: str = None,
+        value: T.Any = None,
+        force_resend: bool = False,
+        rescheduling_delay: T.Union[float, int, None] = None,
     ) -> None:
         """Handles a schedy_set_value event for this room."""
 
-        self.log("schedy_set_value event received, [{}] "
-                 "[rescheduling_delay={}]"
-                 .format("expression={}".format(repr(expr_raw)) \
-                         if expr_raw is not None \
-                         else "value={}".format(repr(value)),
-                         rescheduling_delay),
-                 prefix=common.LOG_PREFIX_INCOMING)
+        self.log(
+            "schedy_set_value event received, [{}] "
+            "[rescheduling_delay={}]".format(
+                "expression={}".format(repr(expr_raw))
+                if expr_raw is not None
+                else "value={}".format(repr(value)),
+                rescheduling_delay,
+            ),
+            prefix=common.LOG_PREFIX_INCOMING,
+        )
         self.set_value_manually(
-            expr_raw=expr_raw, value=value, force_resend=force_resend,
-            rescheduling_delay=rescheduling_delay
+            expr_raw=expr_raw,
+            value=value,
+            force_resend=force_resend,
+            rescheduling_delay=rescheduling_delay,
         )
 
-    def notify_value_changed(
-            self, actor: "ActorBase", value: T.Any
-    ) -> None:
+    def notify_value_changed(self, actor: "ActorBase", value: T.Any) -> None:
         """Should be called when an actor reports a value change.
         Handles change replication and re-scheduling timers."""
 
         if actor.is_sending:
-            self.log("Not respecting value change from a sending actor.",
-                     level="DEBUG")
+            self.log("Not respecting value change from a sending actor.", level="DEBUG")
             return
         if actor.gave_up_sending:
-            self.log("Not respecting value change from an actor that "
-                     "gave up sending.",
-                     level="DEBUG")
+            self.log(
+                "Not respecting value change from an actor that " "gave up sending.",
+                level="DEBUG",
+            )
             return
 
         actor_wanted = actor.wanted_value
-        was_actor_wanted = actor_wanted is not None and \
-                           actor.values_equal(value, actor_wanted)
+        was_actor_wanted = actor_wanted is not None and actor.values_equal(
+            value, actor_wanted
+        )
         replicating = self.cfg["replicate_changes"]
         single_actor = len([a.is_initialized for a in self.actors]) == 1
 
         if was_actor_wanted:
-            synced = all(actor.is_initialized and actor.is_synced
-                         for actor in self.actors)
+            synced = all(
+                actor.is_initialized and actor.is_synced for actor in self.actors
+            )
             if self.tracking_schedule and synced:
                 self.cancel_rescheduling_timer()
         else:
             if not self.cfg["allow_manual_changes"]:
                 if self._wanted_value is None:
-                    self.log("Not rejecting manual value change by {} to "
-                             "{} because we don't know what else to set."
-                             .format(actor, repr(value)))
+                    self.log(
+                        "Not rejecting manual value change by {} to "
+                        "{} because we don't know what else to set.".format(
+                            actor, repr(value)
+                        )
+                    )
                 else:
-                    self.log("Rejecting manual value change by {} to {}."
-                             .format(actor, repr(value)))
+                    self.log(
+                        "Rejecting manual value change by {} to {}.".format(
+                            actor, repr(value)
+                        )
+                    )
                     self.set_value(self._wanted_value)
                 return
 
@@ -522,50 +552,58 @@ class Room:
                     self.log("Propagating the change to all actors in the room.")
                 self.set_value(value)
 
-            if self.cfg["rescheduling_delay"] and \
-               not (replicating and self.tracking_schedule):
+            if self.cfg["rescheduling_delay"] and not (
+                replicating and self.tracking_schedule
+            ):
                 self.start_rescheduling_timer()
 
-    def set_value(
-            self, value: T.Any, force_resend: bool = False
-    ) -> None:
+    def set_value(self, value: T.Any, force_resend: bool = False) -> None:
         """Sets the given value for all actors in the room.
         Values won't be send to actors redundantly unless force_resend
         is True."""
 
         assert self.app.actor_type is not None
-        scheduled = \
-            self._scheduled_value is not None and \
-            self.app.actor_type.values_equal(value, self._scheduled_value)
+        scheduled = (
+            self._scheduled_value is not None
+            and self.app.actor_type.values_equal(value, self._scheduled_value)
+        )
 
-        self.log("Setting value to {}.  [{}{}]"
-                 .format(repr(value),
-                         "scheduled" if scheduled else "manual",
-                         ", force re-sending" if force_resend else ""),
-                 level="DEBUG")
+        self.log(
+            "Setting value to {}.  [{}{}]".format(
+                repr(value),
+                "scheduled" if scheduled else "manual",
+                ", force re-sending" if force_resend else "",
+            ),
+            level="DEBUG",
+        )
 
         self._wanted_value = value
 
         changed = False
         for actor in self.actors:
             if not actor.is_initialized:
-                self.log("Skipping uninitialized {}.".format(repr(actor)),
-                         level="DEBUG")
+                self.log(
+                    "Skipping uninitialized {}.".format(repr(actor)), level="DEBUG"
+                )
                 continue
             changed |= actor.set_value(value, force_resend=force_resend)[0]
 
         if changed:
-            self.log("Value set to {}.  [{}]"
-                     .format(repr(value),
-                             "scheduled" if scheduled else "manual"),
-                     prefix=common.LOG_PREFIX_OUTGOING)
+            self.log(
+                "Value set to {}.  [{}]".format(
+                    repr(value), "scheduled" if scheduled else "manual"
+                ),
+                prefix=common.LOG_PREFIX_OUTGOING,
+            )
 
     def set_value_manually(
-            self, expr_raw: str = None, value: T.Any = None,
-            force_resend: bool = False,
-            rescheduling_delay: T.Union[
-                float, int, datetime.datetime, datetime.timedelta
-            ] = None
+        self,
+        expr_raw: str = None,
+        value: T.Any = None,
+        force_resend: bool = False,
+        rescheduling_delay: T.Union[
+            float, int, datetime.datetime, datetime.timedelta
+        ] = None,
     ) -> None:
         """Evaluates the given expression or value and sets the result.
         An existing re-scheduling timer is cancelled and a new one is
@@ -585,18 +623,17 @@ class Room:
             except SyntaxError:
                 for line in traceback.format_exc(limit=0):
                     self.log(line.rstrip(os.linesep), level="ERROR")
-                self.log("Failed expression: {}".format(repr(expr_raw)),
-                         level="ERROR")
+                self.log("Failed expression: {}".format(repr(expr_raw)), level="ERROR")
                 return
             env = expression.build_expr_env(self, now)
             result = self.eval_expr(expr, env)
-            self.log("Evaluated expression {} to {}."
-                     .format(repr(expr_raw), repr(result)),
-                     level="DEBUG")
+            self.log(
+                "Evaluated expression {} to {}.".format(repr(expr_raw), repr(result)),
+                level="DEBUG",
+            )
 
             if isinstance(result, Exception):
-                self.log("Failed expression: {}".format(repr(expr_raw)),
-                         level="ERROR")
+                self.log("Failed expression: {}".format(repr(expr_raw)), level="ERROR")
                 return
 
             if isinstance(result, expression.types.Mark):
@@ -633,9 +670,7 @@ class Room:
             self.cancel_rescheduling_timer()
 
     def start_rescheduling_timer(
-            self, delay: T.Union[
-                float, int, datetime.datetime, datetime.timedelta
-            ] = None
+        self, delay: T.Union[float, int, datetime.datetime, datetime.timedelta] = None
     ) -> None:
         """This method registers a re-scheduling timer according to the
         room's settings. delay, if given, overwrites the rescheduling_delay
@@ -657,8 +692,11 @@ class Room:
             delta = delay
             when = self.app.datetime() + delay
 
-        self.log("Re-applying the schedule not before {} (in {})."
-                 .format(util.format_time(when.time()), delta))
+        self.log(
+            "Re-applying the schedule not before {} (in {}).".format(
+                util.format_time(when.time()), delta
+            )
+        )
 
         with self._timer_lock:
             self._rescheduling_time = when
@@ -672,11 +710,13 @@ class Room:
         one."""
 
         assert self.app.actor_type is not None
-        return self._scheduled_value is not None and \
-               self._wanted_value is not None and \
-               self.app.actor_type.values_equal(
-                   self._scheduled_value, self._wanted_value
-               )
+        return (
+            self._scheduled_value is not None
+            and self._wanted_value is not None
+            and self.app.actor_type.values_equal(
+                self._scheduled_value, self._wanted_value
+            )
+        )
 
     def trigger_reevaluation(self, reset: bool = False) -> None:
         """Initializes a schedule re-evaluation in 1 second.
@@ -692,11 +732,11 @@ class Room:
                 if reset:
                     self.app.cancel_timer(self._reevaluation_timer)
                 else:
-                    self.log("Re-evaluation pending, doing nothing.",
-                             level="DEBUG")
+                    self.log("Re-evaluation pending, doing nothing.", level="DEBUG")
                     return
 
-            self.log("Doing schedule re-evaluation in 1 second [reset={}]"
-                     .format(reset),
-                     level="DEBUG")
+            self.log(
+                "Doing schedule re-evaluation in 1 second [reset={}]".format(reset),
+                level="DEBUG",
+            )
             self._reevaluation_timer = self.app.run_in(_reevaluation_cb, 1)

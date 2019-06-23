@@ -56,15 +56,18 @@ class RangingSet(set):
                 range_start = num
             ranges[range_start] = num
 
-        return "{{{}}}".format(", ".join(
-            [str(start) if start == end else "{}-{}".format(start, end)
-             for start, end in ranges.items()]
-        ))
+        return "{{{}}}".format(
+            ", ".join(
+                [
+                    str(start) if start == end else "{}-{}".format(start, end)
+                    for start, end in ranges.items()
+                ]
+            )
+        )
 
 
 def build_date_from_constraint(
-        constraint: T.Dict[str, int], default_date: datetime.date,
-        direction: int = 0
+    constraint: T.Dict[str, int], default_date: datetime.date, direction: int = 0
 ) -> datetime.date:
     """Builds and returns a datetime.date object from the given constraint,
     taking missing values from the given default_date.
@@ -102,6 +105,7 @@ def build_date_from_constraint(
                 fields["month"] = 1
                 fields["year"] += 1
 
+
 def compile_expression(expr: str) -> types.CodeType:
     """Compiles strings to code objects.
     Strings containing one or more newlines are assumed to contain
@@ -115,8 +119,11 @@ def compile_expression(expr: str) -> types.CodeType:
         expr = "result = {}".format(expr)
         mode = "single"
 
-    compiled = compile(expr, "expression", mode, dont_inherit=True)  # type: types.CodeType
+    compiled = compile(
+        expr, "expression", mode, dont_inherit=True
+    )  # type: types.CodeType
     return compiled
+
 
 def deep_merge_dicts(source: dict, dest: dict) -> None:
     """Updates items of dest with those of source, descending into and
@@ -133,6 +140,7 @@ def deep_merge_dicts(source: dict, dest: dict) -> None:
         else:
             dest[key] = value
 
+
 def escape_var_name(name: str) -> str:
     """Converts the given string to a valid Python variable name.
     All unsupported characters are replaced by "_". If name would
@@ -144,8 +152,9 @@ def escape_var_name(name: str) -> str:
         name = "_" + name
     return name
 
+
 def expand_range_spec(
-        spec: T.Union[int, str], min_value: int, max_value: int
+    spec: T.Union[int, str], min_value: int, max_value: int
 ) -> T.Set[int]:
     """Expands strings of the range specification format to RangingSet
     objects containing the individual numbers.
@@ -180,8 +189,9 @@ def expand_range_spec(
             for value in (start, end):
                 if value < min_value or value > max_value:
                     raise ValueError(
-                        "value {} is out of range {}..{}"
-                        .format(value, min_value, max_value)
+                        "value {} is out of range {}..{}".format(
+                            value, min_value, max_value
+                        )
                     )
             if end < start:
                 start, end = end, start
@@ -195,15 +205,16 @@ def expand_range_spec(
 
     return numbers
 
+
 def format_time(when: datetime.time, format_str: str = TIME_FORMAT) -> str:
     """Returns a string representing the given datetime.time object.
     If no strftime-compatible format is provided, the default is used."""
 
     return when.strftime(format_str)
 
+
 def normalize_dict_key(
-        obj: dict, dest_key: T.Any, *alt_keys: T.Any,
-        keep_alt_keys: bool = False
+    obj: dict, dest_key: T.Any, *alt_keys: T.Any, keep_alt_keys: bool = False
 ) -> None:
     """If dest_key is missing in the dict obj but one of the alt_keys
     is found instead, the value of the first alt_key is moved over
@@ -217,19 +228,20 @@ def normalize_dict_key(
             if not keep_alt_keys:
                 del obj[alt_key]
 
+
 def parse_time_string(time_str: str) -> datetime.time:
     """Parses a string recognizable by TIME_REGEXP into a datetime.time object. If
     the string has an invalid format, a ValueError is raised."""
 
     match = TIME_REGEXP.match(time_str)
     if match is None:
-        raise ValueError("time string {} has an invalid format"
-                         .format(repr(time_str)))
+        raise ValueError("time string {} has an invalid format".format(repr(time_str)))
     groups = match.groupdict()
     return datetime.time(int(groups["h"]), int(groups["m"]), int(groups["s"] or 0))
 
+
 def parse_rule_time_string(
-        time_str: str,
+    time_str: str,
 ) -> T.Tuple[T.Optional[datetime.time], T.Optional[int]]:
     """Parses a string recognizable by RULE_TIME_REGEXP into a (datetime.time,
     int) tuple. Both time and days are optional and None if not specified. If the
@@ -245,9 +257,8 @@ def parse_rule_time_string(
     days = None if groups["days"] is None else int(groups["days"])
     return _time, days
 
-def round_number(
-        number: T.Union[float, int], places: int
-) -> T.Union[float, int]:
+
+def round_number(number: T.Union[float, int], places: int) -> T.Union[float, int]:
     """Rounds the given number to the given decimal places. If places
     is 0, an integer is returned, a float otherwise."""
 

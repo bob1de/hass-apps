@@ -13,15 +13,25 @@ class Rule:
     """A rule that can be added to a schedule."""
 
     # names of schedule rule constraints to be fetched from a rule definition
-    CONSTRAINTS = ("years", "months", "days", "weeks", "weekdays",
-                   "start_date", "end_date")
+    CONSTRAINTS = (
+        "years",
+        "months",
+        "days",
+        "weeks",
+        "weekdays",
+        "start_date",
+        "end_date",
+    )
 
     def __init__(
-            self, name: str = None,
-            start_time: datetime.time = None, end_time: datetime.time = None,
-            end_plus_days: int = None, constraints: T.Dict[str, T.Any] = None,
-            temp_expr: expr.ExprType = None,
-        ) -> None:
+        self,
+        name: str = None,
+        start_time: datetime.time = None,
+        end_time: datetime.time = None,
+        end_plus_days: int = None,
+        constraints: T.Dict[str, T.Any] = None,
+        temp_expr: expr.ExprType = None,
+    ) -> None:
 
         self.name = name
 
@@ -66,7 +76,7 @@ class Rule:
     def __repr__(self) -> str:
         return "<Rule {}{}>".format(
             "{} ".format(repr(self.name)) if self.name is not None else "",
-            ", ".join(self._get_repr_tokens())
+            ", ".join(self._get_repr_tokens()),
         )
 
     def _get_repr_tokens(self) -> T.List[str]:
@@ -78,21 +88,23 @@ class Rule:
 
         midnight = datetime.time(0, 0)
         if self.start_time != midnight or self.end_time != midnight:
-            fmt_t = lambda t: t.strftime("%H:%M:%S" if t.second else "%H:%M")  # type: T.Callable[[datetime.time], str]
-            times = "from {} to {}".format(
-                fmt_t(self.start_time), fmt_t(self.end_time)
-            )
+            fmt_t = lambda t: t.strftime(
+                "%H:%M:%S" if t.second else "%H:%M"
+            )  # type: T.Callable[[datetime.time], str]
+            times = "from {} to {}".format(fmt_t(self.start_time), fmt_t(self.end_time))
             if self.end_plus_days:
                 times += "+{}d".format(self.end_plus_days)
             tokens.append(times)
         elif self.end_plus_days > 1:
             tokens.append("+{}d".format(self.end_plus_days - 1))
 
-        fmt_c = lambda x: str(x).replace(" ", "").replace("'", "")  # type: T.Callable[[T.Any], str]
+        fmt_c = (
+            lambda x: str(x).replace(" ", "").replace("'", "")
+        )  # type: T.Callable[[T.Any], str]
         for constraint in sorted(self.constraints):
-            tokens.append("{}={}".format(
-                constraint, fmt_c(self.constraints[constraint])
-            ))
+            tokens.append(
+                "{}={}".format(constraint, fmt_c(self.constraints[constraint]))
+            )
 
         if self.temp_expr_raw is not None:
             tokens.append("temp={}".format(repr(self.temp_expr_raw)))
@@ -117,11 +129,13 @@ class Rule:
                 return False
             if constraint == "weekdays" and weekday not in allowed:
                 return False
-            if constraint == "start_date" and \
-               date < util.build_date_from_constraint(allowed, date, 1):
+            if constraint == "start_date" and date < util.build_date_from_constraint(
+                allowed, date, 1
+            ):
                 return False
-            if constraint == "end_date" and \
-               date > util.build_date_from_constraint(allowed, date, -1):
+            if constraint == "end_date" and date > util.build_date_from_constraint(
+                allowed, date, -1
+            ):
                 return False
         return True
 
@@ -154,7 +168,11 @@ class RulePath:
             loc.append(str(sched.rules.index(rule) + 1))
             if isinstance(rule, SubScheduleRule):
                 sched = rule.sub_schedule
-        return "<{}/{}:{}>".format(self.root_schedule, "/".join(loc), rule)  # pylint: disable=undefined-loop-variable
+        return "<{}/{}:{}>".format(
+            self.root_schedule,
+            "/".join(loc),
+            rule,  # pylint: disable=undefined-loop-variable
+        )
 
     def add(self, rule: Rule) -> None:
         """Add's a rule to the end of the path.
@@ -165,19 +183,22 @@ class RulePath:
         if self.rules:
             if not isinstance(self.rules[-1], SubScheduleRule):
                 raise ValueError(
-                    "The previous rule in the path ({}) is no SubScheduleRule."
-                    .format(self.rules[-1])
+                    "The previous rule in the path ({}) is no SubScheduleRule.".format(
+                        self.rules[-1]
+                    )
                 )
             if rule not in self.rules[-1].sub_schedule.rules:
                 raise ValueError(
                     "{} isn't part of the previous rule in path "
-                    "({})'s sub-schedule ({})."
-                    .format(rule, self.rules[-1], self.rules[-1].sub_schedule)
+                    "({})'s sub-schedule ({}).".format(
+                        rule, self.rules[-1], self.rules[-1].sub_schedule
+                    )
                 )
         elif rule not in self.root_schedule.rules:
             raise ValueError(
-                "{} isn't part of the path's root schedule ({})."
-                .format(rule, self.root_schedule)
+                "{} isn't part of the path's root schedule ({}).".format(
+                    rule, self.root_schedule
+                )
             )
         self.rules.append(rule)
 
@@ -208,10 +229,7 @@ class RulePath:
 class SubScheduleRule(Rule):
     """A schedule rule with a sub-schedule attached."""
 
-    def __init__(
-            self, sub_schedule: "Schedule",
-            *args: T.Any, **kwargs: T.Any
-        ) -> None:
+    def __init__(self, sub_schedule: "Schedule", *args: T.Any, **kwargs: T.Any) -> None:
 
         super().__init__(*args, **kwargs)
 
@@ -228,9 +246,7 @@ class SubScheduleRule(Rule):
 class Schedule:
     """Holds the schedule for a room with all its rules."""
 
-    def __init__(
-            self, name: str = None, rules: T.Iterable[Rule] = None,
-    ) -> None:
+    def __init__(self, name: str = None, rules: T.Iterable[Rule] = None) -> None:
         self.name = name
         self.rules = []  # type: T.List[Rule]
         if rules is not None:
@@ -238,8 +254,9 @@ class Schedule:
 
     def __add__(self, other: "Schedule") -> "Schedule":
         if not isinstance(other, type(self)):
-            raise ValueError("{} objects may not be added to {}."
-                             .format(type(other), self))
+            raise ValueError(
+                "{} objects may not be added to {}.".format(type(other), self)
+            )
         return Schedule(name=self.name, rules=self.rules + other.rules)
 
     def __repr__(self) -> str:
@@ -247,9 +264,7 @@ class Schedule:
             return "<Schedule with {} rules>".format(len(self.rules))
         return "<Schedule {}>".format(repr(self.name))
 
-    def get_matching_rules(
-            self, when: datetime.datetime
-        ) -> T.Iterator[Rule]:
+    def get_matching_rules(self, when: datetime.datetime) -> T.Iterator[Rule]:
         """Returns an iterator over all rules of this schedule that are
         valid at the time represented by the given datetime object,
         keeping the order from the rules list. SubScheduleRule objects are
@@ -264,8 +279,7 @@ class Schedule:
                 # starts with days=0 (meaning the current date)
                 _date = when.date() - datetime.timedelta(days=days_back)
 
-                found_start_day = found_start_day or \
-                                  rule.check_constraints(_date)
+                found_start_day = found_start_day or rule.check_constraints(_date)
                 if not found_start_day:
                     # try next day
                     continue
@@ -278,8 +292,7 @@ class Schedule:
 
                 # in last loop run, rule is going to end today and that
                 # has to be later than now (rule end > when.time())
-                if days_back == rule.end_plus_days and \
-                   rule.end_time <= _time:
+                if days_back == rule.end_plus_days and rule.end_time <= _time:
                     # rule finally disqualified, continue with next rule
                     break
 
@@ -288,7 +301,7 @@ class Schedule:
                 break
 
     def get_next_scheduling_datetime(
-            self, now: datetime.datetime
+        self, now: datetime.datetime
     ) -> T.Optional[datetime.datetime]:
         """Returns a datetime object with the time at which the next
         re-scheduling should be done. now should be a datetime object
@@ -327,7 +340,7 @@ class Schedule:
         for path in self.unfold():
             for rule in path.rules:
                 if not rule.is_always_valid:
-                    times.update((rule.start_time, rule.end_time,))
+                    times.update((rule.start_time, rule.end_time))
         return times
 
     def unfold(self) -> T.Iterator[RulePath]:

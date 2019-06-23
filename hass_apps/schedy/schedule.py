@@ -3,6 +3,7 @@ This module implements the Schedule and Rule classes.
 """
 
 import typing as T
+
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     import types
@@ -24,16 +25,27 @@ class Rule:
     """A rule that can be added to a schedule."""
 
     # names of schedule rule constraints to be fetched from a rule definition
-    CONSTRAINTS = ("years", "months", "days", "weeks", "weekdays",
-                   "start_date", "end_date")
+    CONSTRAINTS = (
+        "years",
+        "months",
+        "days",
+        "weeks",
+        "weekdays",
+        "start_date",
+        "end_date",
+    )
 
     def __init__(  # pylint: disable=too-many-arguments
-            self, name: str = None,
-            start_time: datetime.time = None, start_plus_days: int = None,
-            end_time: datetime.time = None, end_plus_days: int = None,
-            constraints: T.Dict[str, T.Any] = None,
-            expr: "types.CodeType" = None, expr_raw: str = None,
-            value: T.Any = None,
+        self,
+        name: str = None,
+        start_time: datetime.time = None,
+        start_plus_days: int = None,
+        end_time: datetime.time = None,
+        end_plus_days: int = None,
+        constraints: T.Dict[str, T.Any] = None,
+        expr: "types.CodeType" = None,
+        expr_raw: str = None,
+        value: T.Any = None,
     ) -> None:
         _checks = [expr is None, expr_raw is None]
         if any(_checks) and not all(_checks):
@@ -58,13 +70,13 @@ class Rule:
 
         # We cache constraint check results for the latest-checked 64 days
         self.check_constraints = functools.lru_cache(maxsize=64)(
-            self._check_constraints,
+            self._check_constraints
         )
 
     def __repr__(self) -> str:
         return "<Rule {}{}>".format(
             "{} ".format(repr(self.name)) if self.name is not None else "",
-            ", ".join(self._get_repr_tokens())
+            ", ".join(self._get_repr_tokens()),
         )
 
     @staticmethod
@@ -94,8 +106,12 @@ class Rule:
 
         tokens = []  # type: T.List[str]
 
-        if self.start_time is not None or self.start_plus_days is not None or \
-           self.end_time is not None or self.end_plus_days is not None:
+        if (
+            self.start_time is not None
+            or self.start_plus_days is not None
+            or self.end_time is not None
+            or self.end_plus_days is not None
+        ):
             times = "from {} to {}".format(
                 self._format_time(self.start_time, self.start_plus_days),
                 self._format_time(self.end_time, self.end_plus_days),
@@ -103,9 +119,11 @@ class Rule:
             tokens.append(times)
 
         for constraint in sorted(self.constraints):
-            tokens.append("{}={}".format(
-                constraint, self._format_constraint(self.constraints[constraint]),
-            ))
+            tokens.append(
+                "{}={}".format(
+                    constraint, self._format_constraint(self.constraints[constraint])
+                )
+            )
 
         if self.expr_raw is not None:
             if len(self.expr_raw) > 43:
@@ -141,6 +159,7 @@ class Rule:
                 return False
         return True
 
+
 class RulePath:
     """A chain of rules starting from a root schedule through sub-schedule
     rules."""
@@ -154,9 +173,12 @@ class RulePath:
         The paths have to fit together, meaning the root schedule of the other path
         must be the sub schedule of the rightmost rule of this path."""
 
-        if not isinstance(other, RulePath) or not self.rules or \
-           not isinstance(self.rules[-1], SubScheduleRule) or \
-           self.rules[-1].sub_schedule is not other.root_schedule:
+        if (
+            not isinstance(other, RulePath)
+            or not self.rules
+            or not isinstance(self.rules[-1], SubScheduleRule)
+            or self.rules[-1].sub_schedule is not other.root_schedule
+        ):
             raise ValueError("{!r} and {!r} don't fit together".format(self, other))
 
         path = self.copy()
@@ -179,7 +201,11 @@ class RulePath:
                 break
             sched = rule.sub_schedule
 
-        return "<{}/{}:{}>".format(self.root_schedule, "/".join(locs), rule)  # pylint: disable=undefined-loop-variable
+        return "<{}/{}:{}>".format(
+            self.root_schedule,
+            "/".join(locs),
+            rule,  # pylint: disable=undefined-loop-variable
+        )
 
     def _clear_cache(self) -> None:
         """Clears out all cached properties. For internal use only."""
@@ -196,8 +222,9 @@ class RulePath:
 
         if self.rules and not isinstance(self.rules[-1], SubScheduleRule):
             raise ValueError(
-                "The previous rule in the path ({}) is no SubScheduleRule."
-                .format(self.rules[-1])
+                "The previous rule in the path ({}) is no SubScheduleRule.".format(
+                    self.rules[-1]
+                )
             )
 
         self.rules.append(rule)
@@ -306,10 +333,9 @@ class RulePath:
         """A tuple with rules of the path containing an expression or value,
         sorted from left to right."""
 
-        return tuple(filter(
-            lambda r: r.expr is not None or r.value is not None,
-            self.rules,
-        ))
+        return tuple(
+            filter(lambda r: r.expr is not None or r.value is not None, self.rules)
+        )
 
     @cached_property
     def times(self) -> T.Tuple[datetime.time, int, datetime.time, int]:
@@ -352,10 +378,7 @@ class RulePath:
 class SubScheduleRule(Rule):
     """A schedule rule with a sub-schedule attached."""
 
-    def __init__(
-            self, sub_schedule: "Schedule",
-            *args: T.Any, **kwargs: T.Any
-    ) -> None:
+    def __init__(self, sub_schedule: "Schedule", *args: T.Any, **kwargs: T.Any) -> None:
         super().__init__(*args, **kwargs)
 
         self.sub_schedule = sub_schedule
@@ -371,9 +394,7 @@ class SubScheduleRule(Rule):
 class Schedule:
     """Holds the schedule for a room with all its rules."""
 
-    def __init__(
-            self, name: str = None, rules: T.Iterable[Rule] = None,
-    ) -> None:
+    def __init__(self, name: str = None, rules: T.Iterable[Rule] = None) -> None:
         self.name = name
         self.rules = []  # type: T.List[Rule]
         if rules is not None:
@@ -381,8 +402,9 @@ class Schedule:
 
     def __add__(self, other: "Schedule") -> "Schedule":
         if not isinstance(other, type(self)):
-            raise ValueError("{} objects may not be added to {}."
-                             .format(type(other), self))
+            raise ValueError(
+                "{} objects may not be added to {}.".format(type(other), self)
+            )
         return Schedule(name=self.name, rules=self.rules + other.rules)
 
     def __repr__(self) -> str:
@@ -391,7 +413,7 @@ class Schedule:
         return "<Schedule {}>".format(repr(self.name))
 
     def evaluate(  # pylint: disable=too-many-branches,too-many-locals,too-many-statements
-            self, room: "Room", when: datetime.datetime
+        self, room: "Room", when: datetime.datetime
     ) -> T.Optional[ScheduleEvaluationResultType]:
         """Evaluates the schedule, computing the value for the time the
         given datetime object represents. The resulting value, a set of
@@ -399,9 +421,7 @@ class Schedule:
         If no value could be found in the schedule (e.g. all rules
         evaluate to Skip()), None is returned."""
 
-        def log(
-                msg: str, path: RulePath, *args: T.Any, **kwargs: T.Any
-        ) -> None:
+        def log(msg: str, path: RulePath, *args: T.Any, **kwargs: T.Any) -> None:
             """Wrapper around room.log that prefixes spaces to the
             message based on the length of the rule path."""
 
@@ -440,59 +460,66 @@ class Schedule:
                             expr_env = expression.build_expr_env(room, when)
                         result = room.eval_expr(rule.expr, expr_env)
                         expr_cache[rule.expr] = result
-                        log("=> {}".format(repr(result)),
-                            path, level="DEBUG")
+                        log("=> {}".format(repr(result)), path, level="DEBUG")
                     else:
-                        log("=> {}  [cache-hit]".format(repr(result)),
-                            path, level="DEBUG")
+                        log(
+                            "=> {}  [cache-hit]".format(repr(result)),
+                            path,
+                            level="DEBUG",
+                        )
                     if isinstance(result, Exception):
-                        room.log("Failed expression: {}"
-                                 .format(repr(rule.expr_raw)),
-                                 level="ERROR")
+                        room.log(
+                            "Failed expression: {}".format(repr(rule.expr_raw)),
+                            level="ERROR",
+                        )
                 elif rule.value is not None:
                     plain_value = True
                     result = rule.value
-                    log("=> {}".format(repr(result)),
-                        path, level="DEBUG")
+                    log("=> {}".format(repr(result)), path, level="DEBUG")
 
                 # Unwrap a result with markers
                 if isinstance(result, expression.types.Mark):
                     result = result.unwrap(markers)
 
-                if isinstance(result, expression.types.IncludeSchedule) and \
-                   path.includes_schedule(result.schedule):
+                if isinstance(
+                    result, expression.types.IncludeSchedule
+                ) and path.includes_schedule(result.schedule):
                     # Prevent reusing IncludeSchedule results that would
                     # lead to a cycle. This happens when a rule of an
                     # included schedule returns Inherit() and the search
                     # then reaches the IncludeSchedule within the parent.
-                    log("==   skipping in favour of the parent to prevent "
-                        "a cycle",
-                        path, level="DEBUG")
+                    log(
+                        "==   skipping in favour of the parent to prevent " "a cycle",
+                        path,
+                        level="DEBUG",
+                    )
                     result = None
-                elif result is None or \
-                     isinstance(result, expression.types.Inherit):
-                    log("==   skipping in favour of the parent",
-                        path, level="DEBUG")
+                elif result is None or isinstance(result, expression.types.Inherit):
+                    log("==   skipping in favour of the parent", path, level="DEBUG")
                     result = None
                 else:
                     break
 
             if result is None:
-                room.log("No expression/value definition found, skipping {}."
-                         .format(path),
-                         level="WARNING")
+                room.log(
+                    "No expression/value definition found, skipping {}.".format(path),
+                    level="WARNING",
+                )
             elif isinstance(result, Exception):
-                room.log("Evaluation failed, skipping {}.".format(path),
-                         level="WARNING")
+                room.log(
+                    "Evaluation failed, skipping {}.".format(path), level="WARNING"
+                )
             elif isinstance(result, expression.types.Abort):
                 break
             elif isinstance(result, expression.types.Break):
                 prefix_size = max(0, len(path.rules) - result.levels)
                 prefix = path.rules[:prefix_size]
                 log("== breaking out of {}".format(prefix), path, level="DEBUG")
-                while path_idx < len(paths) and \
-                      paths[path_idx].root_schedule == path.root_schedule and \
-                      paths[path_idx].rules[:prefix_size] == prefix:
+                while (
+                    path_idx < len(paths)
+                    and paths[path_idx].root_schedule == path.root_schedule
+                    and paths[path_idx].rules[:prefix_size] == prefix
+                ):
                     del paths[path_idx]
             elif isinstance(result, expression.types.IncludeSchedule):
                 # Replace the current rule with a dynamic SubScheduleRule
@@ -506,8 +533,7 @@ class Schedule:
                 if isinstance(result, expression.types.PostprocessorValueMixin):
                     value = room.validate_value(result.value)
                     if value is None:
-                        room.log("Aborting schedule evaluation.",
-                                 level="ERROR")
+                        room.log("Aborting schedule evaluation.", level="ERROR")
                         break
                     result.value = value
                 postprocessors.append(result)
@@ -517,10 +543,12 @@ class Schedule:
                 postprocessor_markers = set()  # type: T.Set[str]
                 result = room.validate_value(result)
                 if result is None and plain_value:
-                    room.log("Maybe this is an expression? If so, set it "
-                             "as the rule's 'expression' parameter "
-                             "rather than as 'value'.",
-                             level="WARNING")
+                    room.log(
+                        "Maybe this is an expression? If so, set it "
+                        "as the rule's 'expression' parameter "
+                        "rather than as 'value'.",
+                        level="WARNING",
+                    )
                 elif postprocessors:
                     room.log("Applying postprocessors.", level="DEBUG")
                     for postprocessor in postprocessors:
@@ -528,15 +556,16 @@ class Schedule:
                             break
                         markers.update(postprocessor_markers)
                         postprocessor_markers.clear()
-                        room.log("+ {}".format(repr(postprocessor)),
-                                 level="DEBUG")
+                        room.log("+ {}".format(repr(postprocessor)), level="DEBUG")
                         try:
                             result = postprocessor.apply(result)
                         except expression.types.PostprocessingError as err:
-                            room.log("Error while applying {} to result {}: {}"
-                                     .format(repr(postprocessor), repr(result),
-                                             err),
-                                     level="ERROR")
+                            room.log(
+                                "Error while applying {} to result {}: {}".format(
+                                    repr(postprocessor), repr(result), err
+                                ),
+                                level="ERROR",
+                            )
                             result = None
                             break
                         room.log("= {}".format(repr(result)), level="DEBUG")
@@ -545,23 +574,20 @@ class Schedule:
                         result = room.validate_value(result)
 
                 if result is None:
-                    room.log("Aborting schedule evaluation.",
-                             level="ERROR")
+                    room.log("Aborting schedule evaluation.", level="ERROR")
                     break
                 markers.update(postprocessor_markers)
 
-                room.log("Final result: {}".format(repr(result)),
-                         level="DEBUG")
+                room.log("Final result: {}".format(repr(result)), level="DEBUG")
                 if markers:
-                    room.log("Result markers: {}".format(markers),
-                             level="DEBUG")
+                    room.log("Result markers: {}".format(markers), level="DEBUG")
                 return result, markers, last_rule
 
         room.log("Found no result.", level="DEBUG")
         return None
 
     def get_next_scheduling_datetime(
-            self, now: datetime.datetime
+        self, now: datetime.datetime
     ) -> T.Optional[datetime.datetime]:
         """Returns a datetime object with the time at which the next
         re-scheduling should be done. now should be a datetime object
@@ -597,7 +623,7 @@ class Schedule:
         times = set()  # type: T.Set[datetime.time]
         for path in self.unfolded:
             start_time, _, end_time, _ = path.times
-            times.update((start_time, end_time,))
+            times.update((start_time, end_time))
         return times
 
     def unfolded_gen(self) -> T.Generator[RulePath, None, None]:

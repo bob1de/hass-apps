@@ -3,6 +3,7 @@ This module implements the thermostat actor.
 """
 
 import typing as T
+
 if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     from ..room import Room
@@ -42,7 +43,9 @@ class Off:
     def __sub__(self, other: T.Any) -> "Off":
         return self
 
+
 OFF = Off()
+
 
 @functools.total_ordering
 class Temp:
@@ -56,8 +59,7 @@ class Temp:
             parsed = self.parse_temp(temp_value)
 
         if parsed is None:
-            raise ValueError("{} is no valid temperature"
-                             .format(repr(temp_value)))
+            raise ValueError("{} is no valid temperature".format(repr(temp_value)))
 
         self.value = parsed  # type: T.Union[float, Off]
 
@@ -65,8 +67,9 @@ class Temp:
         if isinstance(other, (float, int)):
             other = type(self)(other)
         elif not isinstance(other, type(self)):
-            raise TypeError("can't add {} and {}"
-                            .format(repr(type(self)), repr(type(other))))
+            raise TypeError(
+                "can't add {} and {}".format(repr(type(self)), repr(type(other)))
+            )
 
         # OFF + something is OFF
         if self.is_off or other.is_off:
@@ -90,13 +93,13 @@ class Temp:
             other = Temp(other)
 
         if type(self) is not type(other):
-            raise TypeError("can't compare {} and {}"
-                            .format(repr(type(self)), repr(type(other))))
+            raise TypeError(
+                "can't compare {} and {}".format(repr(type(self)), repr(type(other)))
+            )
 
         if not self.is_off and other.is_off:
             return False
-        if self.is_off and not other.is_off or \
-           self.value < other.value:
+        if self.is_off and not other.is_off or self.value < other.value:
             return True
         return False
 
@@ -153,15 +156,15 @@ class ThermostatExpressionHelper(ExpressionHelperBase):
     Temp = Temp
 
 
-TEMP_SCHEMA = vol.Schema(vol.All(
-    vol.Any(float, int, Off, vol.All(str, lambda v: v.upper(), "OFF")),
-    lambda v: Temp(v),  # pylint: disable=unnecessary-lambda
-))
+TEMP_SCHEMA = vol.Schema(
+    vol.All(
+        vol.Any(float, int, Off, vol.All(str, lambda v: v.upper(), "OFF")),
+        lambda v: Temp(v),  # pylint: disable=unnecessary-lambda
+    )
+)
 
 
-class TempDeltaParameter(
-        stats.ActorValueCollectorMixin, stats.MinAvgMaxParameter
-):
+class TempDeltaParameter(stats.ActorValueCollectorMixin, stats.MinAvgMaxParameter):
     """The difference between target and current temperature."""
 
     name = "temp_delta"
@@ -178,8 +181,7 @@ class TempDeltaParameter(
         assert isinstance(actor, ThermostatActor)
         current = actor.current_temp
         target = actor.current_value
-        if current is None or target is None or \
-           current.is_off or target.is_off:
+        if current is None or target is None or current.is_off or target.is_off:
             off_value = self.cfg["off_value"]
             if off_value is None:
                 # thermostats that are off should be excluded
@@ -190,9 +192,10 @@ class TempDeltaParameter(
     def initialize_actor_listeners(self, actor: ActorBase) -> None:
         """Listens for changes of current and target temperature."""
 
-        self.log("Listening for temperature changes of {} in {}."
-                 .format(actor, actor.room),
-                 level="DEBUG")
+        self.log(
+            "Listening for temperature changes of {} in {}.".format(actor, actor.room),
+            level="DEBUG",
+        )
         actor.events.on("current_temp_changed", self.update_handler)
         actor.events.on("value_changed", self.update_handler)
 
@@ -203,15 +206,12 @@ class ThermostatActor(ActorBase):
     name = "thermostat"
     config_schema_dict = {
         **ActorBase.config_schema_dict,
-        vol.Optional("delta", default=0):
-            vol.All(TEMP_SCHEMA, vol.NotIn([Temp(OFF)])),
+        vol.Optional("delta", default=0): vol.All(TEMP_SCHEMA, vol.NotIn([Temp(OFF)])),
         vol.Optional("min_temp", default=None): vol.Any(
-            vol.All(TEMP_SCHEMA, vol.NotIn([Temp(OFF)])),
-            None,
+            vol.All(TEMP_SCHEMA, vol.NotIn([Temp(OFF)])), None
         ),
         vol.Optional("max_temp", default=None): vol.Any(
-            vol.All(TEMP_SCHEMA, vol.NotIn([Temp(OFF)])),
-            None,
+            vol.All(TEMP_SCHEMA, vol.NotIn([Temp(OFF)])), None
         ),
         vol.Optional("off_temp", default=OFF): TEMP_SCHEMA,
         vol.Optional("supports_opmodes", default=True): bool,
@@ -223,24 +223,24 @@ class ThermostatActor(ActorBase):
         vol.Optional(
             "opmode_off_service", default="climate/set_operation_mode"
         ): vol.All(str, lambda v: v.replace(".", "/")),
-        vol.Optional("opmode_on_service_attr", default="operation_mode"):
-            vol.Any(str, None),
-        vol.Optional("opmode_off_service_attr", default="operation_mode"):
-            vol.Any(str, None),
+        vol.Optional("opmode_on_service_attr", default="operation_mode"): vol.Any(
+            str, None
+        ),
+        vol.Optional("opmode_off_service_attr", default="operation_mode"): vol.Any(
+            str, None
+        ),
         vol.Optional("opmode_state_attr", default="operation_mode"): str,
-        vol.Optional(
-            "target_temp_service", default="climate/set_temperature"
-        ): vol.All(str, lambda v: v.replace(".", "/")),
+        vol.Optional("target_temp_service", default="climate/set_temperature"): vol.All(
+            str, lambda v: v.replace(".", "/")
+        ),
         vol.Optional("target_temp_service_attr", default="temperature"): str,
         vol.Optional("target_temp_state_attr", default="temperature"): str,
-        vol.Optional(
-            "current_temp_state_attr", default="current_temperature"
-        ): vol.Any(str, None),
+        vol.Optional("current_temp_state_attr", default="current_temperature"): vol.Any(
+            str, None
+        ),
     }
 
-    expression_helpers = ActorBase.expression_helpers + [
-        ThermostatExpressionHelper,
-    ]
+    expression_helpers = ActorBase.expression_helpers + [ThermostatExpressionHelper]
 
     stats_param_types = [TempDeltaParameter]
 
@@ -261,11 +261,12 @@ class ThermostatActor(ActorBase):
             required_attrs.append(self.cfg["opmode_state_attr"])
         for attr in required_attrs:
             if attr not in state:
-                self.log("Thermostat has no attribute named {}. "
-                         "Available attributes are {}. "
-                         "Please check your config!"
-                         .format(repr(attr), list(state.keys())),
-                         level="WARNING")
+                self.log(
+                    "Thermostat has no attribute named {}. "
+                    "Available attributes are {}. "
+                    "Please check your config!".format(repr(attr), list(state.keys())),
+                    level="WARNING",
+                )
 
         temp_attrs = [self.cfg["target_temp_state_attr"]]
         if self.cfg["current_temp_state_attr"]:
@@ -275,38 +276,43 @@ class ThermostatActor(ActorBase):
             try:
                 value = float(value)  # type: ignore
             except (TypeError, ValueError):
-                self.log("The value {} for attribute {} is no valid "
-                         "temperature value. "
-                         "Please check your config!"
-                         .format(repr(value), repr(attr)),
-                         level="WARNING")
+                self.log(
+                    "The value {} for attribute {} is no valid "
+                    "temperature value. "
+                    "Please check your config!".format(repr(value), repr(attr)),
+                    level="WARNING",
+                )
 
         allowed_opmodes = state.get("operation_list")
         if not self.cfg["supports_opmodes"]:
             if allowed_opmodes:
-                self.log("Operation mode support has been disabled, "
-                         "but the following modes seem to be supported: {} "
-                         "Maybe disabling it was a mistake?"
-                         .format(allowed_opmodes),
-                         level="WARNING")
+                self.log(
+                    "Operation mode support has been disabled, "
+                    "but the following modes seem to be supported: {} "
+                    "Maybe disabling it was a mistake?".format(allowed_opmodes),
+                    level="WARNING",
+                )
             return
 
         if self.cfg["opmode_state_attr"] != "operation_mode":
             # we can't rely on operation_list in this case
             return
         if not allowed_opmodes:
-            self.log("Attributes for thermostat contain no "
-                     "'operation_list', Consider disabling "
-                     "operation mode support.",
-                     level="WARNING")
+            self.log(
+                "Attributes for thermostat contain no "
+                "'operation_list', Consider disabling "
+                "operation mode support.",
+                level="WARNING",
+            )
             return
         for opmode in (self.cfg["opmode_on"], self.cfg["opmode_off"]):
             if opmode not in allowed_opmodes:
-                self.log("Thermostat doesn't seem to support the "
-                         "operation mode {}, supported modes are: {}. "
-                         "Please check your config!"
-                         .format(opmode, allowed_opmodes),
-                         level="WARNING")
+                self.log(
+                    "Thermostat doesn't seem to support the "
+                    "operation mode {}, supported modes are: {}. "
+                    "Please check your config!".format(opmode, allowed_opmodes),
+                    level="WARNING",
+                )
 
     @property
     def current_temp(self) -> T.Optional[Temp]:
@@ -333,10 +339,14 @@ class ThermostatActor(ActorBase):
         if not self.cfg["supports_opmodes"]:
             opmode = None
 
-        self.log("Setting temperature = {}, operation mode = {}."
-                 .format("<unset>" if temp is None else temp,
-                         "<unset>" if opmode is None else repr(opmode)),
-                 level="DEBUG", prefix=common.LOG_PREFIX_OUTGOING)
+        self.log(
+            "Setting temperature = {}, operation mode = {}.".format(
+                "<unset>" if temp is None else temp,
+                "<unset>" if opmode is None else repr(opmode),
+            ),
+            level="DEBUG",
+            prefix=common.LOG_PREFIX_OUTGOING,
+        )
 
         if opmode is not None:
             if opmode == self.cfg["opmode_on"]:
@@ -351,8 +361,10 @@ class ThermostatActor(ActorBase):
             self.app.call_service(opmode_service, **attrs)
 
         if temp is not None:
-            attrs = {"entity_id": self.entity_id,
-                     self.cfg["target_temp_service_attr"]: temp.value}
+            attrs = {
+                "entity_id": self.entity_id,
+                self.cfg["target_temp_service_attr"]: temp.value,
+            }
             self.app.call_service(self.cfg["target_temp_service"], **attrs)
 
     def filter_set_value(self, value: Temp) -> T.Optional[Temp]:
@@ -367,19 +379,22 @@ class ThermostatActor(ActorBase):
 
         if not value.is_off:
             value = value + self.cfg["delta"]
-            if isinstance(self.cfg["min_temp"], Temp) and \
-               value < self.cfg["min_temp"]:
+            if isinstance(self.cfg["min_temp"], Temp) and value < self.cfg["min_temp"]:
                 value = self.cfg["min_temp"]
-            elif isinstance(self.cfg["max_temp"], Temp) and \
-                 value > self.cfg["max_temp"]:
+            elif (
+                isinstance(self.cfg["max_temp"], Temp) and value > self.cfg["max_temp"]
+            ):
                 value = self.cfg["max_temp"]
         elif not self.cfg["supports_opmodes"]:
-            self.log("Not turning off because it doesn't support "
-                     "operation modes.",
-                     level="WARNING")
-            self.log("Consider defining an off_temp in the actor "
-                     "configuration for these cases.",
-                     level="WARNING")
+            self.log(
+                "Not turning off because it doesn't support " "operation modes.",
+                level="WARNING",
+            )
+            self.log(
+                "Consider defining an off_temp in the actor "
+                "configuration for these cases.",
+                level="WARNING",
+            )
             return None
 
         return value
@@ -392,49 +407,55 @@ class ThermostatActor(ActorBase):
         _target_temp = None  # type: T.Optional[TempValueType]
         if self.cfg["supports_opmodes"]:
             opmode = attrs.get(self.cfg["opmode_state_attr"])
-            self.log("Attribute {} is {}."
-                     .format(repr(self.cfg["opmode_state_attr"]), repr(opmode)),
-                     level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
+            self.log(
+                "Attribute {} is {}.".format(
+                    repr(self.cfg["opmode_state_attr"]), repr(opmode)
+                ),
+                level="DEBUG",
+                prefix=common.LOG_PREFIX_INCOMING,
+            )
             if opmode == self.cfg["opmode_off"]:
                 _target_temp = OFF
             elif opmode != self.cfg["opmode_on"]:
-                self.log("Unknown operation mode, ignoring thermostat.",
-                         level="ERROR")
+                self.log("Unknown operation mode, ignoring thermostat.", level="ERROR")
                 return None
         else:
             opmode = None
 
         if _target_temp is None:
             _target_temp = attrs.get(self.cfg["target_temp_state_attr"])
-            self.log("Attribute {} is {}."
-                     .format(repr(self.cfg["target_temp_state_attr"]),
-                             repr(_target_temp)),
-                     level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
+            self.log(
+                "Attribute {} is {}.".format(
+                    repr(self.cfg["target_temp_state_attr"]), repr(_target_temp)
+                ),
+                level="DEBUG",
+                prefix=common.LOG_PREFIX_INCOMING,
+            )
 
         try:
             target_temp = Temp(_target_temp)
         except ValueError:
-            self.log("Invalid target temperature, ignoring thermostat.",
-                     level="ERROR")
+            self.log("Invalid target temperature, ignoring thermostat.", level="ERROR")
             return None
 
         current_temp_attr = self.cfg["current_temp_state_attr"]
         if current_temp_attr:
             _current_temp = attrs.get(current_temp_attr)
-            self.log("Attribute {} is {}."
-                     .format(repr(current_temp_attr), repr(_current_temp)),
-                     level="DEBUG", prefix=common.LOG_PREFIX_INCOMING)
+            self.log(
+                "Attribute {} is {}.".format(
+                    repr(current_temp_attr), repr(_current_temp)
+                ),
+                level="DEBUG",
+                prefix=common.LOG_PREFIX_INCOMING,
+            )
             try:
                 current_temp = Temp(_current_temp)  # type: T.Optional[Temp]
             except ValueError:
-                self.log("Invalid current temperature, not updating it.",
-                         level="ERROR")
+                self.log("Invalid current temperature, not updating it.", level="ERROR")
             else:
                 if current_temp != self._current_temp:
                     self._current_temp = current_temp
-                    self.events.trigger(
-                        "current_temp_changed", self, current_temp
-                    )
+                    self.events.trigger("current_temp_changed", self, current_temp)
 
         return target_temp
 
