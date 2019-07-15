@@ -8,6 +8,18 @@ detailled documentation and includes a sample configuration. Read the
 :doc:`getting-started` chapter and start empowering your smart home.
 
 
+.. toctree::
+   :glob:
+   :hidden:
+
+   Introduction <self>
+   getting-started
+   upgrading
+   apps/*/index
+   CHANGELOG
+   CODE_OF_CONDUCT
+
+
 .. rubric:: Active and stable apps:
 
 * :doc:`apps/schedy/index` - The most powerful scheduler for everything
@@ -17,19 +29,6 @@ detailled documentation and includes a sample configuration. Read the
 .. rubric:: Deprecated apps that will be removed:
 
 * :doc:`apps/heaty/index` - A scheduler for your heating setup
-
-
-.. toctree::
-   :glob:
-   :hidden:
-   :maxdepth: 1
-
-   Introduction <self>
-   getting-started
-   upgrading
-   apps/*/index
-   CHANGELOG
-   CODE_OF_CONDUCT
 
 
 Donations
