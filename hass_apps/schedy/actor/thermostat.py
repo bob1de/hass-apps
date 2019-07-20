@@ -214,30 +214,9 @@ class ThermostatActor(ActorBase):
             vol.All(TEMP_SCHEMA, vol.NotIn([Temp(OFF)])), None
         ),
         vol.Optional("off_temp", default=OFF): TEMP_SCHEMA,
-        vol.Optional("supports_opmodes", default=True): bool,
-        vol.Optional("opmode_on", default="heat"): str,
-        vol.Optional("opmode_off", default="off"): str,
-        vol.Optional(
-            "opmode_on_service", default="climate/set_operation_mode"
-        ): vol.All(str, lambda v: v.replace(".", "/")),
-        vol.Optional(
-            "opmode_off_service", default="climate/set_operation_mode"
-        ): vol.All(str, lambda v: v.replace(".", "/")),
-        vol.Optional("opmode_on_service_attr", default="operation_mode"): vol.Any(
-            str, None
-        ),
-        vol.Optional("opmode_off_service_attr", default="operation_mode"): vol.Any(
-            str, None
-        ),
-        vol.Optional("opmode_state_attr", default="operation_mode"): str,
-        vol.Optional("target_temp_service", default="climate/set_temperature"): vol.All(
-            str, lambda v: v.replace(".", "/")
-        ),
-        vol.Optional("target_temp_service_attr", default="temperature"): str,
-        vol.Optional("target_temp_state_attr", default="temperature"): str,
-        vol.Optional("current_temp_state_attr", default="current_temperature"): vol.Any(
-            str, None
-        ),
+        vol.Optional("supports_hvac_modes", default=True): bool,
+        vol.Optional("hvac_mode_on", default="heat"): str,
+        vol.Optional("hvac_mode_off", default="off"): str,
     }
 
     expression_helpers = ActorBase.expression_helpers + [ThermostatExpressionHelper]
@@ -256,9 +235,9 @@ class ThermostatActor(ActorBase):
             self.log("Thermostat couldn't be found.", level="WARNING")
             return
 
-        required_attrs = [self.cfg["target_temp_state_attr"]]
-        if self.cfg["supports_opmodes"]:
-            required_attrs.append(self.cfg["opmode_state_attr"])
+        required_attrs = ["temperature"]
+        if self.cfg["supports_hvac_modes"]:
+            required_attrs.append("state")
         for attr in required_attrs:
             if attr not in state:
                 self.log(
@@ -268,9 +247,7 @@ class ThermostatActor(ActorBase):
                     level="WARNING",
                 )
 
-        temp_attrs = [self.cfg["target_temp_state_attr"]]
-        if self.cfg["current_temp_state_attr"]:
-            temp_attrs.append(self.cfg["current_temp_state_attr"])
+        temp_attrs = ["temperature", "current_temperature"]
         for attr in temp_attrs:
             value = state.get(attr)
             try:
@@ -283,34 +260,31 @@ class ThermostatActor(ActorBase):
                     level="WARNING",
                 )
 
-        allowed_opmodes = state.get("operation_list")
-        if not self.cfg["supports_opmodes"]:
-            if allowed_opmodes:
+        allowed_hvac_modes = state.get("hvac_modes")
+        if not self.cfg["supports_hvac_modes"]:
+            if allowed_hvac_modes:
                 self.log(
-                    "Operation mode support has been disabled, "
-                    "but the following modes seem to be supported: {} "
-                    "Maybe disabling it was a mistake?".format(allowed_opmodes),
+                    "HVAC mode support has been disabled, but the modes {!r} seem to "
+                    "be supported. Maybe disabling it was a mistake?".format(
+                        allowed_hvac_modes
+                    ),
                     level="WARNING",
                 )
             return
 
-        if self.cfg["opmode_state_attr"] != "operation_mode":
-            # we can't rely on operation_list in this case
-            return
-        if not allowed_opmodes:
+        if not allowed_hvac_modes:
             self.log(
-                "Attributes for thermostat contain no "
-                "'operation_list', Consider disabling "
-                "operation mode support.",
+                "Attributes for thermostat contain no 'hvac_modes', Consider "
+                "disabling HVAC mode support.",
                 level="WARNING",
             )
             return
-        for opmode in (self.cfg["opmode_on"], self.cfg["opmode_off"]):
-            if opmode not in allowed_opmodes:
+        for hvac_mode in (self.cfg["hvac_mode_on"], self.cfg["hvac_mode_off"]):
+            if hvac_mode not in allowed_hvac_modes:
                 self.log(
                     "Thermostat doesn't seem to support the "
-                    "operation mode {}, supported modes are: {}. "
-                    "Please check your config!".format(opmode, allowed_opmodes),
+                    "HVAC mode {}, supported modes are: {}. "
+                    "Please check your config!".format(hvac_mode, allowed_hvac_modes),
                     level="WARNING",
                 )
 
@@ -331,41 +305,32 @@ class ThermostatActor(ActorBase):
 
         target_temp = self._wanted_value
         if target_temp.is_off:
-            opmode = self.cfg["opmode_off"]
+            hvac_mode = self.cfg["hvac_mode_off"]
             temp = None
         else:
-            opmode = self.cfg["opmode_on"]
+            hvac_mode = self.cfg["hvac_mode_on"]
             temp = target_temp
-        if not self.cfg["supports_opmodes"]:
-            opmode = None
+        if not self.cfg["supports_hvac_modes"]:
+            hvac_mode = None
 
         self.log(
-            "Setting temperature = {}, operation mode = {}.".format(
+            "Setting temperature = {!r}, HVAC mode = {!r}.".format(
                 "<unset>" if temp is None else temp,
-                "<unset>" if opmode is None else repr(opmode),
+                "<unset>" if hvac_mode is None else hvac_mode,
             ),
             level="DEBUG",
             prefix=common.LOG_PREFIX_OUTGOING,
         )
-
-        if opmode is not None:
-            if opmode == self.cfg["opmode_on"]:
-                opmode_service = self.cfg["opmode_on_service"]
-                opmode_service_attr = self.cfg["opmode_on_service_attr"]
-            else:
-                opmode_service = self.cfg["opmode_off_service"]
-                opmode_service_attr = self.cfg["opmode_off_service_attr"]
-            attrs = {"entity_id": self.entity_id}
-            if opmode_service_attr:
-                attrs[opmode_service_attr] = opmode
-            self.app.call_service(opmode_service, **attrs)
-
+        if hvac_mode is not None:
+            self.app.call_service(
+                "climate/set_hvac_mode", entity_id=self.entity_id, hvac_mode=hvac_mode
+            )
         if temp is not None:
-            attrs = {
-                "entity_id": self.entity_id,
-                self.cfg["target_temp_service_attr"]: temp.value,
-            }
-            self.app.call_service(self.cfg["target_temp_service"], **attrs)
+            self.app.call_service(
+                "climate/set_temperature",
+                entity_id=self.entity_id,
+                temperature=temp.value,
+            )
 
     def filter_set_value(self, value: Temp) -> T.Optional[Temp]:
         """Preprocesses the given target temperature for setting on this
@@ -385,9 +350,9 @@ class ThermostatActor(ActorBase):
                 isinstance(self.cfg["max_temp"], Temp) and value > self.cfg["max_temp"]
             ):
                 value = self.cfg["max_temp"]
-        elif not self.cfg["supports_opmodes"]:
+        elif not self.cfg["supports_hvac_modes"]:
             self.log(
-                "Not turning off because it doesn't support " "operation modes.",
+                "Not turning off because it doesn't support HVAC modes.",
                 level="WARNING",
             )
             self.log(
@@ -405,29 +370,28 @@ class ThermostatActor(ActorBase):
         the thermostat and reacts accordingly."""
 
         _target_temp = None  # type: T.Optional[TempValueType]
-        if self.cfg["supports_opmodes"]:
-            opmode = attrs.get(self.cfg["opmode_state_attr"])
+        if self.cfg["supports_hvac_modes"]:
+            hvac_mode = attrs.get("state")
             self.log(
-                "Attribute {} is {}.".format(
-                    repr(self.cfg["opmode_state_attr"]), repr(opmode)
-                ),
+                "Attribute 'state' is {}.".format(repr(hvac_mode)),
                 level="DEBUG",
                 prefix=common.LOG_PREFIX_INCOMING,
             )
-            if opmode == self.cfg["opmode_off"]:
+            if hvac_mode == self.cfg["hvac_mode_off"]:
                 _target_temp = OFF
-            elif opmode != self.cfg["opmode_on"]:
-                self.log("Unknown operation mode, ignoring thermostat.", level="ERROR")
+            elif hvac_mode != self.cfg["hvac_mode_on"]:
+                self.log(
+                    "Unknown HVAC mode {!r}, ignoring thermostat.".format(hvac_mode),
+                    level="ERROR",
+                )
                 return None
         else:
-            opmode = None
+            hvac_mode = None
 
         if _target_temp is None:
-            _target_temp = attrs.get(self.cfg["target_temp_state_attr"])
+            _target_temp = attrs.get("temperature")
             self.log(
-                "Attribute {} is {}.".format(
-                    repr(self.cfg["target_temp_state_attr"]), repr(_target_temp)
-                ),
+                "Attribute 'temperature' is {}.".format(repr(_target_temp)),
                 level="DEBUG",
                 prefix=common.LOG_PREFIX_INCOMING,
             )
@@ -438,20 +402,22 @@ class ThermostatActor(ActorBase):
             self.log("Invalid target temperature, ignoring thermostat.", level="ERROR")
             return None
 
-        current_temp_attr = self.cfg["current_temp_state_attr"]
-        if current_temp_attr:
-            _current_temp = attrs.get(current_temp_attr)
-            self.log(
-                "Attribute {} is {}.".format(
-                    repr(current_temp_attr), repr(_current_temp)
-                ),
-                level="DEBUG",
-                prefix=common.LOG_PREFIX_INCOMING,
-            )
+        _current_temp = attrs.get("current_temperature")
+        self.log(
+            "Attribute 'current_temperature' is {}.".format(repr(_current_temp)),
+            level="DEBUG",
+            prefix=common.LOG_PREFIX_INCOMING,
+        )
+        if _current_temp is not None:
             try:
                 current_temp = Temp(_current_temp)  # type: T.Optional[Temp]
             except ValueError:
-                self.log("Invalid current temperature, not updating it.", level="ERROR")
+                self.log(
+                    "Invalid current temperature {!r}, not updating it.".format(
+                        _current_temp
+                    ),
+                    level="ERROR",
+                )
             else:
                 if current_temp != self._current_temp:
                     self._current_temp = current_temp

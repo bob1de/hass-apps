@@ -19,11 +19,11 @@ Schedy for heating control actually are.
    Thermostat platform`_ to build a virtual thermostat first.
 
 2. If your thermostat is used for both heating and cooling, there has
-   to be an automatic operation mode which does heating/cooling based
+   to be an automatic HVAC mode which does heating/cooling based
    on the difference between current and set target temperature. Schedy
-   will only switch the operation mode between on and off (exact names
+   will only switch the HVAC mode between on and off (exact names
    can be configured) and set the target temperature according to the
-   configured schedule.
+   room's schedule.
 
 .. _`Generic Thermostat platform`: https://home-assistant.io/components/climate.generic_thermostat/
 

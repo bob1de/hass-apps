@@ -267,7 +267,7 @@ class Room:
             },
             "scheduled_value": _serialize(self._scheduled_value, None),
             "rescheduling_time": _serialize_dt(self._rescheduling_time),
-        }
+        }  # type: T.Dict[str, T.Any]
         _maybe_add(
             "overlaid_wanted_value", _serialize(self._overlaid_wanted_value, None)
         )

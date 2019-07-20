@@ -16,49 +16,15 @@
 # supports this low value) in order to prevent frost-induced damage
 # to your heating setup.
 # This setting is required when you want to send OFF to thermostats with
-# disabled operation mode support.
+# disabled HVAC mode support.
 #off_temp: "OFF"
 
-# Set this to false if your thermostat doesn't support operation modes.
+# Set this to false if your thermostat doesn't support HVAC modes.
 # Please note that you won't be able to turn it off completely without
-# operation mode support. Remember to also configure off_temp when you
+# HVAC mode support. Remember to also configure off_temp when you
 # disable this feature.
-#supports_opmodes: true
+#supports_hvac_modes: true
 
-# These two settings can be used to tweak the names of the
-# operation modes.
-#opmode_on: heat
-#opmode_off: "off"
-
-
-#######################################################################
-# The following settings normally don't need to be touched unless you #
-# want to abuse the thermostat actor to control something different.  #
-#######################################################################
-
-# You might want to use an alternative service that receives
-# the operation mode name.
-#opmode_on_service: climate/set_operation_mode
-#opmode_off_service: climate/set_operation_mode
-# The service call parameter which the operation mode should be
-# sent as. Set to null in order to omit the operation mode from the
-# service call.
-#opmode_on_service_attr: operation_mode
-#opmode_off_service_attr: operation_mode
-# Entity attribute that holds the name of the current operation mode.
-# This is used to detect manual temperature adjustments, provide
-# correct temperature values on startup and notice that a
-# thermostat picked up temperature changes.
-#opmode_state_attr: operation_mode
-
-# These are the counterparts for opmode_service_* and opmode_state_*.
-#target_temp_service: climate/set_temperature
-#target_temp_service_attr: temperature
-#target_temp_state_attr: temperature
-
-### This feature is currently unused and reserved for later use.
-# Entity attribute that holds the current temperature as measured
-# by the thermostat's temperature sensor.
-# If your thermostat doesn't support current temperature reporting,
-# set the value to null in order to disable it.
-#current_temp_state_attr: current_temperature
+# These two settings can be used to tweak the names of the HVAC modes.
+#hvac_mode_on: heat
+#hvac_mode_off: "off"

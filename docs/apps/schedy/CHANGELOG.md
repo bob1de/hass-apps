@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Constraints of rules with a sub-schedule attached are now only validated for the
   day at which a particular rule starts. Hence rules of such sub-schedules spanning
   midnight will now run until they're intended to end.
+* Home Assistant 0.96 introduced breaking changes in the climate API. Operation
+  modes have been renamed into HVAC modes, which is why the thermostat actor settings
+  for operation modes now have new names. See the actor docs for details.
 
 ### Deprecated
 * 0.6: The ``end_plus_days`` rule parameter will be removed in favor of the new day
@@ -34,6 +37,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   ``expression_environment``.
 
 ### Removed
+* Some settings of the thermostat actor have been removed in one run with the
+  adaptations needed to support the new climate API of Home Assistant 0.96.
 
 
 ## 0.4.0 - 2019-02-24
