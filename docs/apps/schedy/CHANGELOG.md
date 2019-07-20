@@ -9,12 +9,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
+
+### Security
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+
+## 0.5.0 - 2019-07-20
+
+### Fixed
 * Fixed a bug in schedule.next_results() expression helper that caused some result
   changes to be skipped.
 * Simplified the algorithm that decides whether a rule is active or not at a given
   point in time. It should now handle all rules spanning multiple days correctly.
-
-### Security
 
 ### Added
 * Added ``expression_environment`` setting which allows providing arbitrary variables
