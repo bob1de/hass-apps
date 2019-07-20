@@ -28,7 +28,7 @@ detailled documentation and includes a sample configuration. Read the
 
 .. rubric:: Deprecated apps that will be removed:
 
-* :doc:`apps/heaty/index` - A scheduler for your heating setup
+* None at the moment.
 
 
 Donations

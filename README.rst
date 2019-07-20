@@ -11,13 +11,6 @@ Documentation
 Read the `detailled documentation
 <https://hass-apps.readthedocs.io/en/stable/>`_ hosted at readthedocs.
 
-Some quick links:
-
-* `Getting Started
-  <https://hass-apps.readthedocs.io/en/stable/getting-started.html>`_
-* `Available apps
-  <https://hass-apps.readthedocs.io/en/stable/apps/index.html>`_
-
 
 Donations
 ---------

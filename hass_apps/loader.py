@@ -4,7 +4,7 @@ at module load time. For all apps found, a loader is generated which,
 when called, imports the particular app and behaves like the app
 class itself. The loaders are made available as module attributes
 under the same name the corresponding app classes would have
-(e.g. HeatyApp).
+(e.g. SchedyApp).
 The __all__ list is populated with these loaders, hence a wildcard
 import will fetch them all.
 """
