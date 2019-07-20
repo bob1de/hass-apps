@@ -30,6 +30,7 @@ setup(
         "appdaemon >= 3.0",
         "cached-property >= 1.5.1",
         "observable >= 1.0",
+        "requests >= 2.6",
         "voluptuous >= 0.11",
     ],
     zip_safe = False,
