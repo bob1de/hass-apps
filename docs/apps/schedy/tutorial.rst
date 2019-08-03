@@ -74,6 +74,17 @@ You may also want to consult the :doc:`full reference <configuration>` of all
 available settings.
 
 
+Reading the Log
+---------------
+
+Schedy uses AppDaemon's regular logging functionality to inform you about what's
+going on. How to access these logs depends on the way you set up AppDaemon, but by
+default they're just printed to stdout. Consult AppDaemon's documentation for details.
+
+You'll need to watch the log often as you proceed with this tutorial, so make sure
+you know how to do it.
+
+
 Configuring Some Heating Times
 ------------------------------
 
@@ -284,7 +295,7 @@ We add an ``input_select`` in Home Assistant::
 
 Then, we adapt the schedules accordingly. The pattern we follow is :ref:`this one
 <schedy/schedules/expressions/examples/conditional-sub-schedules>`, should you need
-help understanding what's going on here..
+help understanding what's going on here.
 
 1. Living room::
 
