@@ -217,7 +217,7 @@ The rule which turns the heatings off when a window is open is placed in the
 ``schedule_prepend`` section::
 
     schedule_prepend:
-    - x: "Mark(OFF, Mark.OVERLAY) if not is_empty(filter_entities('binary_sensor', state='on', window_room=room_name))"
+    - x: "Mark(OFF, Mark.OVERLAY) if not is_empty(filter_entities('binary_sensor', state='on', window_room=room_name)) else Skip()"
 
 Why that rule works as it does is explained in more detail in the guide linked above.
 
@@ -404,7 +404,7 @@ Here is the final outcome of our work as a full Schedy configuration.
       - input_select.heating_mode
 
       schedule_prepend:
-      - x: "Mark(OFF, Mark.OVERLAY) if not is_empty(filter_entities('binary_sensor', state='on', window_room=room_name))"
+      - x: "Mark(OFF, Mark.OVERLAY) if not is_empty(filter_entities('binary_sensor', state='on', window_room=room_name)) else Skip()"
 
       schedule_append:
       - v: "OFF"
