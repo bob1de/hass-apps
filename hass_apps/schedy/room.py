@@ -722,7 +722,7 @@ class Room:
         """Initializes a schedule re-evaluation in 1 second.
         The reset parameter is passed through to apply_schedule()."""
 
-        def _reevaluation_cb(*args: T.Any, **kwargs: T.Any) -> None:
+        def _reevaluation_cb(self, kwargs: dict) -> None:
             with self._timer_lock:
                 self._reevaluation_timer = None
             self.apply_schedule(reset=reset)
