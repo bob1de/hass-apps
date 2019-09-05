@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
+* Fixed a regression due to which setting an actor's `send_retries: 0` led to infinite
+  re-sending if the actor didn't respond as expected.
 
 ### Security
 

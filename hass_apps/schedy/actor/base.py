@@ -73,8 +73,11 @@ class ActorBase:
 
         tries = self.cfg["send_retries"]
         left_tries = kwargs["left_tries"]
-        if left_tries < tries - 1:
-            self.log("Re-sending value due to missing feedback.", level="WARNING")
+        if left_tries < tries:
+            self.log(
+                "Re-sending value due to unexpected or missing feedback.",
+                level="WARNING",
+            )
 
         self.log(
             "Setting value {} (left tries = {}).".format(
@@ -94,10 +97,10 @@ class ActorBase:
 
         interval = self.cfg["send_retry_interval"]
         self.log("Re-sending in {} seconds.".format(interval), level="DEBUG")
+        self._gave_up_sending = False
         self._resending_timer = self.app.run_in(
             self._resending_cb, interval, left_tries=left_tries - 1
         )
-        self._gave_up_sending = False
 
     @sync_proxy
     def _state_cb(
@@ -284,7 +287,7 @@ class ActorBase:
             return False, value
 
         self.cancel_resending_timer()
-        self._resending_cb({"left_tries": self.cfg["send_retries"] - 1})
+        self._resending_cb({"left_tries": self.cfg["send_retries"]})
 
         return True, value
 
