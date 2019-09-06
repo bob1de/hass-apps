@@ -31,7 +31,7 @@ the first item, the actual value.
 Evaluates the given schedule at the given point in time. If ``when``
 is not specified, the current date and time is assumed.
 When no result could be generated (e.g. because a rule evaluated to
-``Abort()`` or all evaluated to ``Skip()``), ``None`` is returned instead
+``Abort()`` or all evaluated to ``Next()``), ``None`` is returned instead
 of a ``ScheduleEvaluationResult``.
 
 Example:

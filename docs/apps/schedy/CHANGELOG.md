@@ -17,8 +17,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 ### Changed
+* The `Skip` expression result type has been renamed to `Next`, which better describes
+  its purpose.
 
 ### Deprecated
+* 0.7: The previous name `Skip` for the `Next` expression result type will be removed.
 
 ### Removed
 

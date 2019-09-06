@@ -419,7 +419,7 @@ class Schedule:
         given datetime object represents. The resulting value, a set of
         markers applied to the value and the matching rule are returned.
         If no value could be found in the schedule (e.g. all rules
-        evaluate to Skip()), None is returned."""
+        evaluate to Next()), None is returned."""
 
         def log(msg: str, path: RulePath, *args: T.Any, **kwargs: T.Any) -> None:
             """Wrapper around room.log that prefixes spaces to the
@@ -537,7 +537,7 @@ class Schedule:
                         break
                     result.value = value
                 postprocessors.append(result)
-            elif isinstance(result, expression.types.Skip):
+            elif isinstance(result, expression.types.Next):
                 continue
             else:
                 postprocessor_markers = set()  # type: T.Set[str]

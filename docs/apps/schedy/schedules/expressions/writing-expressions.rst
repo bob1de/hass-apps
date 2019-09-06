@@ -28,7 +28,7 @@ expression.
 * ``5``
 * ``True``
 * ``'off'``
-* ``17 if is_on('binary_sensor.absent') else Skip()``
+* ``17 if is_on('binary_sensor.absent') else Next()``
 
 Writing expressions that way is short and great for things like binary
 decisions. However, there might be situations in which you need to make
@@ -91,7 +91,7 @@ processed.
 * ``Inherit()``, which causes the value or expression of the nearest
   ancestor rule to be used as result for the current rule. See the next
   section for a more detailed explanation.
-* ``Skip()``, which causes the rule to be treated as if it didn't exist
+* ``Next()``, which causes the rule to be treated as if it didn't exist
   at all. If one exists, the next rule is evaluated in this case.
 
 For all of these types, :doc:`usage examples <examples>` are provided.

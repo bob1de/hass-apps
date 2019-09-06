@@ -217,7 +217,7 @@ The rule which turns the heatings off when a window is open is placed in the
 ``schedule_prepend`` section::
 
     schedule_prepend:
-    - x: "Mark(OFF, Mark.OVERLAY) if not is_empty(filter_entities('binary_sensor', state='on', window_room=room_name)) else Skip()"
+    - x: "Mark(OFF, Mark.OVERLAY) if not is_empty(filter_entities('binary_sensor', state='on', window_room=room_name)) else Next()"
 
 Why that rule works as it does is explained in more detail in the guide linked above.
 
@@ -305,11 +305,11 @@ help understanding what's going on here.
          - weekdays: 1-5
            rules:
            - rules:
-             - x: "Skip() if state('input_select.heating_mode') == 'Normal' else Break()"
+             - x: "Next() if state('input_select.heating_mode') == 'Normal' else Break()"
              - { start: "06:00", end: "07:30" }
              - { start: "15:00", end: "22:30" }
            - rules:
-             - x: "Skip() if state('input_select.heating_mode') != 'Normal' else Break()"
+             - x: "Next() if state('input_select.heating_mode') != 'Normal' else Break()"
              - { start: "08:00", end: "23:30" }
          - weekdays: 6-7
            rules:
@@ -324,11 +324,11 @@ help understanding what's going on here.
            - weekdays: 1-5
              rules:
              - rules:
-               - x: "Skip() if state('input_select.heating_mode') != 'All Home' else Break()"
+               - x: "Next() if state('input_select.heating_mode') != 'All Home' else Break()"
                - { start: "06:00", end: "07:30" }
                - { start: "15:00", end: "19:00" }
              - rules:
-               - x: "Skip() if state('input_select.heating_mode') == 'All Home' else Break()"
+               - x: "Next() if state('input_select.heating_mode') == 'All Home' else Break()"
                - { start: "07:30", end: "20:00" }
            - weekdays: 6-7
              rules:
@@ -359,7 +359,7 @@ and create a new function, ``heating_mode()``::
 
 The individual rules then change to something like::
 
-    - x: "Skip() if heating_mode() == 'All Home' else Break()"
+    - x: "Next() if heating_mode() == 'All Home' else Break()"
 
 The remaining ones are left to do for you.
 
@@ -390,11 +390,11 @@ Here is the final outcome of our work as a full Schedy configuration.
           - weekdays: 1-5
             rules:
             - rules:
-              - x: "Skip() if heating_mode() != 'All Home' else Break()"
+              - x: "Next() if heating_mode() != 'All Home' else Break()"
               - { start: "06:00", end: "07:30" }
               - { start: "15:00", end: "19:00" }
             - rules:
-              - x: "Skip() if heating_mode() == 'All Home' else Break()"
+              - x: "Next() if heating_mode() == 'All Home' else Break()"
               - { start: "07:30", end: "20:00" }
           - weekdays: 6-7
             rules:
@@ -404,7 +404,7 @@ Here is the final outcome of our work as a full Schedy configuration.
       - input_select.heating_mode
 
       schedule_prepend:
-      - x: "Mark(OFF, Mark.OVERLAY) if not is_empty(filter_entities('binary_sensor', state='on', window_room=room_name)) else Skip()"
+      - x: "Mark(OFF, Mark.OVERLAY) if not is_empty(filter_entities('binary_sensor', state='on', window_room=room_name)) else Next()"
 
       schedule_append:
       - v: "OFF"
@@ -424,11 +424,11 @@ Here is the final outcome of our work as a full Schedy configuration.
             - weekdays: 1-5
               rules:
               - rules:
-                - x: "Skip() if heating_mode() == 'Normal' else Break()"
+                - x: "Next() if heating_mode() == 'Normal' else Break()"
                 - { start: "06:00", end: "07:30" }
                 - { start: "15:00", end: "22:30" }
               - rules:
-                - x: "Skip() if heating_mode() != 'Normal' else Break()"
+                - x: "Next() if heating_mode() != 'Normal' else Break()"
                 - { start: "08:00", end: "23:30" }
             - weekdays: 6-7
               rules:

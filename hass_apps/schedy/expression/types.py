@@ -15,6 +15,7 @@ __all__ = [
     "IncludeSchedule",
     "Inherit",
     "Mark",
+    "Next",
     "Skip",
     "Add",
     "Multiply",
@@ -194,8 +195,12 @@ class Mark(ControlResult):
         return self.result
 
 
-class Skip(ControlResult):
+class Next(ControlResult):
     """Result of an expression which should be ignored."""
 
     def __repr__(self) -> str:
-        return "Skip()"
+        return "Next()"
+
+
+# For backwards compatibility
+Skip = Next

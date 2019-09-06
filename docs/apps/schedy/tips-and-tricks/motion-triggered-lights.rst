@@ -29,7 +29,7 @@ Ok, let's get started.
 
    ::
 
-       - x: "Mark('on', Mark.OVERLAY) if not is_empty(filter_entities('binary_sensor', motion_room=room_name, state='on')) else Skip()"
+       - x: "Mark('on', Mark.OVERLAY) if not is_empty(filter_entities('binary_sensor', motion_room=room_name, state='on')) else Next()"
 
 3. Add the motion sensor to the ``watched_entities`` of the ``entrance`` room.
 

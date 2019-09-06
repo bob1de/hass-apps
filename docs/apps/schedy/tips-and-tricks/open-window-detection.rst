@@ -39,7 +39,7 @@ if you prefer clarity over conciseness.
 
 ::
 
-    - x: "Mark(OFF, Mark.OVERLAY) if not is_empty(filter_entities('binary_sensor', window_room=room_name, state='on')) else Skip()"
+    - x: "Mark(OFF, Mark.OVERLAY) if not is_empty(filter_entities('binary_sensor', window_room=room_name, state='on')) else Next()"
 
 Now, we add the window sensors to the ``watched_entities`` of the
 ``living`` room.

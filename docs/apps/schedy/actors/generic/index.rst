@@ -38,7 +38,7 @@ Examples:
 ::
 
     - v: "on"
-    - x: "-40 if is_on(...) else Skip()"
+    - x: "-40 if is_on(...) else Next()"
 
 As soon as you add multiple attributes to control, a list or tuple with
 a value for each attribute is expected. The order is the same in which
@@ -49,7 +49,7 @@ Examples:
 ::
 
     - v: ['on', 20]
-    - x: "(-40, 'something') if is_on(...) else Skip()"
+    - x: "(-40, 'something') if is_on(...) else Next()"
 
 .. note::
 

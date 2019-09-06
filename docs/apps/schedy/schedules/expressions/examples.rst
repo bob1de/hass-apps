@@ -14,7 +14,7 @@ that should prepare our bathroom for taking a bath. It's name is
 ::
 
     schedule:
-    - x: "22 if is_on('switch.take_a_bath') else Skip()"
+    - x: "22 if is_on('switch.take_a_bath') else Next()"
     - v: 19
 
 Last step is to tell Schedy to watch for changes of the state of
@@ -31,7 +31,7 @@ schedule is re-evaluated and our first schedule rule executes. The
 rule is evaluating our custom expression, checking the state of the
 ``take_a_bath`` switch and, if it's enabled, causes the temperature to
 be set to 22 degrees. However, if the switch is off, the rule is ignored
-completely due to the ``Skip()`` we return in that case and the second
+completely due to the ``Next()`` we return in that case and the second
 rule is processed, which always evaluates to 19 degrees.
 
 What's so nice about these ``... if ... else ...`` expressions in Python
@@ -39,7 +39,7 @@ is that they're almost always self-explanatory. We'll use them extensively
 in the following examples.
 
 
-Use of ``Add()`` and ``Skip()``
+Use of ``Add()`` and ``Next()``
 -------------------------------
 
 This is something I once used in my own heating configuration at home:
@@ -47,7 +47,7 @@ This is something I once used in my own heating configuration at home:
 ::
 
     schedule_prepend:
-    - x: "Add(-3) if is_on('input_boolean.absent') else Skip()"
+    - x: "Add(-3) if is_on('input_boolean.absent') else Next()"
     watched_entities:
     - "input_boolean.absent"
 
@@ -62,7 +62,7 @@ added it to the global ``watched_entities`` configuration.
 
 Now let's get back to the schedule rule. When it evaluates, it checks the
 state of ``input_boolean.absent``. If the switch is turned on, it
-evaluates to ``Add(-3)``, otherwise to ``Skip()``.
+evaluates to ``Add(-3)``, otherwise to ``Next()``.
 
 ``Add(-3)`` is a so-called :doc:`postprocessor <postprocessors>`. Think
 of it as a temporary value that is remembered and used later, after a
@@ -90,7 +90,7 @@ Conditional Sub-Schedules Using ``Break()``
 
 When in a sub-schedule, returning ``Break()`` from an expression will
 skip the remaining rules of that sub-schedule and continue evaluation
-after it. You can use it together with ``Skip()`` to create a conditional
+after it. You can use it together with ``Next()`` to create a conditional
 sub-schedule, for instance. Again, we assume to write a schedule for
 the thermostat actor type.
 
@@ -99,7 +99,7 @@ the thermostat actor type.
     schedule:
     - v: 20
       rules:
-      - x: "Skip() if is_on('input_boolean.include_sub_schedule') else Break()"
+      - x: "Next() if is_on('input_boolean.include_sub_schedule') else Break()"
       - { start: "07:00", end: "09:00" }
       - { start: "12:00", end: "22:00" }
       - v: 17
@@ -140,14 +140,14 @@ holiday and normal modes.
     - v: "on"
       rules:
       # don't turn on when it's > 5 degrees outside
-      - x: "Break() if float(state('sensor.outside_temperature') or 0) > 5 else Skip()"
+      - x: "Break() if float(state('sensor.outside_temperature') or 0) > 5 else Next()"
 
       # don't turn on when in away mode
-      - x: "Break() if is_on('input_boolean.away') else Skip()"
+      - x: "Break() if is_on('input_boolean.away') else Next()"
 
       # on weekends and during holidays, turn on from 09:00 to 10:30
       - rules:
-        - x: "Skip() if is_on('input_boolean.holidays') else Break()"
+        - x: "Next() if is_on('input_boolean.holidays') else Break()"
           weekdays: "!6-7"
         - { start: "09:00", end: "10:30" }
 
@@ -198,7 +198,7 @@ Now, we include the snippet into a room's schedule:
 ::
 
     schedule:
-    - x: "IncludeSchedule(schedule_snippets['vacation']) if is_on('input_boolean.vacation') else Skip()"
+    - x: "IncludeSchedule(schedule_snippets['vacation']) if is_on('input_boolean.vacation') else Next()"
     # when not in vacation mode, have the normal per-room schedule
     - { v: 21, start: "07:00", end: "21:30", weekdays: 1-5 }
     - { v: 21, start: "08:00", end: "23:00", weekdays: 6-7 }
@@ -261,7 +261,7 @@ which makes the benefits of this behaviour more obvious.
 
     schedule_snippets:
       somebody_home:
-      - x: "Inherit() if is_on('input_boolean.awake') else Skip()"
+      - x: "Inherit() if is_on('input_boolean.awake') else Next()"
         name: always heat when awake switch is on
       - weekdays: 1-5
         name: normal working days
@@ -320,9 +320,9 @@ switches for disabling the schedules with it, like so:
 
     schedule_prepend:
     - name: global schedule on/off switch
-      x: "Abort() if is_off('input_boolean.schedy') else Skip()"
+      x: "Abort() if is_off('input_boolean.schedy') else Next()"
     - name: per-room schedule on/off switch
-      x: "Abort() if is_off('input_boolean.schedy_room_' + room_name) else Skip()"
+      x: "Abort() if is_off('input_boolean.schedy_room_' + room_name) else Next()"
 
     # These should trigger a re-evaluation in every room.
     watched_entities:
