@@ -122,11 +122,11 @@ class ActorBase:
         if new_value is None:
             return
 
-        if self.values_equal(new_value, self._wanted_value):
+        if new_value == self._wanted_value:
             self.cancel_resending_timer()
             self._gave_up_sending = False
 
-        if not self.values_equal(new_value, previous_value):
+        if new_value != previous_value:
             self._current_value = new_value
             self.log(
                 "Received value of {}.".format(repr(new_value)),
@@ -203,7 +203,7 @@ class ActorBase:
             and not self._gave_up_sending
             and self._current_value is not None
             and self._wanted_value is not None
-            and self.values_equal(self._current_value, self._wanted_value)
+            and self._current_value == self._wanted_value
         )
 
     def log(self, msg: str, *args: T.Any, **kwargs: T.Any) -> None:
@@ -299,13 +299,6 @@ class ActorBase:
         A ValueError should be raised when validation fails."""
 
         return value
-
-    @staticmethod
-    def values_equal(a: T.Any, b: T.Any) -> bool:  # pylint: disable=invalid-name
-        """Should check two validated values for equality.
-        This implementation does a comparison with ==."""
-
-        return bool(a == b)
 
     @property
     def wanted_value(self) -> T.Any:

@@ -221,12 +221,8 @@ class Room:
         If there already is an overlaid value stored, this does nothing.
         Returns whether values have been stored."""
 
-        assert self.app.actor_type is not None
-        values_differ = not self.app.actor_type.values_equal(
-            scheduled_value, self._wanted_value
-        )
         if self._overlaid_wanted_value is None and (
-            values_differ or self._rescheduling_timer
+            scheduled_value != self._wanted_value or self._rescheduling_timer
         ):
             self.log(
                 "Storing currently wanted value {} before an overlay "
@@ -332,17 +328,13 @@ class Room:
             Returns whether a value has actually been set or not."""
 
             overlaid_wanted_value = self._overlaid_wanted_value
-            assert self.app.actor_type is not None
-            equal = self.app.actor_type.values_equal(
-                self._scheduled_value, self._overlaid_scheduled_value
-            )
             delay = None  # type: T.Union[None, int, datetime.datetime]
             if (
                 self._overlaid_rescheduling_time
                 and self._overlaid_rescheduling_time > self.app.datetime()
             ):
                 delay = self._overlaid_rescheduling_time
-            elif equal:
+            elif self._scheduled_value == self._overlaid_scheduled_value:
                 delay = 0
             self._clear_overlay()
             if delay is None:
@@ -371,12 +363,7 @@ class Room:
             return
 
         value, markers = result[:2]
-        assert self.app.actor_type is not None
-        if (
-            self.app.actor_type.values_equal(value, self._scheduled_value)
-            and not reset
-            and not force_resend
-        ):
+        if value == self._scheduled_value and not reset and not force_resend:
             self.log("Result didn't change, not setting it again.", level="DEBUG")
             return
 
@@ -517,9 +504,7 @@ class Room:
             return
 
         actor_wanted = actor.wanted_value
-        was_actor_wanted = actor_wanted is not None and actor.values_equal(
-            value, actor_wanted
-        )
+        was_actor_wanted = actor_wanted is not None and value == actor_wanted
         replicating = self.cfg["replicate_changes"]
         single_actor = len([a.is_initialized for a in self.actors]) == 1
 
@@ -562,11 +547,7 @@ class Room:
         Values won't be send to actors redundantly unless force_resend
         is True."""
 
-        assert self.app.actor_type is not None
-        scheduled = (
-            self._scheduled_value is not None
-            and self.app.actor_type.values_equal(value, self._scheduled_value)
-        )
+        scheduled = self._scheduled_value is not None and value == self._scheduled_value
 
         self.log(
             "Setting value to {}.  [{}{}]".format(
@@ -709,13 +690,10 @@ class Room:
         """Returns whether the value wanted by this room is the scheduled
         one."""
 
-        assert self.app.actor_type is not None
         return (
             self._scheduled_value is not None
             and self._wanted_value is not None
-            and self.app.actor_type.values_equal(
-                self._scheduled_value, self._wanted_value
-            )
+            and self._scheduled_value == self._wanted_value
         )
 
     def trigger_reevaluation(self, reset: bool = False) -> None:
