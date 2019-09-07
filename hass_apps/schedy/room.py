@@ -328,14 +328,12 @@ class Room:
             Returns whether a value has actually been set or not."""
 
             overlaid_wanted_value = self._overlaid_wanted_value
-            delay = None  # type: T.Union[None, int, datetime.datetime]
+            delay = None  # type: T.Union[None, datetime.datetime]
             if (
                 self._overlaid_rescheduling_time
                 and self._overlaid_rescheduling_time > self.app.datetime()
             ):
                 delay = self._overlaid_rescheduling_time
-            elif self._scheduled_value == self._overlaid_scheduled_value:
-                delay = 0
             self._clear_overlay()
             if delay is None:
                 return False
