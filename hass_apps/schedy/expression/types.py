@@ -202,5 +202,13 @@ class Next(ControlResult):
         return "Next()"
 
 
-# For backwards compatibility
-Skip = Next
+class Skip(Next):
+    """For backwards compatibility."""
+
+    def __init__(self) -> None:
+        import warnings
+
+        warnings.warn(
+            "Skip was renamed to Next and will be removed in version 0.7.",
+            DeprecationWarning,
+        )
