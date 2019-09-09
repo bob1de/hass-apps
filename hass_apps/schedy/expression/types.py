@@ -178,7 +178,7 @@ class Mark(ControlResult):
 
     def __eq__(self, other: T.Any) -> bool:
         return (
-            super().__eq__(other)
+            isinstance(other, self.__class__)
             and self.result == other.result
             and self.markers == other.markers
         )
@@ -186,12 +186,11 @@ class Mark(ControlResult):
     def __repr__(self) -> str:
         return "Mark({}, {})".format(repr(self.result), self.markers)
 
-    def unwrap(self, markers_set: T.Set[str] = None) -> T.Any:
+    def unwrap(self, markers_set: T.Set[str]) -> T.Any:
         """Returns the real, wrapped result. The applied markers will
-        be added to markers_set, if given."""
+        be added to markers_set."""
 
-        if markers_set is not None:
-            markers_set.update(self.markers)
+        markers_set.update(self.markers)
         return self.result
 
 
