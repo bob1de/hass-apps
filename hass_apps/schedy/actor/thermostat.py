@@ -67,18 +67,17 @@ class Temp:
         if isinstance(other, (float, int)):
             other = type(self)(other)
         elif not isinstance(other, type(self)):
-            raise TypeError(
-                "can't add {} and {}".format(repr(type(self)), repr(type(other)))
-            )
+            return NotImplemented
 
         # OFF + something is OFF
         if self.is_off or other.is_off:
             return type(self)(OFF)
-
         return type(self)(self.value + other.value)
 
     def __eq__(self, other: T.Any) -> bool:
-        return isinstance(other, Temp) and self.value == other.value
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.value == other.value
 
     def __float__(self) -> float:
         if isinstance(self.value, float):
@@ -90,13 +89,9 @@ class Temp:
 
     def __lt__(self, other: T.Any) -> bool:
         if isinstance(other, (float, int)):
-            other = Temp(other)
-
+            other = type(self)(other)
         if type(self) is not type(other):
-            raise TypeError(
-                "can't compare {} and {}".format(repr(type(self)), repr(type(other)))
-            )
-
+            return NotImplemented
         if not self.is_off and other.is_off:
             return False
         if self.is_off and not other.is_off or self.value < other.value:
@@ -104,7 +99,7 @@ class Temp:
         return False
 
     def __neg__(self) -> "Temp":
-        return Temp(-self.value)  # pylint: disable=invalid-unary-operand-type
+        return type(self)(-self.value)  # pylint: disable=invalid-unary-operand-type
 
     def __repr__(self) -> str:
         if isinstance(self.value, (float, int)):

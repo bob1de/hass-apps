@@ -416,10 +416,8 @@ class Schedule:
             self.rules.extend(rules)
 
     def __add__(self, other: "Schedule") -> "Schedule":
-        if not isinstance(other, type(self)):
-            raise ValueError(
-                "{} objects may not be added to {}.".format(type(other), self)
-            )
+        if not isinstance(other, Schedule):
+            return NotImplemented
         return Schedule(name=self.name, rules=self.rules + other.rules)
 
     def __repr__(self) -> str:
