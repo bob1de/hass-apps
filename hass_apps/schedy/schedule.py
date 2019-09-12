@@ -210,7 +210,7 @@ class RulePath:
     def _clear_cache(self) -> None:
         """Clears out all cached properties. For internal use only."""
 
-        for attr in ("rules_with_expr_or_value", "times"):
+        for attr in ("is_always_active", "rules_with_expr_or_value", "times"):
             try:
                 del self.__dict__[attr]
             except KeyError:
@@ -283,6 +283,10 @@ class RulePath:
         """Returns whether the rule this path leads to is active at
         given point in time."""
 
+        # Short-circuit the algorithm if possible
+        if self.is_always_active:
+            return True
+
         _date, _time = when.date(), when.time()
         start_time, start_plus_days, end_time, end_plus_days = self.times
 
@@ -307,6 +311,17 @@ class RulePath:
             # Found valid starting day, path is active now
             return True
         return False
+
+    @cached_property
+    def is_always_active(self) -> bool:
+        """Whether this path is always active (no constraints and spans >= 1 day)."""
+
+        for rule in self.rules:
+            if rule.constraints:
+                return False
+
+        start_time, _, end_time, end_plus_days = self.times
+        return bool(end_plus_days > 1 or end_plus_days == 1 and end_time >= start_time)
 
     @property
     def is_final(self) -> bool:
@@ -622,8 +637,9 @@ class Schedule:
 
         times = set()  # type: T.Set[datetime.time]
         for path in self.unfolded:
-            start_time, _, end_time, _ = path.times
-            times.update((start_time, end_time))
+            if not path.is_always_active:
+                start_time, _, end_time, _ = path.times
+                times.update((start_time, end_time))
         return times
 
     def unfolded_gen(self) -> T.Generator[RulePath, None, None]:
