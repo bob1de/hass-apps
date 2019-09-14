@@ -37,9 +37,9 @@ The following markers are available:
   An occasion for using this marker is
   :doc:`../../tips-and-tricks/open-window-detection`.
 
-* ``OVERLAY_REVERT_ON_NO_RESULT``: When applied in conjunction with the
-  ``OVERLAY`` marker, the overlay is cancelled as soon as a schedule
-  evaluation produces no result (e.g. because ``Abort()`` was used). When
-  an overlay is created without this additional marker, the value marked
-  with ``OVERLAY`` stays active until the schedule really results in
-  another value.
+* ``OVERLAY_REVERT_ON_NO_RESULT``: When applied in conjunction with the ``OVERLAY``
+  marker, the overlay is cancelled as soon as a schedule evaluation produces no result
+  (e.g. because ``Abort()`` was used or all rules evaluated to ``Next()``). When an
+  overlay is created without this additional marker, the value marked with ``OVERLAY``
+  stays active until the schedule really results in another value.
+  **DEPRECATED:** This is the default behaviour of `OVERLAY` now.

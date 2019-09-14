@@ -20,9 +20,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 * The `Skip` expression result type has been renamed to `Next`, which better describes
   its purpose.
+* The behaviour of the `OVERLAY_REVERT_ON_NO_RESULT` result marker now is the
+  default with `OVERLAY`. The marker will be removed.
 
 ### Deprecated
 * 0.7: The previous name `Skip` for the `Next` expression result type will be removed.
+* 0.7: The `OVERLAY_REVERT_ON_NO_RESULT` marker will be removed, it's the default now.
 
 ### Removed
 
