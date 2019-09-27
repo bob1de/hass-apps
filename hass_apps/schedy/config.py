@@ -159,18 +159,6 @@ def schedule_rule_pre_hook(rule: dict) -> dict:
     rule = rule.copy()
     util.normalize_dict_key(rule, "expression", "x")
     util.normalize_dict_key(rule, "value", "v")
-    # Merge the legacy end_plus_days field into end
-    end = rule.get("end")
-    end_plus_days = rule.pop("end_plus_days", None)
-    if isinstance(end_plus_days, int):
-        if end is None:
-            end = ""
-        if isinstance(end, str) and "+" not in end and "-" not in end:
-            if end_plus_days < 0:
-                end += "{}d".format(end_plus_days)
-            else:
-                end += "+{}d".format(end_plus_days)
-            rule["end"] = end
     return rule
 
 
@@ -203,7 +191,6 @@ def build_range_spec_validator(  # type: ignore
 
 
 ENTITY_ID_VALIDATOR = vol.Match(r"^[A-Za-z_]+\.[A-Za-z0-9_]+$")
-PYTHON_VAR_VALIDATOR = vol.Match(r"^[a-zA-Z_]+[a-zA-Z0-9_]*$")
 PARTIAL_DATE_SCHEMA = vol.Schema(
     {
         vol.Optional("year"): vol.All(int, vol.Range(min=1970, max=2099)),
@@ -224,13 +211,6 @@ RULE_TIME_VALIDATOR = vol.All(
 # values is given.
 DICTS_IN_DICT_SCHEMA = vol.Schema(
     vol.All(lambda v: v or {}, {util.CONF_STR_KEY: vol.All(lambda v: v or {}, dict)})
-)
-
-EXPRESSION_MODULE_SCHEMA = vol.Schema(
-    vol.All(lambda v: v or {}, {"as": PYTHON_VAR_VALIDATOR})
-)
-EXPRESSION_MODULES_SCHEMA = vol.Schema(
-    vol.All(lambda v: v or {}, {util.CONF_STR_KEY: EXPRESSION_MODULE_SCHEMA})
 )
 
 
@@ -360,9 +340,6 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional("expression_environment", default=None): vol.Any(
                     str, None
                 ),
-                vol.Optional(
-                    "expression_modules", default=dict
-                ): EXPRESSION_MODULES_SCHEMA,
                 vol.Required("actor_type"): vol.All(
                     vol.Any(*map(lambda a: a.name, actor.get_actor_types())),
                     lambda n: {a.name: a for a in actor.get_actor_types()}[n],

@@ -35,20 +35,6 @@ schedy:  # An arbitrary name for this instance of Schedy,
   #  import time as _time
   #  something = "value"
 
-  ##########################################
-  # DEPRECATED: Use expression_environment #
-  ##########################################
-  # Here you can define Python modules that should be available
-  # inside your expressions. These modules are imported upon Schedy's
-  # initialization, hence you have to restart AppDaemon after making
-  # changes to these modules.
-  expression_modules:
-    #math:
-    #my_custom_module:
-      # Optionally, define an alternative name under which the module
-      # should be available.
-      #as: alt_name
-
 
   # Chose the type of actors that should be controlled by this instance
   # of Schedy.

@@ -28,6 +28,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * 0.7: The `OVERLAY_REVERT_ON_NO_RESULT` marker will be removed, it's the default now.
 
 ### Removed
+* The ``end_plus_days`` rule parameter has been removed in favor of the new day
+  shifts specified with ``start`` and ``end``.
+* The ``expression_modules`` setting has been removed in favor of the new
+  ``expression_environment``.
 
 
 ## 0.5.0 - 2019-07-20

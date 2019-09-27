@@ -103,9 +103,6 @@ class CustomEnvironmentHelper(HelperBase):
     def update_environment(self) -> None:
         """Executes the expression_environment script."""
 
-        # For backwards compatibility only
-        self._env.update(self._app.expression_modules)
-
         script = self._app.expression_environment_script
         if script is not None:
             self._room.log(
