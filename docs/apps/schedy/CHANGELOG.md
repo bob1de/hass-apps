@@ -9,13 +9,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
-* Fixed a regression due to which setting an actor's `send_retries: 0` led to infinite
-  re-sending if the actor didn't respond as expected.
-* Fixed a race condition between `Mark.OVERLAY` and re-scheduling timers. (#35)
 
 ### Security
 
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+
+## 0.6.0 - 2019-09-27
+
+### Fixed
+* Fixed a regression due to which setting an actor's `send_retries: 0` led to infinite
+  re-sending if the actor didn't respond as expected.
+* Fixed a race condition between `Mark.OVERLAY` and re-scheduling timers. (#35)
 
 ### Changed
 * The `Skip` expression result type has been renamed to `Next`, which better describes
