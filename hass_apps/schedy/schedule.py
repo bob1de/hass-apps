@@ -457,7 +457,7 @@ class Schedule:
             if isinstance(last_rule, SubScheduleRule):
                 log("[SUB]  {}".format(path), path, level="DEBUG")
                 continue
-            elif not path.is_active(when):
+            if not path.is_active(when):
                 log("[INA]  {}".format(path), path, level="DEBUG")
                 continue
             log("[ACT]  {}".format(path), path, level="DEBUG")

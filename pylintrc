@@ -2,6 +2,7 @@
 disable =
     bad-continuation,
     duplicate-code,
+    import-outside-toplevel,
     too-few-public-methods,
     wrong-import-position
 max-args = 8

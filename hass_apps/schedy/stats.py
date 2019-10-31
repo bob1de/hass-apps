@@ -272,7 +272,7 @@ class MinAvgMaxParameter(AbstractValueCollectorMixin, StatisticalParameter):
             weighted_sum += weight * value
             weights_sum += weight
 
-        _min = min([v for v in values]) if values else 0.0
+        _min = min(values) if values else 0.0
         _avg = weighted_sum / weights_sum if values else 0.0
-        _max = max([v for v in values]) if values else 0.0
+        _max = max(values) if values else 0.0
         return {"min": _min, "avg": _avg, "max": _max}

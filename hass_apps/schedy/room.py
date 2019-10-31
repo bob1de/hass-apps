@@ -15,7 +15,6 @@ if T.TYPE_CHECKING:
 import datetime
 import functools
 import os
-import sys
 import threading
 import traceback
 
@@ -422,7 +421,7 @@ class Room:
             return expression.eval_expr(expr, env)
         except Exception as err:  # pylint: disable=broad-except
             self.log("Error while evaluating expression:", level="ERROR")
-            tb_exc = traceback.TracebackException(*sys.exc_info())  # type: ignore
+            tb_exc = traceback.TracebackException.from_exception(err)
             while tb_exc.stack and tb_exc.stack[0].filename != "expression":
                 del tb_exc.stack[0]
             for line in tb_exc.format():
