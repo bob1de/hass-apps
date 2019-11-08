@@ -27,7 +27,7 @@ class ActorBase:
     config_defaults = {}  # type: T.Dict[T.Any, T.Any]
     config_schema_dict = {
         "friendly_name": str,
-        vol.Optional("send_retries", default=10): vol.All(int, vol.Range(min=-1)),
+        vol.Optional("send_retries", default=10): vol.All(int, vol.Range(min=0)),
         vol.Optional("send_retry_interval", default=30): vol.All(int, vol.Range(min=1)),
     }
 
@@ -67,33 +67,29 @@ class ActorBase:
     def _resending_cb(self, kwargs: dict) -> None:
         """This callback triggers the actual sending of a value to the
         actor. Expected members of kwargs are:
-        - left_tries (after this round)"""
+        - left_tries (including this round)"""
 
         self._resending_timer = None
-
-        tries = self.cfg["send_retries"]
+        retries = self.cfg["send_retries"]
         left_tries = kwargs["left_tries"]
-        if left_tries < tries:
+        if not left_tries:
             self.log(
-                "Re-sending value due to unexpected or missing feedback.",
-                level="WARNING",
+                "Gave up sending value after {} retries.".format(retries),
+                level="WARNING" if retries else "DEBUG",
             )
+            self._gave_up_sending = True
+            return
+        if left_tries <= retries:
+            self.log("Re-sending value due to missing confirmation.", level="WARNING")
 
         self.log(
-            "Setting value {} (left tries = {}).".format(
+            "Setting value {!r} (left tries = {}).".format(
                 self._wanted_value, left_tries
             ),
             level="DEBUG",
             prefix=common.LOG_PREFIX_OUTGOING,
         )
         self.do_send()
-
-        if not left_tries:
-            self.log(
-                "Gave up sending value after {} tries.".format(tries), level="WARNING"
-            )
-            self._gave_up_sending = True
-            return
 
         interval = self.cfg["send_retry_interval"]
         self.log("Re-sending in {} seconds.".format(interval), level="DEBUG")
@@ -287,7 +283,7 @@ class ActorBase:
             return False, value
 
         self.cancel_resending_timer()
-        self._resending_cb({"left_tries": self.cfg["send_retries"]})
+        self._resending_cb({"left_tries": self.cfg["send_retries"] + 1})
 
         return True, value
 

@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 ### Changed
+* Infinite retrying of value sending to an actor is no longer supported, meaning
+  `send_retries: -1` is now a configuration error. Use a reasonably high value
+  instead if you really need excessive retrying.
 
 ### Deprecated
 
