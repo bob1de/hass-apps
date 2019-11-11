@@ -236,9 +236,8 @@ class ThermostatActor(ActorBase):
         for attr in required_attrs:
             if attr not in state:
                 self.log(
-                    "Thermostat has no attribute named {}. "
-                    "Available attributes are {}. "
-                    "Please check your config!".format(repr(attr), list(state.keys())),
+                    "Thermostat has no attribute named {!r}. Available are {!r}. "
+                    "Please check your config!".format(attr, list(state.keys())),
                     level="WARNING",
                 )
 
@@ -249,9 +248,9 @@ class ThermostatActor(ActorBase):
                 value = float(value)  # type: ignore
             except (TypeError, ValueError):
                 self.log(
-                    "The value {} for attribute {} is no valid "
-                    "temperature value. "
-                    "Please check your config!".format(repr(value), repr(attr)),
+                    "The value {!r} of attribute {!r} is no valid temperature.".format(
+                        value, attr
+                    ),
                     level="WARNING",
                 )
 
