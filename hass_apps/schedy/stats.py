@@ -48,7 +48,7 @@ class StatisticalParameter:
         return "SP:{}".format(self.name)
 
     def generate_entries(  # pylint: disable=no-self-use
-        self
+        self,
     ) -> T.Dict[str, StatisticalValueType]:
         """Should generate the entries to be added to the parameter."""
 
@@ -176,7 +176,7 @@ class AbstractValueCollectorMixin:
     """Abstract class for creating custom value collectors."""
 
     def collect_values(  # pylint: disable=no-self-use
-        self
+        self,
     ) -> T.Iterable[T.Tuple[T.Any, T.Union[float, int]]]:
         """Should collect the implementation-specific values from which
         entries are built. The first item of each tuple is an identifier
