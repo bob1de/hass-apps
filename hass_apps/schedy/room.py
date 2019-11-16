@@ -371,7 +371,19 @@ class Room:
             return
 
         new_scheduled_value, markers = result[:2]
-        if not (new_scheduled_value != self._scheduled_value or reset or force_resend):
+        if not (
+            # Skip when scheduled value hasn't changed
+            new_scheduled_value != self._scheduled_value
+            # Never skip overlay activation
+            or not self._overlay_active
+            and expression.types.Mark.OVERLAY in markers
+            # ... and deactivation
+            or self._overlay_active
+            and expression.types.Mark.OVERLAY not in markers
+            # Don't skip if reset explicitly wanted
+            or reset
+            or force_resend
+        ):
             self.log("Result didn't change, not setting it again.", level="DEBUG")
             return
 

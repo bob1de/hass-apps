@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
+* An overlay will now be applied even when the scheduled value won't change.
 
 ### Security
 
