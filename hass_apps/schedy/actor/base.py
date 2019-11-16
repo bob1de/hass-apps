@@ -71,6 +71,7 @@ class ActorBase:
 
         self._resending_timer = None
         retries = self.cfg["send_retries"]
+        interval = self.cfg["send_retry_interval"]
         left_tries = kwargs["left_tries"]
         if not left_tries:
             self.log(
@@ -83,16 +84,14 @@ class ActorBase:
             self.log("Re-sending value due to missing confirmation.", level="WARNING")
 
         self.log(
-            "Setting value {!r} (left tries = {}).".format(
-                self._wanted_value, left_tries
+            "Setting value {!r} (left tries = {}, interval = {}).".format(
+                self._wanted_value, left_tries, interval
             ),
             level="DEBUG",
             prefix=common.LOG_PREFIX_OUTGOING,
         )
         self.do_send()
 
-        interval = self.cfg["send_retry_interval"]
-        self.log("Re-sending in {} seconds.".format(interval), level="DEBUG")
         self._gave_up_sending = False
         self._resending_timer = self.app.run_in(
             self._resending_cb, interval, left_tries=left_tries - 1

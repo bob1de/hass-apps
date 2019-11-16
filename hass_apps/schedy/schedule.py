@@ -591,9 +591,10 @@ class Schedule:
                     break
                 markers.update(postprocessor_markers)
 
-                room.log("Final result: {}".format(repr(result)), level="DEBUG")
-                if markers:
-                    room.log("Result markers: {}".format(markers), level="DEBUG")
+                room.log(
+                    "Final result: {!r}, markers: {}".format(result, markers),
+                    level="DEBUG",
+                )
                 return result, markers, last_rule
 
         room.log("Found no result.", level="DEBUG")
