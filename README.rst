@@ -40,7 +40,7 @@ donation, no matter how small.
 .. |paypal-once| image:: https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif
    :target: https://www.paypal.me/RSchindler
 
-| ETH: 0xa424975a19903F7A6253bA00D5C3F28fACff3C6B
+| ETH: 0xCE6B204B6AB5B93156f4FCD373482e148753beAb
 | ZEC: t1RKFyt4qqtqdYfprf8HZoDHRNLNzhe35ED
 
 
