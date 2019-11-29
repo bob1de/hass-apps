@@ -261,10 +261,8 @@ class RulePath:
 
     def includes_schedule(self, schedule: "Schedule") -> bool:
         """Checks whether the given schedule is included in this path."""
-
         if schedule is self.root_schedule:
             return True
-
         for rule in self.rules:
             if isinstance(rule, SubScheduleRule) and rule.sub_schedule is schedule:
                 return True
@@ -474,6 +472,9 @@ class Schedule:
                         result = room.eval_expr(rule.expr, expr_env)
                         expr_cache[rule.expr] = result
                         log("=> {}".format(repr(result)), path, level="DEBUG")
+                        # Unwrap a result with markers
+                        if isinstance(result, expression.types.Mark):
+                            result = result.unwrap(markers)
                     else:
                         log(
                             "=> {}  [cache-hit]".format(repr(result)),
@@ -490,10 +491,6 @@ class Schedule:
                     result = rule.value
                     log("=> {}".format(repr(result)), path, level="DEBUG")
 
-                # Unwrap a result with markers
-                if isinstance(result, expression.types.Mark):
-                    result = result.unwrap(markers)
-
                 if isinstance(
                     result, expression.types.IncludeSchedule
                 ) and path.includes_schedule(result.schedule):
@@ -502,13 +499,13 @@ class Schedule:
                     # included schedule returns Inherit() and the search
                     # then reaches the IncludeSchedule within the parent.
                     log(
-                        "==   skipping in favour of the parent to prevent " "a cycle",
+                        "==   skipping in favour of parent to prevent cycle",
                         path,
                         level="DEBUG",
                     )
                     result = None
                 elif result is None or isinstance(result, expression.types.Inherit):
-                    log("==   skipping in favour of the parent", path, level="DEBUG")
+                    log("==   skipping in favour of parent", path, level="DEBUG")
                     result = None
                 else:
                     break
@@ -535,7 +532,8 @@ class Schedule:
                 ):
                     del paths[path_idx]
             elif isinstance(result, expression.types.IncludeSchedule):
-                # Replace the current rule with a dynamic SubScheduleRule
+                # Replace current rule with temporary SubScheduleRule to enable
+                # proper handling of Inherit() and Break()
                 _path = path.copy()
                 _path.pop()
                 _path.append(SubScheduleRule(result.schedule))

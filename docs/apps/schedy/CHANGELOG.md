@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Infinite retrying of value sending to an actor is no longer supported, meaning
   `send_retries: -1` is now a configuration error. Use a reasonably high value
   instead if you really need excessive retrying.
+* Simplified internal handling of `IncludeSchedule()`. If this causes problems with
+  existing configurations, please file an issue.
 
 ### Deprecated
 
