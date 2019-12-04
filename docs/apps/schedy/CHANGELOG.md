@@ -9,11 +9,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
-* An overlay will now be applied even when the scheduled value won't change.
 
 ### Security
 
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+
+## 0.7.0 - 2019-12-04
+
+### Fixed
+* An overlay will now be applied even when the scheduled value won't change.
 
 ### Changed
 * Infinite retrying of value sending to an actor is no longer supported, meaning
@@ -22,9 +33,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Simplified internal handling of `IncludeSchedule()`. If this causes problems with
   existing configurations, please file an issue.
 
-### Deprecated
-
 ### Removed
+* The previous name `Skip` for the `Next` expression result type has been removed.
+* The `OVERLAY_REVERT_ON_NO_RESULT` marker has been removed, it's the default now.
 
 
 ## 0.6.0 - 2019-09-27

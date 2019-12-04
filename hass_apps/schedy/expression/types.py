@@ -16,7 +16,6 @@ __all__ = [
     "Inherit",
     "Mark",
     "Next",
-    "Skip",
     "Add",
     "Multiply",
     "Invert",
@@ -166,7 +165,6 @@ class Mark(ControlResult):
 
     # available markers
     OVERLAY = "OVERLAY"
-    OVERLAY_REVERT_ON_NO_RESULT = "OVERLAY_REVERT_ON_NO_RESULT"
 
     def __init__(self, result: T.Any, *markers: str) -> None:
         self.markers = set(markers)
@@ -199,15 +197,3 @@ class Next(ControlResult):
 
     def __repr__(self) -> str:
         return "Next()"
-
-
-class Skip(Next):
-    """For backwards compatibility."""
-
-    def __init__(self) -> None:
-        import warnings
-
-        warnings.warn(
-            "Skip was renamed to Next and will be removed in version 0.7.",
-            DeprecationWarning,
-        )
