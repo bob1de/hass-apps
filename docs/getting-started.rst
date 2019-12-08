@@ -170,7 +170,7 @@ which describes what to do. We assume that you've got a working AppDaemon
    explaining what the different settings mean are included.
    The sample configurations can also be found in the GitHub repository
    under ``docs/apps/<app_name>/sample-apps.yaml``.
-5. AppDaemon should have noticed the changes made to ``apps.yaml`` and
-   restart its apps automatically.
+5. AppDaemon should have noticed the changes made to the ``apps`` directory and
+   start the new app(s) automatically.
 
 You're done, enjoy hass-apps!
