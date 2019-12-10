@@ -132,17 +132,14 @@ process.
 
           pip install --upgrade hass-apps
 
-   b) Or, as an alternative, clone the Git repository to get even the
-      latest changes. But please keep in mind that this shouldn't be
-      considered stable and isn't guaranteed to work all the time. Don't
-      use the development version in production unless you have a good
-      reason to do so.
+   b) Or, as an alternative, install the state from the Git repository to get even
+      the latest changes. But please keep in mind that this shouldn't be considered
+      stable and isn't guaranteed to work all the time. Don't use the development
+      version in production unless you have a good reason to do so.
 
       ::
 
-          git clone https://github.com/efficiosoft/hass-apps
-          cd hass-apps
-          pip install . --upgrade
+          pip install --upgrade https://github.com/efficiosoft/hass-apps/archive/master.zip
 
 
 .. _getting-started/configuration:

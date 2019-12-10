@@ -25,55 +25,10 @@ the version number in the ``requirements.txt`` file you once created
 Upgrade Manually
 ----------------
 
-When you've installed hass-apps using the
-:ref:`getting-started/manual-installation` method, follow these steps
-to upgrade it.
+When you've installed hass-apps using the :ref:`getting-started/manual-installation`
+method, simply repeat the procedure from step 3 onwards in order to upgrade.
 
-1. First, ``cd`` into ``~/appdaemon`` and activate your virtualenv.
+.. note::
 
-   ::
-
-       cd ~/appdaemon
-       source venv/bin/activate
-
-2. Upgrade common packages.
-
-   ::
-
-       pip install --upgrade pip setuptools wheel
-
-3. Upgrade hass-apps.
-
-   a) If you installed from PyPi:
-
-      ::
-
-          pip install --upgrade hass-apps
-
-   b) Or, if you installed from the Git repository:
-
-      ::
-
-          cd hass-apps
-          git pull
-          pip install . --upgrade
-
-Note that AppDaemon doesn't detect changes in the imported modules
-automatically and needs to be restarted manually for the upgrade to
-take effect.
-
-
-Switching between PyPi and Git-based Installations
---------------------------------------------------
-
-It is possible to switch between a manual installation done from PyPi
-and a manual installation from the git repository.
-
-To go from a git-based installation to the latest stable release from
-PyPi, remove the ``hass_apps`` directory that contains your working copy
-of the git repository with a simple ``rm -rf ~/appdaemon/hass-apps``
-and follow the guide for :ref:`getting-started/manual-installation`
-from step 3 onwards.
-
-For switching from PyPi to git, just follow the guide for
-:ref:`getting-started/manual-installation` from step 3 onwards.
+   AppDaemon doesn't detect changes in the imported modules automatically and needs
+   to be restarted manually for the upgrade to take effect.
