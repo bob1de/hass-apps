@@ -20,6 +20,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Removed
 
 
+## 0.20191210.0
+
+### Changed
+* Simplified installation and upgrade instructions in docs
+
+
 ## 0.20191204.0
 
 ### Changed
