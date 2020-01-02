@@ -3,28 +3,43 @@ The Concept
 
 Schedy is a multi-purpose scheduler for Home Assistant.
 
-When one thinks of a schedule, he usually imagines to configure values
-(such as temperatures) for different times of the day and days of
-week. That's of course easily possible with Schedy, but it can do a
-lot more.
+When one thinks of a schedule, he usually imagines to configure values (such as
+temperatures) for different times of the day and days of week. That's of course
+possible with Schedy in a convenient manner, but it can do a lot more as well.
 
-Scheduling here basically means linking time frames (and/or state
-conditions) to the states actors should adopt.
+Scheduling here basically means linking time frames (and/or state conditions) to
+the states actors should adopt.
 
 
 Why not use Automations?
 ------------------------
 
-You may now ask: Why should I use a third-party solution when I have
-automations in Home Assistant right at hand? Well, that's a legitimate
-question. But have you ever tried to implement a flexible, easily
-maintainable schedule for heating, roller shutters or lights using
-plain automations? Maybe even one that cooperates with presence or motion
-detection? If not, believe me, that's no fun and will get really confusing
-sooner than later.
+You may now ask: Why should I use a third-party solution when I have automations
+in Home Assistant right at hand? Well, that's a legitimate question. But have
+you ever tried to implement a flexible, easily maintainable schedule for heating,
+roller shutters or lights using plain automations? Maybe even one that cooperates
+with presence or motion detection? If not, believe me, that's no fun and will get
+really confusing sooner than later.
 
-Don't get me wrong, automations are great and Schedy doesn't try to
-obsolete them, but they simply aren't suited well for scheduling.
+Besides this practical reasons why automations are not suited well for scheduling,
+take a look at what automations really do: reacting to triggers. Triggers can be
+described as events - they happen once, cause the automation to fire and are then
+gone. Possible triggers could be "I get home" or "Someone turns on the TV". But if
+you, for instance, start Home Assistant after the TV was already turned on, your
+automation won't fire at all.
+
+In contrast to automations, Schedy maps time (and optionally state) to state. Instead
+of waiting for the events "It's 8.00pm" and ""Someone turns on the TV", Schedy checks
+"Is it after 8.00pm?" and ""Is the TV turned on?" and, if so, ensures the corresponding
+scheduled state, such as "Living room lights off" is in place.
+
+.. note::
+
+   Automations react to triggers (events/state changes), Schedy reacts to time
+   and/or state..
+
+Don't get me wrong, automations are great and Schedy doesn't try to obsolete them,
+but they simply aren't suited well for scheduling.
 
 
 How it Works
