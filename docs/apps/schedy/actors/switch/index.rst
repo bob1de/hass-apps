@@ -1,9 +1,8 @@
 Switch
 ======
 
-The ``switch`` actor is used to control binary on/off
-switches. Internally, it's a :doc:`../generic/index`, but with a much
-simpler configuration, namely none at all.
+The ``switch`` actor is used to control binary on/off switches. Internally, it's a
+:doc:`../generic/index`, but with a much simpler configuration, namely none at all.
 
 .. note::
 
@@ -14,6 +13,12 @@ simpler configuration, namely none at all.
    ``state``.
 
    Especially, this is true for ``input_boolean`` and ``light`` entities.
+
+For completeness, this is the configuration you had to use if you wanted to build
+this switch actor out of the :doc:`../generic/index` yourself:
+
+.. literalinclude:: generic-config.yaml
+   :language: yaml
 
 
 Supported Values
