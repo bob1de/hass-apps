@@ -1,0 +1,13 @@
+actor_type: generic2
+actor_templates:
+  default:
+    attributes:
+    - attribute: state
+    values:
+    - value: ["on"]
+      calls:
+      - service: homeassistant.turn_on
+    - value: ["off"]
+      calls:
+      - service: homeassistant.turn_off
+    ignore_case: true

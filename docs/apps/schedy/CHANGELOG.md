@@ -13,8 +13,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
+* Added new `generic2` actor type which is more flexible than the old `generic`.
 
 ### Changed
+* The `switch` actor type is now driven by the new `generic2` actor type. Functionality
+  and syntax stays all the same.
 
 ### Deprecated
 

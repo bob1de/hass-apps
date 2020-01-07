@@ -2,7 +2,7 @@ Switch
 ======
 
 The ``switch`` actor is used to control binary on/off switches. Internally, it's a
-:doc:`../generic/index`, but with a much simpler configuration, namely none at all.
+:doc:`../generic2/index`, but with a much simpler configuration, namely none at all.
 
 .. note::
 
@@ -15,9 +15,9 @@ The ``switch`` actor is used to control binary on/off switches. Internally, it's
    Especially, this is true for ``input_boolean`` and ``light`` entities.
 
 For completeness, this is the configuration you had to use if you wanted to build
-this switch actor out of the :doc:`../generic/index` yourself:
+this switch actor out of the :doc:`../generic2/index` yourself:
 
-.. literalinclude:: generic-config.yaml
+.. literalinclude:: generic2-config.yaml
    :language: yaml
 
 

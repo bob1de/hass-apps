@@ -1,7 +1,9 @@
 Generic Actor
 =============
 
-.. include:: /advanced-topic.rst.inc
+.. warning::
+
+   This actor type has been superseeded by the :doc:`../generic2/index`. Use that instead.
 
 The ``generic`` actor can be used for controlling different types of
 entities like numbers or media players, even those having multiple

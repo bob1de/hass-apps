@@ -7,11 +7,19 @@ import typing as T
 from .base import ActorBase
 from .custom import CustomActor
 from .generic import GenericActor
+from .generic2 import Generic2Actor
 from .switch import SwitchActor
 from .thermostat import ThermostatActor
 
 
-__all__ = ["ActorBase", "CustomActor", "GenericActor", "SwitchActor", "ThermostatActor"]
+__all__ = [
+    "ActorBase",
+    "CustomActor",
+    "GenericActor",
+    "Generic2Actor",
+    "SwitchActor",
+    "ThermostatActor",
+]
 
 
 def get_actor_types() -> T.Iterable[T.Type[ActorBase]]:

@@ -1,0 +1,42 @@
+WORK IN PROGRESS
+
+# Here you configure the attributes of the entity to be controlled by the schedule.
+attributes:
+  # The attribute to be controlled, this could be e.g. "state" or "brightness".
+  # A value of null creates a write-only attribute. This has to be used when you want
+  # to control a property whose current value is not reflected in any of the entity's
+  # attributes. Don't do this if not really necessary, since doing so means that
+  # Schedy won't be able to verify that the value has been transmitted correctly. If
+  # you must use a write-only attribute, you might also want to set send_retries to a
+  # low value in order to avoid excessive network load.
+- attribute: first
+- attribute: second
+- ...
+
+# Here you configure the values you want to be able to return from your schedule.
+values:
+  # Each value is a list of the values for the individual attributes configured above.
+  # Schedy compares the entity's current attributes against the values defined here
+  # in order to find the value currently active.
+  # The special attribute value "*" is a wildcard and will, when used, match any
+  # value of that particular attribute.
+  # Additionally, you don't have to include all attributes in every single value,
+  # only the first N attributes which values are provided for are compared against
+  # the entity's state for the value to match.
+- value: ["value of 1st attribute", "value of 2nd attribute", ...]
+  # The services that have to be called in order to make the actor report this value.
+  calls:
+    # Which service to call
+  - service: ...
+    # Optionally, provide service data.
+    data:
+    # Set to false if you don't want the entity_id field to be included in service data.
+    #include_entity_id: true
+# More values#
+- ...
+
+# Set this to true if you want Schedy to treat string attributes of an entity the
+# same, no matter if they're reported in lower or upper case. This is handy for some
+# MQTT devices, for instance, which sometimes report a state of "ON", while others say
+# "on".
+#ignore_case: false
