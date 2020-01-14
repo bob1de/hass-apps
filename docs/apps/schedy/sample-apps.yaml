@@ -170,13 +170,13 @@ schedy:  # An arbitrary name for this instance of Schedy,
       #- ...
 
 
-    # Configure statistical parameters to be collected.
-    statistics:
+  # Configure statistical parameters to be collected.
+  statistics:
 
-      # Pick an arbitrary name for the parameter instance.
-      #some_name:
-        # The type of parameter as found in the actor'S documentation.
-        #type: <required>
-        # More parameter-specific settings ...
+    # Pick an arbitrary name for the parameter instance.
+    #some_name:
+      # The type of parameter as found in the actor'S documentation.
+      #type: <required>
+      # More parameter-specific settings ...
 
-      # More parameter instances ...
+    # More parameter instances ...
