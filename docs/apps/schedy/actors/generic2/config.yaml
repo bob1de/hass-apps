@@ -1,5 +1,3 @@
-WORK IN PROGRESS
-
 # Here you configure the attributes of the entity to be controlled by the schedule.
 attributes:
   # The attribute to be controlled, this could be e.g. "state" or "brightness".
@@ -28,10 +26,17 @@ values:
   calls:
     # Which service to call
   - service: ...
-    # Optionally, provide service data.
+    # Optionally, provide a mapping with data to be passed with the service call.
+    # You can use "{attr1}" as a placeholder for the value set for the first attribute,
+    # "{attr2}" for the value of the second attribute and so on to pass the correct
+    # attribute values to the service call as needed in order to bring the entity
+    # to the state represented by the value you returned from your schedule.
     data:
+      param1: "value1"
+      param2: "{attr2}"
     # Set to false if you don't want the entity_id field to be included in service data.
     #include_entity_id: true
+
 # More values#
 - ...
 
