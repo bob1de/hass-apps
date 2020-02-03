@@ -21,7 +21,7 @@ values:
   # Additionally, you don't have to include all attributes in every single value,
   # only the first N attributes which values are provided for are compared against
   # the entity's state for the value to match.
-- value: ["value of 1st attribute", "value of 2nd attribute", ...]
+- value: ["on", "*"]
   # The services that have to be called in order to make the actor report this value.
   calls:
     # Which service to call
@@ -31,10 +31,16 @@ values:
     # "{attr2}" for the value of the second attribute and so on to pass the correct
     # attribute values to the service call as needed in order to bring the entity
     # to the state represented by the value you returned from your schedule.
+    # The placeholder "{entity_id}" can be used to insert the actor's entity id.
+    # For instance, if the value
+    #   ["on", 75]
+    # was returned by a schedule, the following sample would render to:
+    #   {"param1": "something", "param2": 75}
     data:
-      param1: "value1"
+      param1: "something"
       param2: "{attr2}"
-    # Set to false if you don't want the entity_id field to be included in service data.
+    # Set to false if you don't want the entity_id field to be included in service
+    # data automatically.
     #include_entity_id: true
 
 # More values#
