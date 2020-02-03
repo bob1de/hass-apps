@@ -9,9 +9,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
-* Fixed indentation in sample configuration in docs.
 
 ### Security
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+
+## 0.8.0 - 2020-02-03
+
+### Fixed
+* Fixed indentation in sample configuration in docs.
 
 ### Added
 * Added new `generic2` actor type which is more flexible than the old `generic`.
@@ -19,10 +32,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 * The `switch` actor type is now driven by the new `generic2` actor type. Functionality
   and syntax stays all the same.
-
-### Deprecated
-
-### Removed
 
 
 ## 0.7.0 - 2019-12-04
