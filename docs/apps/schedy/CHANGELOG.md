@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
+* Fixed possible `TypeError` when using the `generic2` actor type. (#47)
 
 ### Security
 

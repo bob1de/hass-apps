@@ -86,7 +86,7 @@ class Generic2Actor(ActorBase):
     def _populate_service_data(self, data: T.Dict, fmt: T.Dict[str, T.Any]) -> None:
         """Fills in placeholders in the service data definition."""
         # pylint: disable=too-many-nested-blocks
-        memo = {data}  # type: T.Set[T.Union[T.Dict, T.List]]
+        memo = [data]  # type: T.List[T.Union[T.Dict, T.List]]
         while memo:
             obj = memo.pop()
             if isinstance(obj, dict):
@@ -123,7 +123,7 @@ class Generic2Actor(ActorBase):
                             level="ERROR",
                         )
                 elif isinstance(value, (dict, list)):
-                    memo.add(value)
+                    memo.append(value)
 
     def do_send(self) -> None:
         """Executes the configured services for self._wanted_value."""
