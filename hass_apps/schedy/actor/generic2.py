@@ -50,7 +50,9 @@ class Generic2Actor(ActorBase):
                                 vol.All(
                                     vol.DefaultTo(dict),
                                     {
-                                        vol.Required("service"): str,
+                                        vol.Required("service"): vol.All(
+                                            str, lambda v: v.replace(".", "/", 1)
+                                        ),
                                         vol.Optional("data", default=None): vol.All(
                                             vol.DefaultTo(dict), dict
                                         ),

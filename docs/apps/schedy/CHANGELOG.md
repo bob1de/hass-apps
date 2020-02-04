@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 * Fixed possible `TypeError` when using the `generic2` actor type. (#47)
+* The `generic2` actor type now correctly handles service names in the usual
+  `<domain>.<name>` format.
 
 ### Security
 
