@@ -8,7 +8,7 @@ Installation in Hass.io
 
 In order to use hass-apps in the hass.io ecosystem, you first need
 to set up an AppDaemon add-on. The recommended add-on is `this one
-<https://github.com/hassio-addons/addon-appdaemon3>`_.
+<https://github.com/hassio-addons/addon-appdaemon4>`_.
 
 When you have that up and running, head over to
 :ref:`getting-started/installation-in-docker` and choose a hass-apps
