@@ -11,11 +11,10 @@ to set up an AppDaemon add-on. The recommended add-on is `this one
 <https://github.com/hassio-addons/addon-appdaemon4>`_.
 
 When you have that up and running, head over to
-:ref:`getting-started/installation-in-docker` and choose a hass-apps
-version to install, but instead of storing the chosen string in a
-``requirements.txt`` file, you add it to the ``python_packages`` setting
-of the AppDaemon add-on using hass.io's web interface. It should look
-like this:
+:ref:`getting-started/installation-in-docker` and choose a hass-apps version to
+install, **BUT instead of storing the chosen string in a ``requirements.txt`` file,
+you add it to the ``python_packages`` setting of the AppDaemon add-on using hass.io's
+web interface.** It should look like this:
 
 ::
 
@@ -153,7 +152,7 @@ AppDaemon is out of the scope of this tutorial, but there
 is a `Configuration Section in the AppDaemon Documentation
 <https://appdaemon.readthedocs.io/en/stable/CONFIGURE.html>`_
 which describes what to do. We assume that you've got a working AppDaemon
-3.x for now.
+4.x for now.
 
 1. Get yourself a nice cup of coffee or tea. You'll surely need it.
 2. Store the file `hass_apps_loader.py
