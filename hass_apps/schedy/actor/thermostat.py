@@ -303,7 +303,7 @@ class ThermostatActor(ActorBase):
             temp = None
         else:
             hvac_mode = self.cfg["hvac_mode_on"]
-            temp = target_temp
+            temp = target_temp.value
         if not self.cfg["supports_hvac_modes"]:
             hvac_mode = None
 
@@ -315,16 +315,15 @@ class ThermostatActor(ActorBase):
             level="DEBUG",
             prefix=common.LOG_PREFIX_OUTGOING,
         )
-        if hvac_mode is not None:
+        if temp is None:
             self.app.call_service(
                 "climate/set_hvac_mode", entity_id=self.entity_id, hvac_mode=hvac_mode
             )
-        if temp is not None:
-            self.app.call_service(
-                "climate/set_temperature",
-                entity_id=self.entity_id,
-                temperature=temp.value,
-            )
+        else:
+            service_data = {"entity_id": self.entity_id, "temperature": temp}
+            if hvac_mode is not None:
+                service_data["hvac_mode"] = hvac_mode
+            self.app.call_service("climate/set_temperature", **service_data)
 
     def filter_set_value(self, value: Temp) -> T.Optional[Temp]:
         """Preprocesses the given target temperature for setting on this

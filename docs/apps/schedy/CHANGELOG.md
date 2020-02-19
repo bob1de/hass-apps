@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 ### Changed
+* The `thermostat` actor type now sets both temperature and HVAC mode with a single
+  call to `climate.set_temperature` instead of using `climate.set_hvac_mode`. This
+  should make no difference to the end user.
 
 ### Deprecated
 
