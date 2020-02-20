@@ -67,7 +67,7 @@ class Room:
         self.name = name
         self.cfg = cfg
         self.app = app
-        self.actors = []  # type: T.List[ActorBase]
+        self.actors = {}  # type: T.Dict[str, ActorBase]
         self.schedule = None  # type: T.Optional[Schedule]
 
         self._wanted_value = None  # type: T.Any
@@ -105,21 +105,21 @@ class Room:
     def _initialize_actor_cb(self, kwargs: dict) -> None:
         """Is called for each actor until it's initialized successfully."""
 
-        actor = kwargs["actor"]
+        actor = self.actors[kwargs["entity_id"]]
         if not actor.initialize():
             self.log(
                 "Actor {} couldn't be initialized, "
                 "retrying in 10 seconds.".format(repr(actor)),
                 level="WARNING",
             )
-            self.app.run_in(self._initialize_actor_cb, 10, actor=actor)
+            self.app.run_in(self._initialize_actor_cb, 10, **kwargs)
             return
 
         actor.events.on("value_changed", self.notify_value_changed)
         if (
             self._wanted_value is not None
             and self.cfg["replicate_changes"]
-            and all([a.is_initialized for a in self.actors])
+            and all([a.is_initialized for a in self.actors.values()])
         ):
             self.set_value(self._wanted_value)
 
@@ -157,9 +157,8 @@ class Room:
             actor_wanted_values = attrs.get("actor_wanted_values", {})
             for entity_id, value in actor_wanted_values.items():
                 value = _deserialize(value)
-                for actor in self.actors:
-                    if actor.entity_id == entity_id:
-                        actor.wanted_value = value
+                if entity_id in self.actors:
+                    self.actors[entity_id].wanted_value = value
             self._wanted_value = _deserialize(state.get("state") or None)
             self._scheduled_value = _deserialize(attrs.get("scheduled_value"))
             self._rescheduling_time = _deserialize_dt(attrs.get("rescheduling_time"))
@@ -249,8 +248,8 @@ class Room:
         state = _serialize(self._wanted_value, "")
         attrs = {
             "actor_wanted_values": {
-                actor.entity_id: _serialize(actor.wanted_value, None)
-                for actor in self.actors
+                entity_id: _serialize(actor.wanted_value, None)
+                for entity_id, actor in self.actors.items()
             },
             "scheduled_value": _serialize(self._scheduled_value, None),
             "rescheduling_time": _serialize_dt(self._rescheduling_time),
@@ -449,8 +448,8 @@ class Room:
 
         self.log("Initializing room (name={}).".format(repr(self.name)), level="DEBUG")
 
-        for actor in self.actors:
-            self._initialize_actor_cb({"actor": actor})
+        for entity_id in self.actors:
+            self._initialize_actor_cb({"entity_id": entity_id})
 
         assert self.schedule is not None
         times = self.schedule.get_scheduling_times()
@@ -523,11 +522,12 @@ class Room:
         actor_wanted = actor.wanted_value
         was_actor_wanted = actor_wanted is not None and value == actor_wanted
         replicating = self.cfg["replicate_changes"]
-        single_actor = len([a.is_initialized for a in self.actors]) == 1
+        single_actor = len([a.is_initialized for a in self.actors.values()]) == 1
 
         if was_actor_wanted:
             synced = all(
-                actor.is_initialized and actor.is_synced for actor in self.actors
+                actor.is_initialized and actor.is_synced
+                for actor in self.actors.values()
             )
             if self.tracking_schedule and synced:
                 self.cancel_rescheduling_timer()
@@ -578,7 +578,7 @@ class Room:
         self._wanted_value = value
 
         changed = False
-        for actor in self.actors:
+        for actor in self.actors.values():
             if not actor.is_initialized:
                 self.log(
                     "Skipping uninitialized {}.".format(repr(actor)), level="DEBUG"

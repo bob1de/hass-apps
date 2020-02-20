@@ -195,7 +195,7 @@ class ActorValueCollectorMixin(AbstractValueCollectorMixin, RoomBasedParameter):
 
         values = []
         for room in self.rooms:
-            for actor in filter(lambda a: a.is_initialized, room.actors):
+            for actor in filter(lambda a: a.is_initialized, room.actors.values()):
                 value = self.collect_actor_value(  # pylint: disable=assignment-from-none
                     actor
                 )
@@ -228,7 +228,7 @@ class ActorValueCollectorMixin(AbstractValueCollectorMixin, RoomBasedParameter):
         super().initialize_listeners()
 
         for room in self.rooms:
-            for actor in filter(lambda a: a.is_initialized, room.actors):
+            for actor in filter(lambda a: a.is_initialized, room.actors.values()):
                 self.initialize_actor_listeners(actor)
 
 

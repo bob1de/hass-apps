@@ -118,7 +118,7 @@ def config_post_hook(cfg: dict) -> dict:
         # Create actor objects and attach to room.
         for actor_name, actor_data in actors.items():
             _actor = actor_type(actor_name, actor_data, room)
-            room.actors.append(_actor)
+            room.actors[actor_name] = _actor
 
         room.schedule = sched
 

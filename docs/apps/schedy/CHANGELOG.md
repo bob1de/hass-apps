@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
+* Hotfix for an issue causing infinite recursion at delayed actor initialization on
+  AppDaemon 4 (see home-assistant/appdaemon#773).
 
 ### Security
 
