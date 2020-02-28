@@ -33,7 +33,6 @@ Here is another one:
       start: "7:00"
       end: "22:00"
       name: Fancy Rule
-
     - v: 16
 
 This schedule shares the 16 degrees rule with the previous one,
