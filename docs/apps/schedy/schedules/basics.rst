@@ -270,9 +270,30 @@ until one is found. When looking at the indentation of the YAML, this lookup is 
 from right to left, so that the innermost value is used. The exact same approach is
 taken for ``start`` and ``end``.
 
+.. note::
+
+   Values for ``v``, ``start`` and ``end`` declared at inner rules (more indented
+   in YAML) take precedence over those set at outer rules and render the outer
+   values ineffective.
+
 I've to admit that this was a small and well arranged example, but the benefit becomes
 clearer when you start to write longer schedules, maybe with separate sections for
 the different seasons.
+
+.. note::
+
+   A rule with sub-schedule attached (one that has a ``rules`` parameter) is **never**
+   evaluated itself. Only the innermost rules (those with no sub-schedule) count as
+   rules for determining the room's value. This snippet, for instance, has no effect
+   at all::
+
+       - v: 20
+         weekdays: 1-3
+         rules:
+         - months: 1-4,9-12
+           rules:
+           # Note there are NO rules in the innermost sub-schedule, hence no rule
+           # is evaluated by Schedy, making all this completely ineffective.
 
 With this knowledge, writing basic Schedy schedules should be straightforward.
 
