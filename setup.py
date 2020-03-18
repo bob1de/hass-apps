@@ -27,10 +27,10 @@ setup(
     license = "Apache 2.0",
     packages = find_packages("."),
     install_requires = [
-        "appdaemon >= 3.0",
-        "cached-property >= 1.5.1",
-        "observable >= 1.0",
-        "voluptuous >= 0.11",
+        "appdaemon >= 3.0, < 5",
+        "cached-property ~= 1.5",
+        "observable ~= 1.0",
+        "voluptuous ~= 0.11",
     ],
     zip_safe = False,
 )

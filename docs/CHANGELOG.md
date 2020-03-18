@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 
 ### Changed
+* Specified dependency versions based on semantic versioning.
 
 ### Deprecated
 
