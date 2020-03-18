@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
+* Fixed placeholder insertion in `generic2` actor service data.
 
 ### Security
 

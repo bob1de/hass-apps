@@ -100,7 +100,7 @@ class Generic2Actor(ActorBase):
             for key, value in _iter:
                 if isinstance(value, str):
                     try:
-                        formatted = value.format(fmt)
+                        formatted = value.format(**fmt)
                         # Convert special values to appropriate type
                         if formatted == "None":
                             obj[key] = None
