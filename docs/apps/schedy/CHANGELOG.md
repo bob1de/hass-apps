@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Fixed
-* Fixed placeholder insertion in `generic2` actor service data.
 
 ### Security
 
@@ -20,6 +19,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Deprecated
 
 ### Removed
+
+
+## 0.8.3 - 2020-03-19
+
+### Fixed
+* Fixed placeholder insertion in `generic2` actor service data. (#50)
 
 
 ## 0.8.2 - 2020-02-21
