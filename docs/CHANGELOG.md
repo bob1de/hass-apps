@@ -14,11 +14,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 
 ### Changed
-* Specified dependency versions based on semantic versioning.
 
 ### Deprecated
 
 ### Removed
+
+
+## 0.20200319.0
+
+### Changed
+* Specified dependency versions based on semantic versioning.
+* Schedy v0.8.3
 
 
 ## 0.20200221.0
