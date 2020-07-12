@@ -69,7 +69,7 @@ class BasicHelper(HelperBase):
         avoids generating all values just for decision about emptiness."""
 
         try:
-            if isinstance(iterable, T.Iterator):
+            if isinstance(iterable, T.Iterator):  # pylint: disable=isinstance-second-argument-not-valid-type
                 next(iterable)
             else:
                 next(iter(iterable))
