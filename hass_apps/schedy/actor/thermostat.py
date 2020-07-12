@@ -40,6 +40,9 @@ class Off:
     def __repr__(self) -> str:
         return "OFF"
 
+    def __round__(self, ndigits: int = None) -> "Off":
+        return self
+
     def __sub__(self, other: T.Any) -> "Off":
         return self
 
@@ -105,6 +108,9 @@ class Temp:
         if isinstance(self.value, (float, int)):
             return "{}°".format(self.value)
         return "{}".format(self.value)
+
+    def __round__(self, ndigits: int = None) -> "Temp":
+        return type(self)(round(self.value, ndigits))  # type: ignore
 
     def __sub__(self, other: T.Any) -> "Temp":
         return self.__add__(-other)

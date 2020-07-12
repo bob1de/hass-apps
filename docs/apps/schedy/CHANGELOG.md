@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 
 ### Added
+* Added rounding support to temperatures for the thermostat actor type via Python's
+  built-in ``round()`` function. (#51)
 
 ### Changed
 
