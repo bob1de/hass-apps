@@ -56,7 +56,7 @@ class Add(PostprocessorValueMixin, Postprocessor):
 
     def apply(self, result: T.Any) -> T.Any:
         try:
-            return type(result)(result + self.value)
+            return result + self.value
         except TypeError as err:
             raise PostprocessingError(repr(err))
 
@@ -69,7 +69,7 @@ class Multiply(PostprocessorValueMixin, Postprocessor):
 
     def apply(self, result: T.Any) -> T.Any:
         try:
-            return type(result)(result * self.value)
+            return result * self.value
         except TypeError as err:
             raise PostprocessingError(repr(err))
 
