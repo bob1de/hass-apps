@@ -103,6 +103,9 @@ class Postprocess(Postprocessor):
     def __init__(self, func: T.Callable[[T.Any], T.Any]) -> None:
         self._func = func
 
+    def __repr__(self) -> str:
+        return "Postprocess({!r})".format(self._func)
+
     def apply(self, result: T.Any) -> T.Any:
         return self._func(result)
 
