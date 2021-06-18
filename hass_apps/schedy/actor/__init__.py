@@ -10,6 +10,7 @@ from .generic import GenericActor
 from .generic2 import Generic2Actor
 from .switch import SwitchActor
 from .thermostat import ThermostatActor
+from .dualthermostat import DualThermostatActor
 
 
 __all__ = [
@@ -19,6 +20,7 @@ __all__ = [
     "Generic2Actor",
     "SwitchActor",
     "ThermostatActor",
+    "DualThermostatActor",
 ]
 
 
