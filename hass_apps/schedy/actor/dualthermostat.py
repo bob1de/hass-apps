@@ -146,7 +146,7 @@ class _DualTempDeltaParameter(stats.ActorValueCollectorMixin, stats.MinAvgMaxPar
                 # thermostats that are off should be excluded
                 return None
             return float(off_value)
-        return float(getattr(target, self.attribute) - current)
+        return float(getattr(target, self.attribute) - current.value)
 
     def initialize_actor_listeners(self, actor: ActorBase) -> None:
         """Listens for changes of current and target temperature."""
