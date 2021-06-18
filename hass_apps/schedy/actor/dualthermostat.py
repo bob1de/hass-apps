@@ -26,8 +26,8 @@ class DualTemp:
     def __init__(self, temp_value: T.Any) -> None:
         if isinstance(temp_value, DualTemp):
             # Just copy the value over.
-            self.low_temp = temp_value.low_temp
-            self.high_temp = temp_value.high_temp
+            self.temp_low = temp_value.temp_low
+            self.temp_high = temp_value.temp_high
             return
         else:
             parsed = self.parse_temp(temp_value)
@@ -36,11 +36,11 @@ class DualTemp:
             raise ValueError("{} is no valid temperature".format(repr(temp_value)))
 
         if isinstance(parsed, Off):
-            self.low_temp = OFF  # type: T.Union[float, Off]
-            self.high_temp = OFF  # type: T.Union[float, Off]
+            self.temp_low = OFF  # type: T.Union[float, Off]
+            self.temp_high = OFF  # type: T.Union[float, Off]
         else:
-            self.low_temp = parsed[0]  # type: T.Union[float, Off]
-            self.high_temp = parsed[1]  # type: T.Union[float, Off]
+            self.temp_low = parsed[0]  # type: T.Union[float, Off]
+            self.temp_high = parsed[1]  # type: T.Union[float, Off]
 
     def __add__(self, other: T.Any) -> "DualTemp":
         # OFF + something is OFF
@@ -48,27 +48,27 @@ class DualTemp:
             return type(self)(OFF)
 
         if isinstance(other, (float, int)):
-            return type(self)((self.low_temp + other, self.high_temp + other))
+            return type(self)((self.temp_low + other, self.temp_high + other))
         if isinstance(other, list):
-            return type(self)((self.low_temp + other[0], self.high_temp + other[1]))
+            return type(self)((self.temp_low + other[0], self.temp_high + other[1]))
         if isinstance(other, Temp):
-            return type(self)((self.low_temp + other.value, self.high_temp + other.value))
+            return type(self)((self.temp_low + other.value, self.temp_high + other.value))
         if isinstance(other, DualTemp):
-            return type(self)((self.low_temp + other.low_temp, self.high_temp + other.high_temp))
+            return type(self)((self.temp_low + other.temp_low, self.temp_high + other.temp_high))
         return NotImplemented
 
     def __eq__(self, other: T.Any) -> bool:
         if isinstance(other, type(self)):
-            return (self.low_temp == other.low_temp) and (self.high_temp == other.high_temp)
+            return (self.temp_low == other.temp_low) and (self.temp_high == other.temp_high)
         if isinstance(other, Temp):
-            return (self.low_temp == other.value) and (self.high_temp == other.value)
+            return (self.temp_low == other.value) and (self.temp_high == other.value)
         return NotImplemented
 
     def __hash__(self) -> int:
         return hash(str(self))
 
     def __repr__(self) -> str:
-        return "{}° - {}°".format(self.low_temp, self.high_temp)
+        return "{}° - {}°".format(self.temp_low, self.temp_high)
 
     def serialize(self) -> str:
         """Converts the temperature into a string that Temp can be
@@ -76,13 +76,13 @@ class DualTemp:
 
         if self.is_off:
             return "OFF"
-        return str("({},{})".format(self.low_temp, self.high_temp))
+        return str("({},{})".format(self.temp_low, self.temp_high))
 
     @property
     def is_off(self) -> bool:
         """Tells whether this temperature means OFF."""
 
-        return isinstance(self.low_temp, Off)
+        return isinstance(self.temp_low, Off)
 
     @staticmethod
     def parse_temp(value: T.Any) -> T.Union[T.List[float], Off, None]:
@@ -132,20 +132,20 @@ class _DualTempDeltaParameter(stats.ActorValueCollectorMixin, stats.MinAvgMaxPar
     round_places = 2
     attribute = None
 
-    def collect_actor_value(self, actor: ActorBase) -> T.Optional[float]:
+    def collect_actor_value(self, actor: "DualThermostatActor") -> T.Optional[float]:
         """Collects the difference between target and current temperature."""
 
         assert isinstance(actor, DualThermostatActor)
         assert self.attribute is not None
         current = actor.current_temp
-        target = getattr(actor, self.attribute)
+        target = actor.current_value
         if current is None or target is None or current.is_off or target.is_off:
             off_value = self.cfg["off_value"]
             if off_value is None:
                 # thermostats that are off should be excluded
                 return None
             return float(off_value)
-        return float(target - current)
+        return float(getattr(target, self.attribute) - current)
 
     def initialize_actor_listeners(self, actor: ActorBase) -> None:
         """Listens for changes of current and target temperature."""
@@ -159,13 +159,13 @@ class _DualTempDeltaParameter(stats.ActorValueCollectorMixin, stats.MinAvgMaxPar
 
 
 class HighTempDeltaParameter(_DualTempDeltaParameter):
-    attribute = "current_temp_high"
-    name = "high_temp_delta"
+    attribute = "temp_high"
+    name = "temp_high_delta"
 
 
 class LowTempDeltaParameter(_DualTempDeltaParameter):
-    attribute = "current_temp_low"
-    name = "low_temp_delta"
+    attribute = "temp_low"
+    name = "temp_low_delta"
 
 
 class DualThermostatActor(ActorBase):
@@ -298,8 +298,8 @@ class DualThermostatActor(ActorBase):
             self.app.call_service(
                 "climate/set_temperature",
                 entity_id=self.entity_id,
-                target_temp_low=temp.low_temp,
-                target_temp_high=temp.high_temp,
+                target_temp_low=temp.temp_low,
+                target_temp_high=temp.temp_high,
             )
 
     def filter_set_value(self, value: DualTemp) -> T.Optional[DualTemp]:
@@ -316,16 +316,16 @@ class DualThermostatActor(ActorBase):
             # value += self.cfg["delta"]
 
             if isinstance(self.cfg["min_temp"], DualTemp):
-                if value.low_temp < self.cfg["min_temp"].low_temp:
-                    value.low_temp = self.cfg["min_temp"].low_temp
-                if value.high_temp < self.cfg["min_temp"].high_temp:
-                    value.high_temp = self.cfg["min_temp"].high_temp
+                if value.temp_low < self.cfg["min_temp"].temp_low:
+                    value.temp_low = self.cfg["min_temp"].temp_low
+                if value.temp_high < self.cfg["min_temp"].temp_high:
+                    value.temp_high = self.cfg["min_temp"].temp_high
 
             if isinstance(self.cfg["max_temp"], DualTemp):
-                if value.low_temp > self.cfg["max_temp"].low_temp:
-                    value.low_temp = self.cfg["max_temp"].low_temp
-                if value.high_temp > self.cfg["max_temp"].high_temp:
-                    value.high_temp = self.cfg["max_temp"].high_temp
+                if value.temp_low > self.cfg["max_temp"].temp_low:
+                    value.temp_low = self.cfg["max_temp"].temp_low
+                if value.temp_high > self.cfg["max_temp"].temp_high:
+                    value.temp_high = self.cfg["max_temp"].temp_high
 
         elif not self.cfg["supports_hvac_modes"]:
             self.log(
