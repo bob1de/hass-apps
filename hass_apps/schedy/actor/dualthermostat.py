@@ -173,7 +173,7 @@ class DualThermostatActor(ActorBase):
     name = "dualthermostat"
     config_schema_dict = {
         **ActorBase.config_schema_dict,
-        vol.Optional("delta", default=DualTemp((0, 0))): vol.All(TEMP_SCHEMA, vol.NotIn([DualTemp(OFF)])),
+        vol.Optional("delta", default=DualTemp([0, 0])): vol.All(TEMP_SCHEMA, vol.NotIn([DualTemp(OFF)])),
         vol.Optional("min_temp", default=None): vol.Any(
             vol.All(TEMP_SCHEMA, vol.NotIn([DualTemp(OFF)])), None
         ),
@@ -220,7 +220,7 @@ class DualThermostatActor(ActorBase):
                 value = float(value)  # type: ignore
             except (TypeError, ValueError):
                 self.log(
-                    "The value {!r} of attribute {!r} is no valid temperature.".format(
+                    "The value {!r} of attribute {!r} is not a valid dual temperature.".format(
                         value, attr
                     ),
                     level="WARNING",
