@@ -8,8 +8,8 @@ if T.TYPE_CHECKING:
     # pylint: disable=cyclic-import,unused-import
     from ..room import Room
 
-import functools
 import voluptuous as vol
+import json
 
 from ... import common
 from .. import stats
@@ -76,7 +76,7 @@ class DualTemp:
 
         if self.is_off:
             return "OFF"
-        return str("({},{})".format(self.temp_low, self.temp_high))
+        return json.dumps([self.temp_low, self.temp_high])
 
     @property
     def is_off(self) -> bool:
@@ -95,6 +95,7 @@ class DualTemp:
             value = "".join(value.split())
             if value.upper() == "OFF":
                 return OFF
+            value = json.loads(value)
 
         if isinstance(value, Off):
             return OFF
