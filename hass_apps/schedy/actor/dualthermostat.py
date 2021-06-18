@@ -124,7 +124,6 @@ TEMP_SCHEMA = vol.Schema(
 class _DualTempDeltaParameter(stats.ActorValueCollectorMixin, stats.MinAvgMaxParameter):
     """The difference between target and current temperature."""
 
-    name = "temp_delta"
     config_schema_dict = {
         **stats.ActorValueCollectorMixin.config_schema_dict,
         **stats.MinAvgMaxParameter.config_schema_dict,
@@ -161,10 +160,12 @@ class _DualTempDeltaParameter(stats.ActorValueCollectorMixin, stats.MinAvgMaxPar
 
 class HighTempDeltaParameter(_DualTempDeltaParameter):
     attribute = "current_temp_high"
+    name = "high_temp_delta"
 
 
 class LowTempDeltaParameter(_DualTempDeltaParameter):
     attribute = "current_temp_low"
+    name = "low_temp_delta"
 
 
 class DualThermostatActor(ActorBase):
@@ -175,7 +176,7 @@ class DualThermostatActor(ActorBase):
         **ActorBase.config_schema_dict,
         #TODO: Look into error when enabling this
         # "Configuration error: expected list for dictionary value @ data['delta']. Got None"
-        # vol.Optional("delta", default=DualTemp([0, 0])): vol.All(TEMP_SCHEMA, vol.NotIn([DualTemp(OFF)])),
+        vol.Optional("delta", default=DualTemp([0, 0])): vol.All(TEMP_SCHEMA, vol.NotIn([DualTemp(OFF)])),
         vol.Optional("min_temp", default=None): vol.Any(
             vol.All(TEMP_SCHEMA, vol.NotIn([DualTemp(OFF)])), None
         ),
