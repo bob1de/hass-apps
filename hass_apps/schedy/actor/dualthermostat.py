@@ -85,7 +85,7 @@ class DualTemp:
         return isinstance(self.low_temp, Off)
 
     @staticmethod
-    def parse_temp(value: T.Any) -> T.Union[T.List[float, float], Off, None]:
+    def parse_temp(value: T.Any) -> T.Union[T.List[float], Off, None]:
         """Converts the given value to a valid temperature of type float
         or Off.
         If value is a string, all whitespace is removed first.
