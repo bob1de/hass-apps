@@ -99,7 +99,7 @@ class DualTemp:
         if isinstance(value, Off):
             return OFF
 
-        if isinstance(value, list) and len(value) == 2 and \
+        if isinstance(value, (tuple, list)) and len(value) == 2 and \
            isinstance(value[0], (float, int)) and isinstance(value[1], (float, int)):
             return value
 
@@ -115,7 +115,7 @@ class ThermostatExpressionHelper(ExpressionHelperBase):
 
 TEMP_SCHEMA = vol.Schema(
     vol.All(
-        vol.Any(list, Off, vol.All(str, lambda v: v.upper(), "OFF")),
+        vol.Any(list, tuple, Off, vol.All(str, lambda v: v.upper(), "OFF")),
         lambda v: DualTemp(v),  # pylint: disable=unnecessary-lambda
     )
 )
