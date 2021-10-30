@@ -48,6 +48,7 @@ class ActorBase:
 
         self._gave_up_sending = False
         self._resending_timer = None  # type: T.Optional[uuid.UUID]
+        self._resending_timer_cancelled = False
 
     def __repr__(self) -> str:
         return "<Actor {}>".format(str(self))
@@ -81,6 +82,9 @@ class ActorBase:
             self._gave_up_sending = True
             return
         if left_tries <= retries:
+            if self._resending_timer_cancelled:
+                self._resending_timer_cancelled = False
+                return
             self.log("Re-sending value due to missing confirmation.", level="WARNING")
 
         self.log(
@@ -117,6 +121,7 @@ class ActorBase:
         if new_value is None:
             return
 
+        self._resending_timer_cancelled = False
         if new_value == self._wanted_value:
             self.cancel_resending_timer()
             self._gave_up_sending = False
@@ -140,6 +145,7 @@ class ActorBase:
             return
         self._resending_timer = None
         self.app.cancel_timer(timer)
+        self._resending_timer_cancelled = True
         self.log("Cancelled re-sending timer.", level="DEBUG")
 
     def check_config_plausibility(self, state: dict) -> None:
