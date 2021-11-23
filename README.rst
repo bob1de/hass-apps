@@ -1,6 +1,14 @@
 hass-apps
 =========
 
+**MAINTENANCE MODE:**
+This project currently is in maintenance-only mode, meaning that I'm not going to
+implement new features at the moment due to lack of time.
+However, I'm using Schedy in production myself and will try to fix critical bugs as
+good as I can.
+Maybe there will be a phase of more active development sometime in the future.
+Thanks for your understanding, wish you all the best and good luck with Schedy!
+
 This is a collection of useful apps and snippets to empower Home Assistant
 and AppDaemon even more.
 
