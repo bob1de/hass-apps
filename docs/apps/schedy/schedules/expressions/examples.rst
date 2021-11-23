@@ -103,7 +103,7 @@ the thermostat actor type.
       - { start: "07:00", end: "09:00" }
       - { start: "12:00", end: "22:00" }
       - v: 17
-     - v: "OFF"
+    - v: "OFF"
 
     watched_entities:
     - "input_boolean.include_sub_schedule"
