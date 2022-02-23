@@ -31,36 +31,40 @@ detailled documentation and includes a sample configuration. Read the
 * None at the moment.
 
 
-Donations
----------
+..
 
-.. note::
+    Request for donations disabled due to maintenance mode
 
-   I work on this project in my spare time, as many free software
-   developers do. And of course, I enjoy this work a lot. There is no
-   and will never be a need to pay anything for using this software.
+    Donations
+    ---------
 
-However, if you want to honor the hundreds of hours continuously spent
-with writing code and documentation, testing and providing support by
-donating me a cup of coffee, a beer in the evening, my monthly hosting
-fees or anything else embellishing my day a little more, that would be
-awesome. If you decide doing so, I want to thank you very much! Please
-be assured that I'm not presuming anybody to donate, it's entirely
-your choice.
+    .. note::
 
-|paypal-recurring| Ensure ongoing development and support with a monthly
-donation, no matter how small.
+       I work on this project in my spare time, as many free software
+       developers do. And of course, I enjoy this work a lot. There is no
+       and will never be a need to pay anything for using this software.
 
-.. |paypal-recurring| image:: https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif
-   :target: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=PZPNNAJ93TVTQ&source=url
+    However, if you want to honor the hundreds of hours continuously spent
+    with writing code and documentation, testing and providing support by
+    donating me a cup of coffee, a beer in the evening, my monthly hosting
+    fees or anything else embellishing my day a little more, that would be
+    awesome. If you decide doing so, I want to thank you very much! Please
+    be assured that I'm not presuming anybody to donate, it's entirely
+    your choice.
 
-|paypal-once| Or make an one-time donation.
+    |paypal-recurring| Ensure ongoing development and support with a monthly
+    donation, no matter how small.
 
-.. |paypal-once| image:: https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif
-   :target: https://www.paypal.me/RSchindler
+    .. |paypal-recurring| image:: https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif
+       :target: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=PZPNNAJ93TVTQ&source=url
 
-| ETH: 0xCE6B204B6AB5B93156f4FCD373482e148753beAb
-| ZEC: t1RKFyt4qqtqdYfprf8HZoDHRNLNzhe35ED
+    |paypal-once| Or make an one-time donation.
+
+    .. |paypal-once| image:: https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif
+       :target: https://www.paypal.me/RSchindler
+
+    | ETH: 0xCE6B204B6AB5B93156f4FCD373482e148753beAb
+    | ZEC: t1RKFyt4qqtqdYfprf8HZoDHRNLNzhe35ED
 
 
 Getting Help

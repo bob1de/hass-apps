@@ -80,12 +80,13 @@ class App(hassapi.Hass):  # type: ignore
         alert("This is an app from the hass-apps package.")
         alert("  DOCS: https://hass-apps.readthedocs.io/en/stable/")
         alert("")
-        alert("You like this app, want to honor the effort put into")
-        alert("it, ensure continuous development and support?")
-        alert("Then please consider making a donation.")
-        alert("  DONATE: https://hass-apps.readthedocs.io/en/stable/#donations")
-        alert("Thank you very much and enjoy {}!".format(self.Meta.name))
-        alert("")
+        # Request for donations disabled due to maintenance mode
+        # alert("You like this app, want to honor the effort put into")
+        # alert("it, ensure continuous development and support?")
+        # alert("Then please consider making a donation.")
+        # alert("  DONATE: https://hass-apps.readthedocs.io/en/stable/#donations")
+        # alert("Thank you very much and enjoy {}!".format(self.Meta.name))
+        # alert("")
 
         if callable(self.Meta.config_schema):
             self.log("Validating the app's configuration.", level="DEBUG")
