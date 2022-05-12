@@ -1,0 +1,33 @@
+# Delta that is added to the temperature value sent to this
+# thermostat in order to correct potential inaccuracies of
+# the temperature sensor.
+#high_delta: 0
+#low_delta: 0
+
+# The minimum/maximum temperature the thermostat supports.
+# If configured, temperatures outside the supported range are changed
+# to the minimum/maximum value before they're sent to the thermostat.
+# null means there is no limitation.
+#high_min_temp: null
+#high_max_temp: null
+#low_min_temp: null
+#low_max_temp: null
+
+# When this is set to something different than "OFF", Schedy will
+# rewrite the value OFF into this temperature before sending it to
+# the thermostat. You can set it to 4.0 degrees (if your thermostat
+# supports this low value) in order to prevent frost-induced damage
+# to your heating setup.
+# This setting is required when you want to send OFF to thermostats with
+# disabled HVAC mode support.
+#off_temp: "OFF"
+
+# Set this to false if your thermostat doesn't support HVAC modes.
+# Please note that you won't be able to turn it off completely without
+# HVAC mode support. Remember to also configure off_temp when you
+# disable this feature.
+#supports_hvac_modes: true
+
+# These two settings can be used to tweak the names of the HVAC modes.
+#hvac_mode_on: "heat_cool"
+#hvac_mode_off: "off"
